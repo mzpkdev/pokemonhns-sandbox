@@ -1,7 +1,7 @@
-import { createHash } from "node:crypto"
-import { execFileSync } from "node:child_process"
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { join, relative } from "node:path"
+import * as childProcess from "node:child_process"
+import * as crypto from "node:crypto"
+import * as fs from "node:fs"
+import * as path from "node:path"
 
 import {
   discoverExteriorMaps,
@@ -153,39 +153,41 @@ const kantoNamedMaps = new Set([
   "ViridianForest",
 ])
 
-function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, "utf8")) as T
+const readJson = <T>(filePath: string): T => {
+  return JSON.parse(fs.readFileSync(filePath, "utf8")) as T
 }
 
-function sha256(path: string): string {
-  return createHash("sha256").update(readFileSync(path)).digest("hex")
+const sha256 = (filePath: string): string => {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")
 }
 
-function posixRelative(root: string, path: string): string {
-  return relative(root, path).replaceAll("\\", "/")
+const posixRelative = (root: string, filePath: string): string => {
+  return path.relative(root, filePath).replaceAll("\\", "/")
 }
 
-function git(root: string, args: string[]): string | null {
+const git = (root: string, args: string[]): string | null => {
   try {
-    return execFileSync("git", args, {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim()
+    return childProcess
+      .execFileSync("git", args, {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      })
+      .trim()
   } catch {
     return null
   }
 }
 
-function sourceState(root: string): MapCatalog["source"] {
+const sourceState = (root: string): MapCatalog["source"] => {
   return {
     revision: git(root, ["rev-parse", "HEAD"]) ?? "unknown",
     workingTreeDirty: Boolean(git(root, ["status", "--porcelain"])),
   }
 }
 
-function sourceGroups(root: string): Map<string, string> {
-  const groups = readJson<MapGroups>(join(root, "data/maps/map_groups.json"))
+const sourceGroups = (root: string): Map<string, string> => {
+  const groups = readJson<MapGroups>(path.join(root, "data/maps/map_groups.json"))
   const index = new Map<string, string>()
   for (const group of groups.group_order) {
     for (const name of groups[group] ?? []) {
@@ -195,7 +197,7 @@ function sourceGroups(root: string): Map<string, string> {
   return index
 }
 
-function regionFor(name: string, group: string): { id: string; label: string } {
+const regionFor = (name: string, group: string): { id: string; label: string } => {
   if (group.startsWith("gMapGroup_Emerald") || group === "gMapGroup_SpecialArea") {
     return { id: "hoenn", label: "Hoenn and inherited maps" }
   }
@@ -206,7 +208,7 @@ function regionFor(name: string, group: string): { id: string; label: string } {
   return { id: "johto", label: "Johto" }
 }
 
-function categoryFor(mapType: string): string {
+const categoryFor = (mapType: string): string => {
   if (mapType === "MAP_TYPE_TOWN" || mapType === "MAP_TYPE_CITY") {
     return "towns"
   }
@@ -216,16 +218,19 @@ function categoryFor(mapType: string): string {
   return "routes"
 }
 
-function mapOutputDirectory(output: string, region: string, category: string): string {
-  const directory = join(output, "maps", region, category)
-  mkdirSync(directory, { recursive: true })
+const mapOutputDirectory = (output: string, region: string, category: string): string => {
+  const directory = path.join(output, "maps", region, category)
+  fs.mkdirSync(directory, { recursive: true })
   return directory
 }
 
 /** Render every exterior map plus the metadata needed by the static map atlas. */
-export function renderCatalog(root: string, output: string): { mapCount: number; output: string } {
+export const renderCatalog = (
+  root: string,
+  output: string,
+): { mapCount: number; output: string } => {
   const layouts = new Map(
-    readJson<LayoutDocument>(join(root, "data/layouts/layouts.json")).layouts.map((layout) => [
+    readJson<LayoutDocument>(path.join(root, "data/layouts/layouts.json")).layouts.map((layout) => [
       layout.id,
       layout,
     ]),
@@ -235,7 +240,7 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
   const sourceMaps = new Map(
     exteriorMaps.map((name) => [
       name,
-      readJson<SourceMap>(join(root, "data/maps", name, "map.json")),
+      readJson<SourceMap>(path.join(root, "data/maps", name, "map.json")),
     ]),
   )
   const namesById = new Map([...sourceMaps].map(([name, map]) => [map.id, name]))
@@ -254,10 +259,10 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
     const region = regionFor(name, group)
     const category = categoryFor(source.map_type)
     const nativeDirectory = mapOutputDirectory(output, region.id, category)
-    const nativePath = join(nativeDirectory, `${name}.png`)
-    const overviewDirectory = join(output, "overviews", region.id, category)
-    mkdirSync(overviewDirectory, { recursive: true })
-    const overviewPath = join(overviewDirectory, `${name}.png`)
+    const nativePath = path.join(nativeDirectory, `${name}.png`)
+    const overviewDirectory = path.join(output, "overviews", region.id, category)
+    fs.mkdirSync(overviewDirectory, { recursive: true })
+    const overviewPath = path.join(overviewDirectory, `${name}.png`)
     renderMap(root, name, nativePath)
     writeNearestNeighborOverview(nativePath, overviewPath)
     const widthPixels = layout.width * 16
@@ -340,7 +345,7 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
     regions,
     maps,
   }
-  mkdirSync(output, { recursive: true })
-  writeFileSync(join(output, "catalog.json"), `${JSON.stringify(catalog, null, 2)}\n`)
+  fs.mkdirSync(output, { recursive: true })
+  fs.writeFileSync(path.join(output, "catalog.json"), `${JSON.stringify(catalog, null, 2)}\n`)
   return { mapCount: maps.length, output }
 }

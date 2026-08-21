@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
-import { dirname, join } from "node:path"
-import { deflateSync, inflateSync } from "node:zlib"
+import * as fs from "node:fs"
+import * as path from "node:path"
+import * as zlib from "node:zlib"
 
 type Layout = {
   id: string
@@ -53,24 +53,24 @@ export const exteriorMapTypes = new Set([
   "MAP_TYPE_UNDERWATER",
 ])
 
-function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, "utf8")) as T
+const readJson = <T>(filePath: string): T => {
+  return JSON.parse(fs.readFileSync(filePath, "utf8")) as T
 }
 
-function readDefine(path: string, name: string): number {
-  const source = readFileSync(path, "utf8")
+const readDefine = (filePath: string, name: string): number => {
+  const source = fs.readFileSync(filePath, "utf8")
   const match = new RegExp(`^\\s*#define\\s+${name}\\s+(\\d+)\\s*$`, "m").exec(source)
   if (!match?.[1]) {
-    throw new Error(`cannot resolve ${name} from ${path}`)
+    throw new Error(`cannot resolve ${name} from ${filePath}`)
   }
   return Number(match[1])
 }
 
-function readIndexedPng(path: string): IndexedPng {
-  const data = readFileSync(path)
+const readIndexedPng = (filePath: string): IndexedPng => {
+  const data = fs.readFileSync(filePath)
   const signature = "89504e470d0a1a0a"
   if (data.subarray(0, 8).toString("hex") !== signature) {
-    throw new Error(`not a PNG: ${path}`)
+    throw new Error(`not a PNG: ${filePath}`)
   }
 
   let position = 8
@@ -93,7 +93,7 @@ function readIndexedPng(path: string): IndexedPng {
   }
 
   if (!header || header.length !== 13) {
-    throw new Error(`missing PNG header: ${path}`)
+    throw new Error(`missing PNG header: ${filePath}`)
   }
   const width = header.readUInt32BE(0)
   const height = header.readUInt32BE(4)
@@ -101,10 +101,10 @@ function readIndexedPng(path: string): IndexedPng {
   const color = header[9]
   const interlace = header[12]
   if (color !== 3 || (depth !== 4 && depth !== 8) || interlace !== 0) {
-    throw new Error(`unsupported PNG format in ${path}: depth=${depth}, color=${color}`)
+    throw new Error(`unsupported PNG format in ${filePath}: depth=${depth}, color=${color}`)
   }
 
-  const raw = inflateSync(Buffer.concat(imageData))
+  const raw = zlib.inflateSync(Buffer.concat(imageData))
   const packedWidth = Math.ceil((width * depth) / 8)
   const rows: Uint8Array[] = []
   let previous = new Uint8Array(packedWidth)
@@ -155,18 +155,19 @@ function readIndexedPng(path: string): IndexedPng {
   return { width, height, rows }
 }
 
-function readPalette(path: string): Rgb[] {
-  const colors = readFileSync(path, "utf8")
+const readPalette = (filePath: string): Rgb[] => {
+  const colors = fs
+    .readFileSync(filePath, "utf8")
     .split(/\r?\n/)
     .slice(3, 19)
     .map((line) => line.split(/\s+/).map(Number) as [number, number, number])
   if (colors.length !== 16 || colors.some((color) => color.some(Number.isNaN))) {
-    throw new Error(`invalid palette: ${path}`)
+    throw new Error(`invalid palette: ${filePath}`)
   }
   return colors
 }
 
-function crc32(bytes: Uint8Array): number {
+const crc32 = (bytes: Uint8Array): number => {
   let value = 0xffffffff
   for (const byte of bytes) {
     value ^= byte
@@ -177,7 +178,7 @@ function crc32(bytes: Uint8Array): number {
   return (value ^ 0xffffffff) >>> 0
 }
 
-function pngChunk(kind: string, payload: Uint8Array): Buffer {
+const pngChunk = (kind: string, payload: Uint8Array): Buffer => {
   const kindBytes = Buffer.from(kind, "ascii")
   const chunk = Buffer.alloc(12 + payload.length)
   chunk.writeUInt32BE(payload.length, 0)
@@ -187,7 +188,7 @@ function pngChunk(kind: string, payload: Uint8Array): Buffer {
   return chunk
 }
 
-function writeRgbPng(path: string, width: number, height: number, pixels: Uint8Array): void {
+const writeRgbPng = (filePath: string, width: number, height: number, pixels: Uint8Array): void => {
   const stride = width * 3
   const raw = Buffer.alloc(height * (stride + 1))
   for (let y = 0; y < height; y += 1) {
@@ -200,13 +201,13 @@ function writeRgbPng(path: string, width: number, height: number, pixels: Uint8A
   header.writeUInt32BE(height, 4)
   header[8] = 8
   header[9] = 2
-  mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(
-    path,
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  fs.writeFileSync(
+    filePath,
     Buffer.concat([
       Buffer.from("89504e470d0a1a0a", "hex"),
       pngChunk("IHDR", header),
-      pngChunk("IDAT", deflateSync(raw, { level: 9 })),
+      pngChunk("IDAT", zlib.deflateSync(raw, { level: 9 })),
       pngChunk("IEND", Buffer.alloc(0)),
     ]),
   )
@@ -217,8 +218,8 @@ function writeRgbPng(path: string, width: number, height: number, pixels: Uint8A
  * renderer. Render output deliberately uses unfiltered 8-bit RGB rows, so the
  * preview can stay dependency-free while retaining exact terrain colours.
  */
-export function writeNearestNeighborOverview(input: string, output: string, scale = 4): void {
-  const data = readFileSync(input)
+export const writeNearestNeighborOverview = (input: string, output: string, scale = 4): void => {
+  const data = fs.readFileSync(input)
   if (data.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") {
     throw new Error(`not a PNG: ${input}`)
   }
@@ -250,7 +251,7 @@ export function writeNearestNeighborOverview(input: string, output: string, scal
   if (width % scale !== 0 || height % scale !== 0) {
     throw new Error(`${input}: dimensions must divide evenly by ${scale}`)
   }
-  const source = inflateSync(Buffer.concat(imageData))
+  const source = zlib.inflateSync(Buffer.concat(imageData))
   const sourceStride = width * 3 + 1
   if (source.length !== height * sourceStride) {
     throw new Error(`${input}: unexpected RGB data length`)
@@ -271,7 +272,7 @@ export function writeNearestNeighborOverview(input: string, output: string, scal
   writeRgbPng(output, outputWidth, outputHeight, pixels)
 }
 
-function splitTiles(image: IndexedPng): Uint8Array[] {
+const splitTiles = (image: IndexedPng): Uint8Array[] => {
   const tiles: Uint8Array[] = []
   for (let tileY = 0; tileY < image.height; tileY += 8) {
     for (let tileX = 0; tileX < image.width; tileX += 8) {
@@ -285,11 +286,11 @@ function splitTiles(image: IndexedPng): Uint8Array[] {
   return tiles
 }
 
-function resolveTilesetDirectory(root: string, symbol: string): string {
+const resolveTilesetDirectory = (root: string, symbol: string): string => {
   const graphics = [
-    readFileSync(join(root, "src/data/tilesets/graphics.h"), "utf8"),
-    existsSync(join(root, "src/graphics.c"))
-      ? readFileSync(join(root, "src/graphics.c"), "utf8")
+    fs.readFileSync(path.join(root, "src/data/tilesets/graphics.h"), "utf8"),
+    fs.existsSync(path.join(root, "src/graphics.c"))
+      ? fs.readFileSync(path.join(root, "src/graphics.c"), "utf8")
       : "",
   ].join("\n")
   const stem = symbol.replace(/^gTileset_/, "")
@@ -298,27 +299,27 @@ function resolveTilesetDirectory(root: string, symbol: string): string {
   )
   const match = expression.exec(graphics)
   if (match?.[1]) {
-    return join(root, match[1])
+    return path.join(root, match[1])
   }
   const snakeName = stem.replace(/(?!^)([A-Z])/g, "_$1").toLowerCase()
   for (const kind of ["primary", "secondary"]) {
-    const candidate = join(root, "data/tilesets", kind, snakeName)
-    if (existsSync(join(candidate, "tiles.png"))) {
+    const candidate = path.join(root, "data/tilesets", kind, snakeName)
+    if (fs.existsSync(path.join(candidate, "tiles.png"))) {
       return candidate
     }
   }
   throw new Error(`cannot resolve ${symbol}`)
 }
 
-function resolveTilesetAssets(root: string, symbol: string): TilesetAssets {
-  const headers = readFileSync(join(root, "src/data/tilesets/headers.h"), "utf8")
+const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
+  const headers = fs.readFileSync(path.join(root, "src/data/tilesets/headers.h"), "utf8")
   const graphics = [
-    readFileSync(join(root, "src/data/tilesets/graphics.h"), "utf8"),
-    existsSync(join(root, "src/graphics.c"))
-      ? readFileSync(join(root, "src/graphics.c"), "utf8")
+    fs.readFileSync(path.join(root, "src/data/tilesets/graphics.h"), "utf8"),
+    fs.existsSync(path.join(root, "src/graphics.c"))
+      ? fs.readFileSync(path.join(root, "src/graphics.c"), "utf8")
       : "",
   ].join("\n")
-  const metatiles = readFileSync(join(root, "src/data/tilesets/metatiles.h"), "utf8")
+  const metatiles = fs.readFileSync(path.join(root, "src/data/tilesets/metatiles.h"), "utf8")
   const header = new RegExp(`const struct Tileset ${symbol}\\s*=\\s*\\{([\\s\\S]*?)\\};`).exec(
     headers,
   )
@@ -341,7 +342,7 @@ function resolveTilesetAssets(root: string, symbol: string): TilesetAssets {
         ? new RegExp(`${resource}${pattern.source}`, pattern.flags).exec(source)
         : null
       if (match?.[1]) {
-        files.set(field, join(root, match[1]))
+        files.set(field, path.join(root, match[1]))
       }
     }
     const tiles = files.get("tiles")
@@ -350,22 +351,22 @@ function resolveTilesetAssets(root: string, symbol: string): TilesetAssets {
     if (tiles && palettes && metatilePath) {
       const pngTiles = tiles.replace(/\/tiles(?:\.png|\.4bpp(?:\.lz)?)$/, "/tiles.png")
       return {
-        tiles: existsSync(pngTiles) ? pngTiles : tiles,
-        palettes: dirname(palettes),
+        tiles: fs.existsSync(pngTiles) ? pngTiles : tiles,
+        palettes: path.dirname(palettes),
         metatiles: metatilePath,
       }
     }
   }
   const directory = resolveTilesetDirectory(root, symbol)
   return {
-    tiles: join(directory, "tiles.png"),
-    palettes: join(directory, "palettes"),
-    metatiles: join(directory, "metatiles.bin"),
+    tiles: path.join(directory, "tiles.png"),
+    palettes: path.join(directory, "palettes"),
+    metatiles: path.join(directory, "metatiles.bin"),
   }
 }
 
-function readLayoutFormatCounts(root: string, layoutFormat: string): [number, number, number] {
-  const fieldmap = join(root, "include/fieldmap.h")
+const readLayoutFormatCounts = (root: string, layoutFormat: string): [number, number, number] => {
+  const fieldmap = path.join(root, "include/fieldmap.h")
   if (layoutFormat === "emerald") {
     return [
       readDefine(fieldmap, "NUM_TILES_IN_PRIMARY"),
@@ -381,7 +382,7 @@ function readLayoutFormatCounts(root: string, layoutFormat: string): [number, nu
     ]
   }
   if (layoutFormat === "johto") {
-    const source = readFileSync(join(root, "src/fieldmap.c"), "utf8")
+    const source = fs.readFileSync(path.join(root, "src/fieldmap.c"), "utf8")
     const match = /\[MAP_LAYOUT_FORMAT_JOHTO\]\s*=\s*\{\s*(\d+),\s*(\d+),\s*(\d+),/.exec(source)
     if (match?.[1] && match[2] && match[3]) {
       return [Number(match[1]), Number(match[2]), Number(match[3])]
@@ -390,19 +391,19 @@ function readLayoutFormatCounts(root: string, layoutFormat: string): [number, nu
   throw new Error(`unsupported map layout format: ${layoutFormat}`)
 }
 
-function choosePalettePath(primary: string, secondary: string, index: number): string {
+const choosePalettePath = (primary: string, secondary: string, index: number): string => {
   const name = `${String(index).padStart(2, "0")}.pal`
-  const preferred = join(primary, name)
-  return existsSync(preferred) ? preferred : join(secondary, name)
+  const preferred = path.join(primary, name)
+  return fs.existsSync(preferred) ? preferred : path.join(secondary, name)
 }
 
-function loadRenderAssets(
+const loadRenderAssets = (
   root: string,
   layout: Layout,
   primaryTileCount: number,
   primaryPaletteCount: number,
   paletteCount: number,
-): RenderAssets {
+): RenderAssets => {
   const cacheKey = [
     root,
     layout.primary_tileset,
@@ -420,8 +421,8 @@ function loadRenderAssets(
   const assets = {
     primaryTiles: splitTiles(readIndexedPng(primary.tiles)),
     secondaryTiles: splitTiles(readIndexedPng(secondary.tiles)),
-    primaryMetatiles: readFileSync(primary.metatiles),
-    secondaryMetatiles: readFileSync(secondary.metatiles),
+    primaryMetatiles: fs.readFileSync(primary.metatiles),
+    secondaryMetatiles: fs.readFileSync(secondary.metatiles),
     palettes: Array.from({ length: paletteCount }, (_, index) =>
       readPalette(
         choosePalettePath(
@@ -436,23 +437,24 @@ function loadRenderAssets(
   return assets
 }
 
-export function discoverExteriorMaps(root: string): string[] {
-  const mapsRoot = join(root, "data/maps")
-  return readdirSync(mapsRoot)
+export const discoverExteriorMaps = (root: string): string[] => {
+  const mapsRoot = path.join(root, "data/maps")
+  return fs
+    .readdirSync(mapsRoot)
     .sort()
-    .filter((name) => existsSync(join(mapsRoot, name, "map.json")))
+    .filter((name) => fs.existsSync(path.join(mapsRoot, name, "map.json")))
     .filter((name) =>
-      exteriorMapTypes.has(readJson<MapData>(join(mapsRoot, name, "map.json")).map_type),
+      exteriorMapTypes.has(readJson<MapData>(path.join(mapsRoot, name, "map.json")).map_type),
     )
 }
 
-export function renderMap(
+export const renderMap = (
   root: string,
   mapName: string,
   output: string,
-): { width: number; height: number } {
-  const layouts = readJson<LayoutDocument>(join(root, "data/layouts/layouts.json")).layouts
-  const mapData = readJson<MapData>(join(root, "data/maps", mapName, "map.json"))
+): { width: number; height: number } => {
+  const layouts = readJson<LayoutDocument>(path.join(root, "data/layouts/layouts.json")).layouts
+  const mapData = readJson<MapData>(path.join(root, "data/maps", mapName, "map.json"))
   const layout = layouts.find((candidate) => candidate.id === mapData.layout)
   if (!layout) {
     throw new Error(`${mapName}: unknown layout ${mapData.layout}`)
@@ -461,10 +463,10 @@ export function renderMap(
     root,
     layout.format ?? "emerald",
   )
-  const paletteCount = readDefine(join(root, "include/fieldmap.h"), "NUM_PALS_TOTAL")
+  const paletteCount = readDefine(path.join(root, "include/fieldmap.h"), "NUM_PALS_TOTAL")
   const assets = loadRenderAssets(root, layout, primaryTileCount, primaryPaletteCount, paletteCount)
 
-  const blockdata = readFileSync(join(root, layout.blockdata_filepath))
+  const blockdata = fs.readFileSync(path.join(root, layout.blockdata_filepath))
   const mapWordCount = layout.width * layout.height
   if (blockdata.length < mapWordCount * 2) {
     throw new Error(`${mapName}: blockdata is shorter than its layout`)
@@ -473,13 +475,13 @@ export function renderMap(
   const outputHeight = layout.height * 16
   const outputPixels = new Uint8Array(outputWidth * outputHeight * 3)
 
-  function drawTile(
+  const drawTile = (
     tileWord: number,
     secondarySource: boolean,
     destinationX: number,
     destinationY: number,
     transparent: boolean,
-  ): void {
+  ): void => {
     const tileId = tileWord & 0x3ff
     const horizontalFlip = Boolean(tileWord & 0x400)
     const verticalFlip = Boolean(tileWord & 0x800)

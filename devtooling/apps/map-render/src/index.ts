@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync } from "node:fs"
-import { dirname, resolve } from "node:path"
+import * as fs from "node:fs"
+import * as path from "node:path"
 import { execute, defineArgument, defineCommand, defineOption, terminal } from "cmdore"
 
 import { projectName } from "@pokemonhns/devtooling-core"
@@ -9,16 +9,16 @@ import { projectName } from "@pokemonhns/devtooling-core"
 import { renderCatalog } from "./catalog.js"
 import { discoverExteriorMaps, renderMap } from "./renderer.js"
 
-function findRepositoryRoot(start: string): string {
-  let current = resolve(start)
+const findRepositoryRoot = (start: string): string => {
+  let current = path.resolve(start)
   while (true) {
     if (
-      existsSync(resolve(current, "data/maps")) &&
-      existsSync(resolve(current, "data/layouts/layouts.json"))
+      fs.existsSync(path.resolve(current, "data/maps")) &&
+      fs.existsSync(path.resolve(current, "data/layouts/layouts.json"))
     ) {
       return current
     }
-    const parent = dirname(current)
+    const parent = path.dirname(current)
     if (parent === current) {
       throw new Error("cannot find a Pokemon HnS source tree; pass --repo <path>")
     }
@@ -72,9 +72,9 @@ const renderCommand = defineCommand({
       throw new Error("provide at least one map name, use --all-exteriors, or use --catalog")
     }
 
-    const root = repo ? resolve(repo) : findRepositoryRoot(process.cwd())
+    const root = repo ? path.resolve(repo) : findRepositoryRoot(process.cwd())
     if (catalog) {
-      const outputDirectory = resolve(
+      const outputDirectory = path.resolve(
         root,
         output === "build/map-renders" ? "build/map-atlas/map-catalog" : output,
       )
@@ -83,9 +83,9 @@ const renderCommand = defineCommand({
       return
     }
     const targets = allExteriors ? discoverExteriorMaps(root) : [...new Set(maps)]
-    const outputDirectory = resolve(root, output)
+    const outputDirectory = path.resolve(root, output)
     for (const mapName of targets) {
-      const dimensions = renderMap(root, mapName, resolve(outputDirectory, `${mapName}.png`))
+      const dimensions = renderMap(root, mapName, path.resolve(outputDirectory, `${mapName}.png`))
       terminal.log(`${mapName}: ${dimensions.width}x${dimensions.height} metatiles`)
     }
     terminal.log(`rendered ${targets.length} map(s) to ${outputDirectory}`)

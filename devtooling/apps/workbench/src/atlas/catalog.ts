@@ -89,18 +89,18 @@ export class CatalogValidationError extends Error {
   }
 }
 
-function asRecord(value: unknown): Record<string, unknown> | null {
+const asRecord = (value: unknown): Record<string, unknown> | null => {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null
 }
 
-function hasString(value: unknown): value is string {
+const hasString = (value: unknown): value is string => {
   return typeof value === "string"
 }
 
 /** Check the catalog fields the atlas relies upon before rendering any map data. */
-export function validateCatalog(value: unknown): MapCatalog {
+export const validateCatalog = (value: unknown): MapCatalog => {
   const root = asRecord(value)
   const details: string[] = []
   if (!root) {
@@ -152,7 +152,7 @@ export function validateCatalog(value: unknown): MapCatalog {
   return catalog
 }
 
-export async function loadCatalog(signal?: AbortSignal): Promise<MapCatalog> {
+export const loadCatalog = async (signal?: AbortSignal): Promise<MapCatalog> => {
   const response = await fetch(catalogUrl(), { cache: "no-store", signal })
   if (!response.ok) {
     throw new Error(

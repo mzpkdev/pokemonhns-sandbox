@@ -1,14 +1,14 @@
 /** Build an asset URL that works from both Vite and a relative static deployment. */
-export function atlasUrl(path: string, baseUrl = import.meta.env.BASE_URL): string {
+export const atlasUrl = (path: string, baseUrl = import.meta.env.BASE_URL): string => {
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`
   return `${normalizedBase}${path.replace(/^\/+/, "")}`
 }
 
-export function catalogUrl(baseUrl?: string): string {
+export const catalogUrl = (baseUrl?: string): string => {
   return atlasUrl("catalog.json", baseUrl)
 }
 
-export function mapImageUrl(path: string, baseUrl?: string): string {
+export const mapImageUrl = (path: string, baseUrl?: string): string => {
   return atlasUrl(path, baseUrl)
 }
 
@@ -23,17 +23,17 @@ export type AtlasUrlState = {
   view: AtlasViewState | null
 }
 
-function parameter(url: URL, name: string): string | null {
+const parameter = (url: URL, name: string): string | null => {
   return url.searchParams.get(name)?.trim() || null
 }
 
-function numberParameter(url: URL, name: string): number | null {
+const numberParameter = (url: URL, name: string): number | null => {
   const value = url.searchParams.get(name)
   const number = value === null ? Number.NaN : Number(value)
   return Number.isFinite(number) ? number : null
 }
 
-export function parseAtlasUrlState(href: string): AtlasUrlState {
+export const parseAtlasUrlState = (href: string): AtlasUrlState => {
   const url = new URL(href, window.location.origin)
   const x = numberParameter(url, "x")
   const y = numberParameter(url, "y")
@@ -45,7 +45,7 @@ export function parseAtlasUrlState(href: string): AtlasUrlState {
   }
 }
 
-export function atlasUrlWithState(href: string, state: AtlasUrlState): string {
+export const atlasUrlWithState = (href: string, state: AtlasUrlState): string => {
   const url = new URL(href, window.location.origin)
   for (const name of ["region", "map", "x", "y", "zoom"]) {
     url.searchParams.delete(name)

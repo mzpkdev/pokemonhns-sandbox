@@ -1,17 +1,20 @@
 <script lang="ts">
-  import type { MapCatalog } from "./catalog.js";
-  import { cn } from "../lib/cn.js";
+  import type { MapCatalog } from "./catalog.js"
+  import { cn } from "../lib/cn.js"
 
   type Props = {
-    regions: MapCatalog["regions"];
-    activeRegionId: string;
-    onSelectRegion?: (regionId: string) => void;
-  };
+    regions: MapCatalog["regions"]
+    activeRegionId: string
+    onSelectRegion?: (regionId: string) => void
+  }
 
-  let { regions, activeRegionId, onSelectRegion }: Props = $props();
+  let { regions, activeRegionId, onSelectRegion }: Props = $props()
 </script>
 
-<nav class="flex flex-wrap items-center gap-1.5 rounded-xl border border-atlas-border bg-atlas-panel p-4 shadow-[0_5px_18px_#56634c1b] md:block" aria-label="Regions">
+<nav
+  class="flex flex-wrap items-center gap-1.5 rounded-xl border border-atlas-border bg-atlas-panel p-4 shadow-[0_5px_18px_#56634c1b] md:block"
+  aria-label="Regions"
+>
   <h2 class="mb-1 w-full text-base font-semibold md:mb-3">Regions</h2>
   {#each regions as region}
     <button
