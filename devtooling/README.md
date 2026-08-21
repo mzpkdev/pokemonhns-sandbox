@@ -4,9 +4,8 @@ This is an isolated Node 24 workspace for tools that support the Pokemon HnS
 fork. It does not participate in the ROM's Makefile build.
 
 The workspace uses npm workspaces, Turborepo, WebAnvil, and TypeScript 7.
-WebAnvil owns formatting, linting, test commands, and workbench browser
-tests. TypeScript 7 and Vite own builds because the current WebAnvil release
-does not support TypeScript 7 Node builds.
+WebAnvil owns builds, formatting, linting, test commands, and workbench browser
+tests. The shared Node package uses WebAnvil's Oxc declaration generator.
 
 ## Layout
 
@@ -47,4 +46,4 @@ WebAnvil browser test.
 
 `npm run map-atlas:catalog` renders every exterior map, writes its catalog to
 `build/map-atlas/map-catalog/`, and prepares the atlas assets. `npm run map-atlas`
-then starts the Svelte/Vite workbench.
+then starts the Svelte workbench.

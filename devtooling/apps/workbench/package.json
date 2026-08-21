@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "wa build",
     "check": "wa check",
     "clean": "wa clean",
-    "dev": "vite",
+    "dev": "wa dev",
     "e2e": "wa e2e",
     "format": "wa format",
     "lint": "wa lint",
-    "preview": "vite preview",
+    "preview": "wa preview",
     "test": "wa test",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },

@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".webanvil/buildinfo.json"]
     },
     "check": {
       "dependsOn": ["^build", "^check"]
