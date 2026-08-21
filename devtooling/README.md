@@ -11,11 +11,10 @@ tests, and declaration generation.
 
 ```text
 apps/       User-facing developer tools
-packages/   Shared tooling libraries
 ```
 
-`apps/workbench` is the starter package. `packages/core` holds shared types and
-utilities. Add packages only when code has a real shared consumer.
+`apps/workbench` is the map atlas. Add a shared package only when code has a
+real shared consumer.
 
 `apps/workbench` is the Svelte map atlas. It consumes the static catalog and
 terrain images created by `apps/map-render`; it does not read the ROM or source

@@ -4,8 +4,6 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import { execute, defineArgument, defineCommand, defineOption, terminal } from "cmdore"
 
-import { projectName } from "@pokemonhns/devtooling-core"
-
 import { renderCatalog } from "./catalog.js"
 import { discoverExteriorMaps, renderMap } from "./renderer.js"
 
@@ -96,6 +94,6 @@ await execute(renderCommand, {
   metadata: {
     name: "hns-map-render",
     version: "0.0.0",
-    description: `Render ${projectName} exterior map terrain`,
+    description: "Render Pokemon HnS exterior map terrain",
   },
 })
