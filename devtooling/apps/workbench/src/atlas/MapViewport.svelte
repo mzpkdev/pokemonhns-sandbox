@@ -16,12 +16,12 @@
   import View from "ol/View";
   import "ol/ol.css";
 
+  import MapToolbar from "./MapToolbar.svelte";
   import type { CatalogMap, MapCatalog } from "./catalog.js";
   import { atlasExtent, solveGeography, toOpenLayersExtent, visibleSurfaceMaps } from "./geography.js";
+  import type { FocusRequest, WarpSelection } from "./types.js";
   import { mapImageUrl, type AtlasViewState } from "./urls.js";
 
-  type WarpSelection = { sourceMapName: string; warpId: string };
-  type FocusRequest = { mapName: string; token: number };
   type Props = {
     catalog: MapCatalog;
     maps: CatalogMap[];
@@ -123,13 +123,14 @@
     if (!extent || !host) return;
     const mapHost = host;
     const projection = new Projection({ code: "pokemonhns-atlas-pixels", units: "pixels", extent });
-    const createImageSource = (map: CatalogMap, imageExtent: [number, number, number, number], overview: boolean) =>
-      new ImageStatic({
+    function createImageSource(map: CatalogMap, imageExtent: [number, number, number, number], overview: boolean): ImageStatic {
+      return new ImageStatic({
         url: mapImageUrl(overview ? map.image.overview.path : map.image.path),
         imageExtent,
         projection,
         interpolate: false,
-      });
+      })
+    }
     const imageRecords = surfaceMaps.map((map) => {
       const placement = geography.placements[map.name]!;
       const imageExtent = toOpenLayersExtent(placement, catalog.pixelsPerMetatile);
@@ -182,7 +183,7 @@
       view,
     });
     let showingNative = false;
-    const reportCamera = () => {
+    function reportCamera(): void {
       const center = view.getCenter();
       const zoom = view.getZoom();
       const [x, y] = center ?? [];
@@ -196,7 +197,7 @@
       for (const record of imageRecords) {
         record.layer.setSource(createImageSource(record.map, record.imageExtent, !showingNative));
       }
-    };
+    }
     map.on("moveend", reportCamera);
     map.on("pointermove", (event) => {
       if (event.dragging) return;
@@ -240,21 +241,16 @@
 
 {#if extent}
   <section class="overflow-hidden rounded-xl border border-atlas-border bg-atlas-panel shadow-[0_5px_18px_#56634c1b]" aria-label="Interactive map atlas">
-    <div class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm text-atlas-muted md:items-center">
-      <span>{surfaceMaps.length} surface maps, {geography.components.length} components</span>
-      {#if geography.residualCount > 0}
-        <span class="font-bold text-[#994a14]">{geography.residualCount} topology conflicts retained</span>
-      {/if}
-      <label class="inline-flex cursor-pointer items-center gap-1.5 font-bold whitespace-nowrap text-[#263e29]">
-        <input class="size-[1.1rem]" type="checkbox" bind:checked={showExits} onchange={() => onToggleExits?.(showExits)} />
-        Exits
-      </label>
-      <div class="ml-0 flex gap-1.5 md:ml-auto" aria-label="Map controls">
-        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}>−</button>
-        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}>+</button>
-        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.fit(extent!, { padding: [40, 40, 40, 40], maxZoom: 3 })}>Fit / reset</button>
-      </div>
-    </div>
+    <MapToolbar
+      surfaceMapCount={surfaceMaps.length}
+      componentCount={geography.components.length}
+      residualCount={geography.residualCount}
+      {showExits}
+      onToggleExits={onToggleExits}
+      onZoomOut={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}
+      onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
+      onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
+    />
     <div class="h-[60vh] min-h-88 border-t border-[#d6dfd3] bg-[#cfdacc] md:h-[min(70vh,48rem)] md:min-h-112" bind:this={host} aria-label="Interactive regional map"></div>
     <p class="m-0 px-4 py-3 text-sm text-atlas-muted">Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when Exits is enabled.</p>
   </section>

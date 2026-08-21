@@ -22,6 +22,14 @@
       "dependsOn": ["^lint"],
       "outputs": []
     },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "e2e": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": []

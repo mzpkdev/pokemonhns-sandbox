@@ -8,12 +8,13 @@
   "type": "module",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "check": "npm run format && npm run lint && npm run typecheck",
+    "check": "wa check",
     "clean": "wa clean",
     "dev": "tsc --project tsconfig.build.json --watch",
-    "format": "wa format --check",
+    "format": "wa format",
     "lint": "wa lint",
     "render": "npm run build && node dist/index.js",
+    "test": "wa test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

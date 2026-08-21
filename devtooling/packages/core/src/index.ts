@@ -1,6 +1,6 @@
-export interface ToolDescriptor {
-  readonly id: string;
-  readonly label: string;
+export type ToolDescriptor = {
+  readonly id: string
+  readonly label: string
 }
 
-export const projectName = "Pokemon HnS";
+export const projectName = "Pokemon HnS"

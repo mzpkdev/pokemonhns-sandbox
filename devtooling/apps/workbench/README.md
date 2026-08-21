@@ -9,9 +9,13 @@ Run these commands from `devtooling/`:
 ```sh
 npm run map-atlas:catalog
 npm --workspace @pokemonhns/devtooling-workbench run dev
+npm --workspace @pokemonhns/devtooling-workbench run e2e
 ```
 
 The atlas provides region selection, map and map-section search, URL-persisted
 map selection and camera state, native and overview image switching, map facts,
 and warp navigation. Its generated input is ignored under
 `build/map-atlas/map-catalog/`.
+
+The browser test expects a generated catalog. Run the root `npm run e2e`
+command when the catalog has not already been generated.

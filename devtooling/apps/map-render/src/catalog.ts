@@ -1,135 +1,135 @@
-import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { createHash } from "node:crypto"
+import { execFileSync } from "node:child_process"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { join, relative } from "node:path"
 
 import {
   discoverExteriorMaps,
   exteriorMapTypes,
   renderMap,
   writeNearestNeighborOverview,
-} from "./renderer.js";
+} from "./renderer.js"
 
 type MapConnection = {
-  map: string;
-  offset: number;
-  direction: "up" | "down" | "left" | "right" | "dive" | "emerge";
-};
+  map: string
+  offset: number
+  direction: "up" | "down" | "left" | "right" | "dive" | "emerge"
+}
 
 type WarpEvent = {
-  x: number;
-  y: number;
-  elevation: number;
-  dest_map: string;
-  dest_warp_id: string;
-};
+  x: number
+  y: number
+  elevation: number
+  dest_map: string
+  dest_warp_id: string
+}
 
 type SourceMap = {
-  id: string;
-  layout: string;
-  music?: string;
-  region_map_section?: string;
-  requires_flash?: boolean;
-  weather?: string;
-  map_type: string;
-  show_map_name?: boolean;
-  connections?: MapConnection[];
-  warp_events?: WarpEvent[];
-};
+  id: string
+  layout: string
+  music?: string
+  region_map_section?: string
+  requires_flash?: boolean
+  weather?: string
+  map_type: string
+  show_map_name?: boolean
+  connections?: MapConnection[]
+  warp_events?: WarpEvent[]
+}
 
 type Layout = {
-  id: string;
-  width: number;
-  height: number;
-  format?: string;
-  primary_tileset: string;
-  secondary_tileset: string;
-};
+  id: string
+  width: number
+  height: number
+  format?: string
+  primary_tileset: string
+  secondary_tileset: string
+}
 
 type LayoutDocument = {
-  layouts: Layout[];
-};
+  layouts: Layout[]
+}
 
 type MapGroups = {
-  group_order: string[];
-  [group: string]: string[];
-};
+  group_order: string[]
+  [group: string]: string[]
+}
 
 type CatalogMap = {
-  name: string;
-  id: string;
-  region: string;
-  category: string;
-  sourceGroup: string;
-  sourceRegion: null;
-  mapType: string;
-  mapSection: string | null;
+  name: string
+  id: string
+  region: string
+  category: string
+  sourceGroup: string
+  sourceRegion: null
+  mapType: string
+  mapSection: string | null
   image: {
-    path: string;
-    sha256: string;
-    widthPixels: number;
-    heightPixels: number;
+    path: string
+    sha256: string
+    widthPixels: number
+    heightPixels: number
     overview: {
-      path: string;
-      sha256: string;
-      widthPixels: number;
-      heightPixels: number;
-    };
-  };
+      path: string
+      sha256: string
+      widthPixels: number
+      heightPixels: number
+    }
+  }
   layout: {
-    id: string;
-    format: string;
-    widthMetatiles: number;
-    heightMetatiles: number;
-    primaryTileset: string;
-    secondaryTileset: string;
-  };
+    id: string
+    format: string
+    widthMetatiles: number
+    heightMetatiles: number
+    primaryTileset: string
+    secondaryTileset: string
+  }
   world: {
-    layer: "surface" | "underwater";
-    defaultVisible: boolean;
-    variantGroup: null;
-    variant: null;
-  };
+    layer: "surface" | "underwater"
+    defaultVisible: boolean
+    variantGroup: null
+    variant: null
+  }
   presentation: {
-    music: string | null;
-    weather: string | null;
-    showMapName: boolean | null;
-    requiresFlash: boolean | null;
-  };
+    music: string | null
+    weather: string | null
+    showMapName: boolean | null
+    requiresFlash: boolean | null
+  }
   connections: Array<{
-    direction: MapConnection["direction"];
-    offsetMetatiles: number;
-    destinationMapId: string;
-    destinationMap: string | null;
-  }>;
+    direction: MapConnection["direction"]
+    offsetMetatiles: number
+    destinationMapId: string
+    destinationMap: string | null
+  }>
   warps: Array<{
-    warpId: string;
-    xMetatiles: number;
-    yMetatiles: number;
-    elevation: number;
-    destinationWarpId: string;
-    destinationMapId: string;
-    destinationMap: string | null;
-  }>;
-};
+    warpId: string
+    xMetatiles: number
+    yMetatiles: number
+    elevation: number
+    destinationWarpId: string
+    destinationMapId: string
+    destinationMap: string | null
+  }>
+}
 
 type MapCatalog = {
-  $schema: "catalog.schema.json";
-  schemaVersion: 1;
-  format: "pokemonhns-exterior-map-catalog";
-  pixelsPerMetatile: 16;
+  $schema: "catalog.schema.json"
+  schemaVersion: 1
+  format: "pokemonhns-exterior-map-catalog"
+  pixelsPerMetatile: 16
   source: {
-    revision: string;
-    workingTreeDirty: boolean;
-  };
+    revision: string
+    workingTreeDirty: boolean
+  }
   regions: Array<{
-    id: string;
-    label: string;
-    mapCount: number;
-    maps: string[];
-  }>;
-  maps: CatalogMap[];
-};
+    id: string
+    label: string
+    mapCount: number
+    maps: string[]
+  }>
+  maps: CatalogMap[]
+}
 
 const kantoNamedMaps = new Set([
   "CeladonCity",
@@ -151,18 +151,18 @@ const kantoNamedMaps = new Set([
   "VermilionCity_PortOutside",
   "ViridianCity",
   "ViridianForest",
-]);
+])
 
 function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, "utf8")) as T;
+  return JSON.parse(readFileSync(path, "utf8")) as T
 }
 
 function sha256(path: string): string {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
+  return createHash("sha256").update(readFileSync(path)).digest("hex")
 }
 
 function posixRelative(root: string, path: string): string {
-  return relative(root, path).replaceAll("\\", "/");
+  return relative(root, path).replaceAll("\\", "/")
 }
 
 function git(root: string, args: string[]): string | null {
@@ -171,9 +171,9 @@ function git(root: string, args: string[]): string | null {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
+    }).trim()
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -181,45 +181,45 @@ function sourceState(root: string): MapCatalog["source"] {
   return {
     revision: git(root, ["rev-parse", "HEAD"]) ?? "unknown",
     workingTreeDirty: Boolean(git(root, ["status", "--porcelain"])),
-  };
+  }
 }
 
 function sourceGroups(root: string): Map<string, string> {
-  const groups = readJson<MapGroups>(join(root, "data/maps/map_groups.json"));
-  const index = new Map<string, string>();
+  const groups = readJson<MapGroups>(join(root, "data/maps/map_groups.json"))
+  const index = new Map<string, string>()
   for (const group of groups.group_order) {
     for (const name of groups[group] ?? []) {
-      index.set(name, group);
+      index.set(name, group)
     }
   }
-  return index;
+  return index
 }
 
 function regionFor(name: string, group: string): { id: string; label: string } {
   if (group.startsWith("gMapGroup_Emerald") || group === "gMapGroup_SpecialArea") {
-    return { id: "hoenn", label: "Hoenn and inherited maps" };
+    return { id: "hoenn", label: "Hoenn and inherited maps" }
   }
-  const route = /^Route(\d+)(?:North)?$/.exec(name);
+  const route = /^Route(\d+)(?:North)?$/.exec(name)
   if ((route && Number(route[1]) <= 28) || kantoNamedMaps.has(name)) {
-    return { id: "kanto", label: "Kanto" };
+    return { id: "kanto", label: "Kanto" }
   }
-  return { id: "johto", label: "Johto" };
+  return { id: "johto", label: "Johto" }
 }
 
 function categoryFor(mapType: string): string {
   if (mapType === "MAP_TYPE_TOWN" || mapType === "MAP_TYPE_CITY") {
-    return "towns";
+    return "towns"
   }
   if (mapType === "MAP_TYPE_UNDERWATER") {
-    return "underwater";
+    return "underwater"
   }
-  return "routes";
+  return "routes"
 }
 
 function mapOutputDirectory(output: string, region: string, category: string): string {
-  const directory = join(output, "maps", region, category);
-  mkdirSync(directory, { recursive: true });
-  return directory;
+  const directory = join(output, "maps", region, category)
+  mkdirSync(directory, { recursive: true })
+  return directory
 }
 
 /** Render every exterior map plus the metadata needed by the static map atlas. */
@@ -229,39 +229,39 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
       layout.id,
       layout,
     ]),
-  );
-  const groups = sourceGroups(root);
-  const exteriorMaps = discoverExteriorMaps(root);
+  )
+  const groups = sourceGroups(root)
+  const exteriorMaps = discoverExteriorMaps(root)
   const sourceMaps = new Map(
     exteriorMaps.map((name) => [
       name,
       readJson<SourceMap>(join(root, "data/maps", name, "map.json")),
     ]),
-  );
-  const namesById = new Map([...sourceMaps].map(([name, map]) => [map.id, name]));
-  const maps: CatalogMap[] = [];
+  )
+  const namesById = new Map([...sourceMaps].map(([name, map]) => [map.id, name]))
+  const maps: CatalogMap[] = []
 
   for (const name of exteriorMaps) {
-    const source = sourceMaps.get(name)!;
+    const source = sourceMaps.get(name)!
     if (!exteriorMapTypes.has(source.map_type)) {
-      continue;
+      continue
     }
-    const layout = layouts.get(source.layout);
+    const layout = layouts.get(source.layout)
     if (!layout) {
-      throw new Error(`${name}: unknown layout ${source.layout}`);
+      throw new Error(`${name}: unknown layout ${source.layout}`)
     }
-    const group = groups.get(name) ?? "gMapGroup_Unassigned";
-    const region = regionFor(name, group);
-    const category = categoryFor(source.map_type);
-    const nativeDirectory = mapOutputDirectory(output, region.id, category);
-    const nativePath = join(nativeDirectory, `${name}.png`);
-    const overviewDirectory = join(output, "overviews", region.id, category);
-    mkdirSync(overviewDirectory, { recursive: true });
-    const overviewPath = join(overviewDirectory, `${name}.png`);
-    renderMap(root, name, nativePath);
-    writeNearestNeighborOverview(nativePath, overviewPath);
-    const widthPixels = layout.width * 16;
-    const heightPixels = layout.height * 16;
+    const group = groups.get(name) ?? "gMapGroup_Unassigned"
+    const region = regionFor(name, group)
+    const category = categoryFor(source.map_type)
+    const nativeDirectory = mapOutputDirectory(output, region.id, category)
+    const nativePath = join(nativeDirectory, `${name}.png`)
+    const overviewDirectory = join(output, "overviews", region.id, category)
+    mkdirSync(overviewDirectory, { recursive: true })
+    const overviewPath = join(overviewDirectory, `${name}.png`)
+    renderMap(root, name, nativePath)
+    writeNearestNeighborOverview(nativePath, overviewPath)
+    const widthPixels = layout.width * 16
+    const heightPixels = layout.height * 16
     maps.push({
       name,
       id: source.id,
@@ -320,7 +320,7 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
         destinationMapId: warp.dest_map,
         destinationMap: namesById.get(warp.dest_map) ?? null,
       })),
-    });
+    })
   }
 
   const regions = [
@@ -328,9 +328,9 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
     { id: "kanto", label: "Kanto" },
     { id: "hoenn", label: "Hoenn and inherited maps" },
   ].map((region) => {
-    const names = maps.filter((map) => map.region === region.id).map((map) => map.name);
-    return { ...region, mapCount: names.length, maps: names };
-  });
+    const names = maps.filter((map) => map.region === region.id).map((map) => map.name)
+    return { ...region, mapCount: names.length, maps: names }
+  })
   const catalog: MapCatalog = {
     $schema: "catalog.schema.json",
     schemaVersion: 1,
@@ -339,8 +339,8 @@ export function renderCatalog(root: string, output: string): { mapCount: number;
     source: sourceState(root),
     regions,
     maps,
-  };
-  mkdirSync(output, { recursive: true });
-  writeFileSync(join(output, "catalog.json"), `${JSON.stringify(catalog, null, 2)}\n`);
-  return { mapCount: maps.length, output };
+  }
+  mkdirSync(output, { recursive: true })
+  writeFileSync(join(output, "catalog.json"), `${JSON.stringify(catalog, null, 2)}\n`)
+  return { mapCount: maps.length, output }
 }

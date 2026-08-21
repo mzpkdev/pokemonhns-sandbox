@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "check": "npm run format && npm run lint && npm run typecheck",
+    "check": "wa check",
     "clean": "wa clean",
     "dev": "vite",
-    "format": "wa format --check",
+    "e2e": "wa e2e",
+    "format": "wa format",
     "lint": "wa lint",
     "preview": "vite preview",
+    "test": "wa test",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {

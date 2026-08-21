@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { execute, defineArgument, defineCommand, defineOption, terminal } from "cmdore";
+import { existsSync } from "node:fs"
+import { dirname, resolve } from "node:path"
+import { execute, defineArgument, defineCommand, defineOption, terminal } from "cmdore"
 
-import { projectName } from "@pokemonhns/devtooling-core";
+import { projectName } from "@pokemonhns/devtooling-core"
 
-import { renderCatalog } from "./catalog.js";
-import { discoverExteriorMaps, renderMap } from "./renderer.js";
+import { renderCatalog } from "./catalog.js"
+import { discoverExteriorMaps, renderMap } from "./renderer.js"
 
 function findRepositoryRoot(start: string): string {
-  let current = resolve(start);
+  let current = resolve(start)
   while (true) {
     if (
       existsSync(resolve(current, "data/maps")) &&
       existsSync(resolve(current, "data/layouts/layouts.json"))
     ) {
-      return current;
+      return current
     }
-    const parent = dirname(current);
+    const parent = dirname(current)
     if (parent === current) {
-      throw new Error("cannot find a Pokemon HnS source tree; pass --repo <path>");
+      throw new Error("cannot find a Pokemon HnS source tree; pass --repo <path>")
     }
-    current = parent;
+    current = parent
   }
 }
 
@@ -63,34 +63,34 @@ const renderCommand = defineCommand({
   ],
   run: ({ maps, "all-exteriors": allExteriors, catalog, output, repo }) => {
     if (catalog && (allExteriors || maps.length > 0)) {
-      throw new Error("--catalog cannot be combined with map names or --all-exteriors");
+      throw new Error("--catalog cannot be combined with map names or --all-exteriors")
     }
     if (allExteriors && maps.length > 0) {
-      throw new Error("pass map names or --all-exteriors, not both");
+      throw new Error("pass map names or --all-exteriors, not both")
     }
     if (!catalog && !allExteriors && maps.length === 0) {
-      throw new Error("provide at least one map name, use --all-exteriors, or use --catalog");
+      throw new Error("provide at least one map name, use --all-exteriors, or use --catalog")
     }
 
-    const root = repo ? resolve(repo) : findRepositoryRoot(process.cwd());
+    const root = repo ? resolve(repo) : findRepositoryRoot(process.cwd())
     if (catalog) {
       const outputDirectory = resolve(
         root,
         output === "build/map-renders" ? "build/map-atlas/map-catalog" : output,
-      );
-      const result = renderCatalog(root, outputDirectory);
-      terminal.log(`rendered catalog for ${result.mapCount} map(s) to ${result.output}`);
-      return;
+      )
+      const result = renderCatalog(root, outputDirectory)
+      terminal.log(`rendered catalog for ${result.mapCount} map(s) to ${result.output}`)
+      return
     }
-    const targets = allExteriors ? discoverExteriorMaps(root) : [...new Set(maps)];
-    const outputDirectory = resolve(root, output);
+    const targets = allExteriors ? discoverExteriorMaps(root) : [...new Set(maps)]
+    const outputDirectory = resolve(root, output)
     for (const mapName of targets) {
-      const dimensions = renderMap(root, mapName, resolve(outputDirectory, `${mapName}.png`));
-      terminal.log(`${mapName}: ${dimensions.width}x${dimensions.height} metatiles`);
+      const dimensions = renderMap(root, mapName, resolve(outputDirectory, `${mapName}.png`))
+      terminal.log(`${mapName}: ${dimensions.width}x${dimensions.height} metatiles`)
     }
-    terminal.log(`rendered ${targets.length} map(s) to ${outputDirectory}`);
+    terminal.log(`rendered ${targets.length} map(s) to ${outputDirectory}`)
   },
-});
+})
 
 await execute(renderCommand, {
   metadata: {
@@ -98,4 +98,4 @@ await execute(renderCommand, {
     version: "0.0.0",
     description: `Render ${projectName} exterior map terrain`,
   },
-});
+})
