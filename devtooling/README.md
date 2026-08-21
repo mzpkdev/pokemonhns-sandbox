@@ -18,6 +18,10 @@ packages/   Shared tooling libraries
 `apps/workbench` is the starter package. `packages/core` holds shared types and
 utilities. Add packages only when code has a real shared consumer.
 
+`apps/workbench` is the Svelte map atlas. It consumes the static catalog and
+terrain images created by `apps/map-render`; it does not read the ROM or source
+tree in the browser.
+
 ## Commands
 
 Run these from `devtooling/` after `npm install`:
@@ -26,8 +30,14 @@ Run these from `devtooling/` after `npm install`:
 npm run build
 npm run check
 npm run dev
+npm run map-atlas:catalog
+npm run map-atlas
 ```
 
 `npm run check` runs formatting, linting, and TypeScript checks across the
 workspace. Build output, dependency installs, Turborepo cache, and WebAnvil
 metadata are ignored by Git.
+
+`npm run map-atlas:catalog` renders every exterior map, writes its catalog to
+`build/map-atlas/map-catalog/`, and prepares the atlas assets. `npm run map-atlas`
+then starts the Svelte/Vite workbench.

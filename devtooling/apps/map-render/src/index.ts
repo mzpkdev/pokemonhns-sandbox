@@ -6,6 +6,7 @@ import { execute, defineArgument, defineCommand, defineOption, terminal } from "
 
 import { projectName } from "@pokemonhns/devtooling-core";
 
+import { renderCatalog } from "./catalog.js";
 import { discoverExteriorMaps, renderMap } from "./renderer.js";
 
 function findRepositoryRoot(start: string): string {
@@ -42,6 +43,11 @@ const renderCommand = defineCommand({
       arity: 0,
     }),
     defineOption({
+      name: "catalog",
+      description: "Render every exterior map plus an atlas-ready catalog.json",
+      arity: 0,
+    }),
+    defineOption({
       name: "output",
       description: "Directory for rendered PNG files, relative to the source root",
       hint: "path",
@@ -55,15 +61,27 @@ const renderCommand = defineCommand({
       arity: 1,
     }),
   ],
-  run: ({ maps, "all-exteriors": allExteriors, output, repo }) => {
+  run: ({ maps, "all-exteriors": allExteriors, catalog, output, repo }) => {
+    if (catalog && (allExteriors || maps.length > 0)) {
+      throw new Error("--catalog cannot be combined with map names or --all-exteriors");
+    }
     if (allExteriors && maps.length > 0) {
       throw new Error("pass map names or --all-exteriors, not both");
     }
-    if (!allExteriors && maps.length === 0) {
-      throw new Error("provide at least one map name or use --all-exteriors");
+    if (!catalog && !allExteriors && maps.length === 0) {
+      throw new Error("provide at least one map name, use --all-exteriors, or use --catalog");
     }
 
     const root = repo ? resolve(repo) : findRepositoryRoot(process.cwd());
+    if (catalog) {
+      const outputDirectory = resolve(
+        root,
+        output === "build/map-renders" ? "build/map-atlas/map-catalog" : output,
+      );
+      const result = renderCatalog(root, outputDirectory);
+      terminal.log(`rendered catalog for ${result.mapCount} map(s) to ${result.output}`);
+      return;
+    }
     const targets = allExteriors ? discoverExteriorMaps(root) : [...new Set(maps)];
     const outputDirectory = resolve(root, output);
     for (const mapName of targets) {

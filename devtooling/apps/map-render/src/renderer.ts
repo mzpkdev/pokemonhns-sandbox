@@ -212,6 +212,65 @@ function writeRgbPng(path: string, width: number, height: number, pixels: Uint8A
   );
 }
 
+/**
+ * Write a deterministic nearest-neighbour preview from a PNG emitted by this
+ * renderer. Render output deliberately uses unfiltered 8-bit RGB rows, so the
+ * preview can stay dependency-free while retaining exact terrain colours.
+ */
+export function writeNearestNeighborOverview(input: string, output: string, scale = 4): void {
+  const data = readFileSync(input);
+  if (data.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") {
+    throw new Error(`not a PNG: ${input}`);
+  }
+
+  let position = 8;
+  let header: Buffer | undefined;
+  const imageData: Buffer[] = [];
+  while (position < data.length) {
+    const size = data.readUInt32BE(position);
+    const kind = data.subarray(position + 4, position + 8).toString("ascii");
+    const payloadStart = position + 8;
+    const payloadEnd = payloadStart + size;
+    const payload = data.subarray(payloadStart, payloadEnd);
+    position = payloadEnd + 4;
+    if (kind === "IHDR") {
+      header = payload;
+    } else if (kind === "IDAT") {
+      imageData.push(payload);
+    } else if (kind === "IEND") {
+      break;
+    }
+  }
+
+  if (!header || header.length !== 13 || header[8] !== 8 || header[9] !== 2 || header[12] !== 0) {
+    throw new Error(`unsupported rendered PNG: ${input}`);
+  }
+  const width = header.readUInt32BE(0);
+  const height = header.readUInt32BE(4);
+  if (width % scale !== 0 || height % scale !== 0) {
+    throw new Error(`${input}: dimensions must divide evenly by ${scale}`);
+  }
+  const source = inflateSync(Buffer.concat(imageData));
+  const sourceStride = width * 3 + 1;
+  if (source.length !== height * sourceStride) {
+    throw new Error(`${input}: unexpected RGB data length`);
+  }
+  const outputWidth = width / scale;
+  const outputHeight = height / scale;
+  const pixels = new Uint8Array(outputWidth * outputHeight * 3);
+  for (let y = 0; y < outputHeight; y += 1) {
+    const sourceRow = y * scale * sourceStride;
+    if (source[sourceRow] !== 0) {
+      throw new Error(`${input}: unsupported PNG filter`);
+    }
+    for (let x = 0; x < outputWidth; x += 1) {
+      const sourceOffset = sourceRow + 1 + x * scale * 3;
+      pixels.set(source.subarray(sourceOffset, sourceOffset + 3), (y * outputWidth + x) * 3);
+    }
+  }
+  writeRgbPng(output, outputWidth, outputHeight, pixels);
+}
+
 function splitTiles(image: IndexedPng): Uint8Array[] {
   const tiles: Uint8Array[] = [];
   for (let tileY = 0; tileY < image.height; tileY += 8) {

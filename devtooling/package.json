@@ -13,6 +13,8 @@
     "dev": "turbo run dev --parallel",
     "format": "turbo run format",
     "lint": "turbo run lint",
+    "map-atlas": "npm run map-atlas:catalog && npm --workspace @pokemonhns/devtooling-workbench run dev",
+    "map-atlas:catalog": "npm run build && npm --workspace @pokemonhns/devtooling-map-render run render -- --catalog --output build/map-atlas/map-catalog",
     "map-render": "npm run build && npm --workspace @pokemonhns/devtooling-map-render run render --",
     "typecheck": "turbo run typecheck"
   },
