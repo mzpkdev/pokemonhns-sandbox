@@ -24,8 +24,7 @@
     "@types/node": "24.10.1",
     "turbo": "2.10.11",
     "typescript": "7.0.2",
-    "vitest": "^4.1.11",
-    "webanvil": "^0.0.16"
+    "webanvil": "^0.0.17"
   },
   "engines": {
     "node": ">=24.11.0 <25"
