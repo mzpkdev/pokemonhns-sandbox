@@ -14,12 +14,16 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "ol": "^10.10.0",
-    "svelte": "^5.56.10"
+    "svelte": "^5.56.10",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "svelte-check": "^4.7.6",
+    "tailwindcss": "^4.3.3",
     "vite": "^8.1.5"
   }
 }

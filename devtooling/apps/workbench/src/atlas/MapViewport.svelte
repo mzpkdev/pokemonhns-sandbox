@@ -239,25 +239,25 @@
 </script>
 
 {#if extent}
-  <section class="atlas-panel" aria-label="Interactive map atlas">
-    <div class="atlas-toolbar">
+  <section class="overflow-hidden rounded-xl border border-atlas-border bg-atlas-panel shadow-[0_5px_18px_#56634c1b]" aria-label="Interactive map atlas">
+    <div class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm text-atlas-muted md:items-center">
       <span>{surfaceMaps.length} surface maps, {geography.components.length} components</span>
       {#if geography.residualCount > 0}
-        <span class="warning">{geography.residualCount} topology conflicts retained</span>
+        <span class="font-bold text-[#994a14]">{geography.residualCount} topology conflicts retained</span>
       {/if}
-      <label class="exit-toggle">
-        <input type="checkbox" bind:checked={showExits} onchange={() => onToggleExits?.(showExits)} />
+      <label class="inline-flex cursor-pointer items-center gap-1.5 font-bold whitespace-nowrap text-[#263e29]">
+        <input class="size-[1.1rem]" type="checkbox" bind:checked={showExits} onchange={() => onToggleExits?.(showExits)} />
         Exits
       </label>
-      <div class="atlas-actions" aria-label="Map controls">
-        <button type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}>−</button>
-        <button type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}>+</button>
-        <button type="button" onclick={() => instance?.view.fit(extent!, { padding: [40, 40, 40, 40], maxZoom: 3 })}>Fit / reset</button>
+      <div class="ml-0 flex gap-1.5 md:ml-auto" aria-label="Map controls">
+        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}>−</button>
+        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}>+</button>
+        <button class="rounded-md border border-[#8a5b10] bg-white px-2 py-1 text-[#263e29] hover:bg-[#8a5b10] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]" type="button" onclick={() => instance?.view.fit(extent!, { padding: [40, 40, 40, 40], maxZoom: 3 })}>Fit / reset</button>
       </div>
     </div>
-    <div class="atlas-map" bind:this={host} aria-label="Interactive regional map"></div>
-    <p class="map-keyboard-help">Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when Exits is enabled.</p>
+    <div class="h-[60vh] min-h-88 border-t border-[#d6dfd3] bg-[#cfdacc] md:h-[min(70vh,48rem)] md:min-h-112" bind:this={host} aria-label="Interactive regional map"></div>
+    <p class="m-0 px-4 py-3 text-sm text-atlas-muted">Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when Exits is enabled.</p>
   </section>
 {:else}
-  <p class="empty-state">This region has no default-visible surface maps.</p>
+  <p class="p-8">This region has no default-visible surface maps.</p>
 {/if}
