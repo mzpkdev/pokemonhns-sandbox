@@ -2,20 +2,17 @@
   "name": "pokemonhns-devtooling",
   "version": "0.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
     "build": "turbo run build",
     "check": "turbo run check",
     "clean": "turbo run clean",
     "dev": "turbo run dev --parallel",
-    "e2e": "npm run map-atlas:catalog && turbo run e2e",
+    "e2e": "pnpm run map-atlas:catalog && turbo run e2e",
     "format": "turbo run format",
     "lint": "turbo run lint",
-    "map-atlas": "npm run map-atlas:catalog && npm --workspace @pokemonhns/devtooling-workbench run dev",
-    "map-atlas:catalog": "npm run build && npm --workspace @pokemonhns/devtooling-map-render run render -- --catalog --output build/map-atlas/map-catalog",
-    "map-render": "npm run build && npm --workspace @pokemonhns/devtooling-map-render run render --",
+    "map-atlas": "pnpm run map-atlas:catalog && pnpm --filter @pokemonhns/devtooling-workbench run dev",
+    "map-atlas:catalog": "pnpm run build && pnpm --filter @pokemonhns/devtooling-map-render run render --catalog --output build/map-atlas/map-catalog",
+    "map-render": "pnpm run build && pnpm --filter @pokemonhns/devtooling-map-render run render",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
@@ -28,5 +25,5 @@
   "engines": {
     "node": ">=24.11.0 <25"
   },
-  "packageManager": "npm@11.9.0"
+  "packageManager": "pnpm@11.9.0"
 }

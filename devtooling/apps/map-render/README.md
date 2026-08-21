@@ -6,9 +6,9 @@ It does not build or run the ROM.
 Run commands from `devtooling/`:
 
 ```sh
-npm run map-render -- Route29 NewBarkTown --output build/map-renders
-npm run map-render -- --all-exteriors --output build/all-exterior-maps
-npm run map-render -- --catalog --output build/map-atlas/map-catalog
+pnpm run map-render Route29 NewBarkTown --output build/map-renders
+pnpm run map-render --all-exteriors --output build/all-exterior-maps
+pnpm run map-render --catalog --output build/map-atlas/map-catalog
 ```
 
 Map names are directory names under `data/maps/`. `--all-exteriors` selects

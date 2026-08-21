@@ -13,7 +13,7 @@
     "dev": "wa dev",
     "format": "wa format",
     "lint": "wa lint",
-    "render": "npm run build && node dist/index.js",
+    "render": "pnpm run build && node dist/index.js",
     "test": "wa test",
     "typecheck": "tsc --noEmit"
   },

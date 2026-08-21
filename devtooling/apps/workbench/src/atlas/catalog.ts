@@ -156,7 +156,7 @@ export const loadCatalog = async (signal?: AbortSignal): Promise<MapCatalog> => 
   const response = await fetch(catalogUrl(), { cache: "no-store", signal })
   if (!response.ok) {
     throw new Error(
-      `Could not load the map catalog (${response.status} ${response.statusText}). Run npm run map-atlas:catalog first.`,
+      `Could not load the map catalog (${response.status} ${response.statusText}). Run pnpm run map-atlas:catalog first.`,
     )
   }
   return validateCatalog(await response.json())

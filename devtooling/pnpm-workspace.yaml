@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+
+allowBuilds:
+  '@playwright/browser-chromium': true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - webanvil@0.0.17
