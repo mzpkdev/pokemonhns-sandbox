@@ -1,0 +1,18 @@
+{
+  "name": "@pokemonhns/devtooling-workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "check": "npm run format && npm run lint && npm run typecheck",
+    "clean": "wa clean",
+    "dev": "tsc --project tsconfig.build.json --watch",
+    "format": "wa format --check",
+    "lint": "wa lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pokemonhns/devtooling-core": "file:../../packages/core"
+  }
+}

@@ -41,3 +41,7 @@ build/
 /pokeemerald-*.png
 /pokeemerald_modern-*.png
 *.cfg
+/devtooling/node_modules/
+/devtooling/.turbo/
+/devtooling/**/.webanvil/
+/devtooling/**/dist/
