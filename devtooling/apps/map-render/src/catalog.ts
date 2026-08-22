@@ -8,7 +8,7 @@ import {
   exteriorMapTypes,
   renderMap,
   writeNearestNeighborOverview,
-} from "./renderer.js"
+} from "./renderer"
 
 type MapConnection = {
   map: string

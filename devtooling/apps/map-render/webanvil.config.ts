@@ -8,5 +8,6 @@ export default defineConfig({
     mode: "node",
     entries: { ".": "src/index.ts" },
     outDir: "dist",
+    bundle: true,
   },
 })

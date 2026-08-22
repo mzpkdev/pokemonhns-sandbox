@@ -4,8 +4,8 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import { execute, defineArgument, defineCommand, defineOption, terminal } from "cmdore"
 
-import { renderCatalog } from "./catalog.js"
-import { discoverExteriorMaps, renderMap } from "./renderer.js"
+import { renderCatalog } from "./catalog"
+import { discoverExteriorMaps, renderMap } from "./renderer"
 
 const findRepositoryRoot = (start: string): string => {
   let current = path.resolve(start)

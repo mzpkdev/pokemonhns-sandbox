@@ -32,6 +32,7 @@ pnpm run format
 pnpm run lint
 pnpm run test
 pnpm run e2e
+pnpm run map-render Route29
 pnpm run map-atlas:catalog
 pnpm run map-atlas
 ```
@@ -46,3 +47,7 @@ WebAnvil browser test.
 `pnpm run map-atlas:catalog` renders every exterior map, writes its catalog to
 `build/map-atlas/map-catalog/`, and prepares the atlas assets. `pnpm run map-atlas`
 then starts the Svelte workbench.
+
+Build before running `pnpm run map-render`; it runs the map renderer package's
+compiled `main` entry. You can also invoke its linked binary directly with
+`pnpm --filter @pokemonhns/devtooling-map-render exec hns-map-render`.

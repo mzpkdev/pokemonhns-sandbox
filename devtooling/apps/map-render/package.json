@@ -6,14 +6,16 @@
     "hns-map-render": "./dist/index.js"
   },
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "scripts": {
-    "build": "wa build",
+    "build": "wa build && chmod +x dist/index.js",
     "check": "wa check",
     "clean": "wa clean",
     "dev": "wa dev",
     "format": "wa format",
     "lint": "wa lint",
-    "render": "pnpm run build && node dist/index.js",
+    "render": "node .",
     "test": "wa test",
     "typecheck": "tsc --noEmit"
   },
