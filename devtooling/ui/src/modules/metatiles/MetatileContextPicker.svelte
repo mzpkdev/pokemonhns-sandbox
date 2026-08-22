@@ -16,13 +16,9 @@
   }
 
   let visibleContexts = $derived(
-    contexts
-      .filter((context) =>
-        labelFor(context).toLocaleLowerCase("en").includes(query.toLocaleLowerCase("en")),
-      )
-      .toSorted(
-        (left, right) => Number(right.id === activeContextId) - Number(left.id === activeContextId),
-      ),
+    contexts.filter((context) =>
+      labelFor(context).toLocaleLowerCase("en").includes(query.toLocaleLowerCase("en")),
+    ),
   )
 </script>
 
