@@ -23,6 +23,7 @@ export type TilesetAssets = {
   tiles: string
   palettes: string
   metatiles: string
+  metatileAttributes: string
 }
 
 export type IndexedPng = {
@@ -36,5 +37,19 @@ export type RenderAssets = {
   secondaryTiles: Uint8Array[]
   primaryMetatiles: Buffer
   secondaryMetatiles: Buffer
+  primaryMetatileAttributes: Buffer
+  secondaryMetatileAttributes: Buffer
   palettes: Rgb[][]
+}
+
+export type EncounterHabitatRectangle = {
+  xMetatiles: number
+  yMetatiles: number
+  widthMetatiles: number
+  heightMetatiles: number
+}
+
+export type EncounterHabitat = {
+  land: EncounterHabitatRectangle[]
+  water: EncounterHabitatRectangle[]
 }

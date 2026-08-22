@@ -3,6 +3,7 @@ import * as path from "node:path"
 
 import {
   discoverExteriorMaps,
+  encounterHabitat,
   exteriorMapTypes,
   renderMap,
   writeNearestNeighborOverview,
@@ -119,6 +120,7 @@ const createCatalogMap = (
     })),
     objects,
     wildEncounters,
+    encounterHabitat: encounterHabitat(root, layout),
   }
 }
 
@@ -163,7 +165,7 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
 
   const catalog: MapCatalog = {
     $schema: "catalog.schema.json",
-    schemaVersion: 4,
+    schemaVersion: 5,
     format: "pokemonhns-exterior-map-catalog",
     pixelsPerMetatile: 16,
     source: sourceState(root),

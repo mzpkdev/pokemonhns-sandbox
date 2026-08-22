@@ -30,6 +30,7 @@
     CatalogDirectTopologyMismatch,
     CatalogMissingReverseConnection,
     CatalogTopologyDiagnostic,
+    CatalogWildEncounterMethod,
     MapCatalog,
   } from "./catalog.js"
   import {
@@ -89,6 +90,10 @@
     fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.2) }),
     stroke: new Stroke({ color: cartographerColor("signal"), width: 3 }),
   })
+  const selectedEncounterStyle = new Style({
+    fill: new Fill({ color: "rgba(0, 0, 0, 0)" }),
+    stroke: new Stroke({ color: cartographerColor("signal-strong"), width: 3 }),
+  })
   const encounterStyles = new Map<string, { frame: Style; label: Style }>()
   const encounterStyleFor = (methods: string, labelled: boolean): Style => {
     const existing = encounterStyles.get(methods)
@@ -116,6 +121,16 @@
     fill: new Fill({ color: cartographerColorWithAlpha("amber", 0.18) }),
     stroke: new Stroke({ color: cartographerColor("amber"), width: 2 }),
   })
+  const encounterHabitatStyles = {
+    land: new Style({
+      fill: new Fill({ color: cartographerColorWithAlpha("habitat-land", 0.28) }),
+      stroke: new Stroke({ color: cartographerColorWithAlpha("habitat-land", 0.7), width: 1 }),
+    }),
+    water: new Style({
+      fill: new Fill({ color: cartographerColorWithAlpha("habitat-water", 0.2) }),
+      stroke: new Stroke({ color: cartographerColorWithAlpha("habitat-water", 0.62), width: 1 }),
+    }),
+  } as const
   const exitStyle = new Style({
     image: new RegularShape({
       points: 4,
@@ -223,6 +238,7 @@
     }),
   }
   const objectStyles = new Map<string, Style>()
+  const encounterRosterStyles = new Map<string, Style>()
   const styleScales = new WeakMap<Style, number>()
 
   const scaleForResolution = (resolution: number): number => {
@@ -246,6 +262,8 @@
         view: View
         exits: VectorLayer<VectorSource>
         objects: VectorLayer<VectorSource>
+        habitats: VectorLayer<VectorSource>
+        encounterRosters: VectorLayer<VectorSource>
         topologyConflicts: VectorLayer<VectorSource>
         atlasOverlaps: VectorLayer<VectorSource>
         imageLayers: ReadonlyMap<string, ImageLayer<ImageStatic>>
@@ -325,6 +343,28 @@
     new Set(objectKinds.filter((kind) => kind.visible).map((kind) => kind.label)),
   )
 
+  const hasEncounterMethod = (
+    map: CatalogMap,
+    method: CatalogWildEncounterMethod["type"],
+  ): boolean => {
+    return map.wildEncounters.sets.some((set) =>
+      set.methods.some((candidate) => candidate.type === method),
+    )
+  }
+
+  const rosterFor = (
+    map: CatalogMap,
+    method: CatalogWildEncounterMethod["type"],
+  ): CatalogWildEncounterMethod["slots"] => {
+    const slots = map.wildEncounters.sets.flatMap((set) =>
+      set.methods
+        .filter((candidate) => candidate.type === method)
+        .flatMap((candidate) => candidate.slots),
+    )
+    const distinct = new Map(slots.map((slot) => [slot.speciesId, slot]))
+    return [...distinct.values()].filter((slot) => slot.sprite).slice(0, 3)
+  }
+
   const visualDirectMismatchFor = (
     diagnostic: CatalogDirectTopologyMismatch,
   ): { expected: CatalogPlacement; actual: CatalogPlacement } => {
@@ -391,6 +431,14 @@
     }
   }
 
+  const updateEncounterVisibility = (): void => {
+    if (!instance) return
+    instance.habitats.setVisible(encounterMode)
+    instance.encounterRosters.setVisible(encounterMode)
+    instance.habitats.changed()
+    instance.encounterRosters.changed()
+  }
+
   const objectStyleFor = (object: CatalogObject): Style => {
     if (object.graphicsId === "OBJ_EVENT_GFX_LIGHT_SPRITE") return lightSourceStyle
     const placeholder = objectPlaceholderFor(object)
@@ -413,6 +461,23 @@
     return style
   }
 
+  const encounterRosterStyleFor = (
+    sprite: NonNullable<CatalogWildEncounterMethod["slots"][number]["sprite"]>,
+  ): Style => {
+    const existing = encounterRosterStyles.get(sprite.path)
+    if (existing) return existing
+    const style = new Style({
+      image: new Icon({
+        src: mapImageUrl(sprite.path),
+        width: sprite.widthPixels,
+        height: sprite.heightPixels,
+        crossOrigin: "anonymous",
+      }),
+    })
+    encounterRosterStyles.set(sprite.path, style)
+    return style
+  }
+
   const focusMap = (name: string): void => {
     if (!instance) return
     const placement = instance.geography.placements[name]
@@ -427,8 +492,22 @@
     if (!instance) return
     updateExitVisibility()
     updateObjectVisibility()
+    updateEncounterVisibility()
     updateTopologyConflictVisibility()
     updateAtlasOverlapVisibility()
+    instance.map.render()
+  })
+
+  $effect(() => {
+    const currentSelection = selectedMapName
+    const currentEncounterMode = encounterMode
+    if (!instance) return
+    instance.habitats.setVisible(currentEncounterMode)
+    instance.encounterRosters.setVisible(currentEncounterMode)
+    if (currentSelection || currentEncounterMode) {
+      instance.habitats.changed()
+      instance.encounterRosters.changed()
+    }
     instance.map.render()
   })
 
@@ -468,6 +547,8 @@
     const hitSource = new VectorSource()
     const exitSource = new VectorSource()
     const objectSource = new VectorSource()
+    const habitatSource = new VectorSource()
+    const encounterRosterSource = new VectorSource()
     const conflictSource = new VectorSource()
     const overlapSource = new VectorSource()
     for (const map of surfaceMaps) {
@@ -502,6 +583,54 @@
             object,
           }),
         )
+      }
+      for (const [kind, method] of [
+        ["land", "land_mons"],
+        ["water", "water_mons"],
+      ] as const) {
+        if (!hasEncounterMethod(map, method)) continue
+        for (const rectangle of map.encounterHabitat[kind]) {
+          habitatSource.addFeature(
+            new Feature({
+              geometry: polygonFromExtent(
+                toOpenLayersExtent(
+                  {
+                    x: placement.x + rectangle.xMetatiles,
+                    y: placement.y + rectangle.yMetatiles,
+                    width: rectangle.widthMetatiles,
+                    height: rectangle.heightMetatiles,
+                  },
+                  catalog.pixelsPerMetatile,
+                ),
+              ),
+              mapName: map.name,
+              kind,
+            }),
+          )
+        }
+        const largest = [...map.encounterHabitat[kind]].sort(
+          (left, right) =>
+            right.widthMetatiles * right.heightMetatiles -
+            left.widthMetatiles * left.heightMetatiles,
+        )[0]
+        if (!largest) continue
+        const roster = rosterFor(map, method)
+        for (const [index, slot] of roster.entries()) {
+          if (!slot.sprite) continue
+          encounterRosterSource.addFeature(
+            new Feature({
+              geometry: new Point([
+                (placement.x + largest.xMetatiles + largest.widthMetatiles / 2) *
+                  catalog.pixelsPerMetatile +
+                  (index - (roster.length - 1) / 2) * 18,
+                -(placement.y + largest.yMetatiles + largest.heightMetatiles / 2) *
+                  catalog.pixelsPerMetatile,
+              ]),
+              mapName: map.name,
+              sprite: slot.sprite,
+            }),
+          )
+        }
       }
     }
     for (const diagnostic of directTopologyMismatches) {
@@ -541,7 +670,7 @@
       source: hitSource,
       style: (feature, resolution) => {
         const name = feature.get("mapName") as string | undefined
-        if (name === selectedMapName) return selectedStyle
+        if (name === selectedMapName) return encounterMode ? selectedEncounterStyle : selectedStyle
         const encounterMethods = name ? encounterMethodsByMap.get(name) : undefined
         if (encounterMode && encounterMethods)
           return encounterStyleFor(encounterMethods, resolution <= 24)
@@ -573,6 +702,28 @@
         return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(objectStyle, resolution)]
       },
     })
+    const habitats = new VectorLayer({
+      source: habitatSource,
+      style: (feature) => {
+        if (!encounterMode || feature.get("mapName") !== selectedMapName) return undefined
+        const kind = feature.get("kind") as keyof typeof encounterHabitatStyles
+        return encounterHabitatStyles[kind]
+      },
+      visible: encounterMode,
+    })
+    const encounterRosters = new VectorLayer({
+      source: encounterRosterSource,
+      style: (feature, resolution) => {
+        if (!encounterMode || feature.get("mapName") !== selectedMapName || resolution > 16)
+          return undefined
+        const sprite = feature.get(
+          "sprite",
+        ) as CatalogWildEncounterMethod["slots"][number]["sprite"]
+        return sprite ? scaledStyle(encounterRosterStyleFor(sprite), resolution) : undefined
+      },
+      visible: encounterMode,
+      declutter: true,
+    })
     const topologyConflicts = new VectorLayer({
       source: conflictSource,
       style: (feature) => {
@@ -597,6 +748,8 @@
       layers: [
         ...imageRecords.map((record) => record.layer),
         hitLayer,
+        habitats,
+        encounterRosters,
         exits,
         objects,
         topologyConflicts,
@@ -614,6 +767,7 @@
       }
       updateExitVisibility()
       updateObjectVisibility()
+      updateEncounterVisibility()
       const shouldShowNative = (view.getResolution() ?? Number.POSITIVE_INFINITY) <= 16
       if (shouldShowNative === showingNative) return
       showingNative = shouldShowNative
@@ -670,6 +824,8 @@
       view,
       exits,
       objects,
+      habitats,
+      encounterRosters,
       topologyConflicts,
       atlasOverlaps: atlasOverlapLayer,
       imageLayers: new Map(imageRecords.map((record) => [record.map.name, record.layer])),
@@ -729,7 +885,7 @@
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
       {encounterMode
-        ? "Blue frames mark maps with source encounter sets. L, W, R, and F mean land, water, Rock Smash, and fishing. Select a map to inspect its sets."
+        ? "Blue frames mark maps with source encounter sets. Selected-map tints mark runtime-valid land and water tiles; grouped icons preview each method roster, not exact encounters. L, W, R, and F mean land, water, Rock Smash, and fishing."
         : "Pan, scroll, or pinch to inspect. Select a map for source details. Toggle exits and object kinds when you need them."}
     </p>
   </section>

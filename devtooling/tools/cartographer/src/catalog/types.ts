@@ -100,6 +100,18 @@ export type CatalogWildEncounters = {
   diagnostics: CatalogEncounterDiagnostic[]
 }
 
+export type CatalogEncounterHabitatRectangle = {
+  xMetatiles: number
+  yMetatiles: number
+  widthMetatiles: number
+  heightMetatiles: number
+}
+
+export type CatalogEncounterHabitat = {
+  land: CatalogEncounterHabitatRectangle[]
+  water: CatalogEncounterHabitatRectangle[]
+}
+
 export type CatalogEncounterDiagnostic =
   | {
       code: "excluded_source_slot"
@@ -144,6 +156,7 @@ export type Layout = {
   format?: string
   primary_tileset: string
   secondary_tileset: string
+  blockdata_filepath: string
 }
 
 export type LayoutDocument = {
@@ -292,11 +305,12 @@ export type CatalogMap = {
     diagnostic: { code: string; message: string } | null
   }>
   wildEncounters: CatalogWildEncounters
+  encounterHabitat: CatalogEncounterHabitat
 }
 
 export type MapCatalog = {
   $schema: "catalog.schema.json"
-  schemaVersion: 4
+  schemaVersion: 5
   format: "pokemonhns-exterior-map-catalog"
   pixelsPerMetatile: 16
   source: {

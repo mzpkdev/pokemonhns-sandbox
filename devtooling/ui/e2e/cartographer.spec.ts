@@ -45,6 +45,7 @@ test("shows the cartographer", async ({ page }) => {
   await cartographerViews.getByRole("button", { name: "Encounters", exact: true }).click()
   await expect(page.getByLabel("Interactive cartographer")).toBeVisible()
   await expect(page.getByText("encounter maps", { exact: false })).toBeVisible()
+  await expect(page.getByText("runtime-valid land and water tiles", { exact: false })).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => document.body.scrollWidth))
     .toBe(await page.evaluate(() => document.body.clientWidth))

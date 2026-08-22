@@ -4,7 +4,7 @@ import { CatalogValidationError, validateCatalog } from "./catalog.js"
 
 const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     pixelsPerMetatile: 16,
     regions: [],
     maps: [],
@@ -23,6 +23,7 @@ const mapWithWildEncounters = (
     image: { widthPixels: 16, heightPixels: 16 },
     layout: { widthMetatiles: 1, heightMetatiles: 1 },
     wildEncounters,
+    encounterHabitat: { land: [], water: [] },
   }
 }
 
@@ -113,7 +114,7 @@ const wildEncounters = (): Record<string, unknown> => {
 describe("validateCatalog", () => {
   it("rejects stale catalog schemas before the viewport can interpret their topology", () => {
     expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow(CatalogValidationError)
-    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 4")
+    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 5")
   })
 
   it("rejects unsupported topology diagnostic codes", () => {
@@ -129,7 +130,7 @@ describe("validateCatalog", () => {
   })
 
   it("accepts the current empty diagnostic contract", () => {
-    expect(validateCatalog(catalog()).schemaVersion).toBe(4)
+    expect(validateCatalog(catalog()).schemaVersion).toBe(5)
   })
 
   it("accepts source-backed wild encounter sets and explicit missing runtime variants", () => {
@@ -153,6 +154,19 @@ describe("validateCatalog", () => {
 
     expect(() => validateCatalog(value)).toThrow(
       "wildEncounters must contain valid source encounter data",
+    )
+  })
+
+  it("rejects maps without generated runtime encounter-tile geometry", () => {
+    const map = mapWithWildEncounters(wildEncounters())
+    delete map.encounterHabitat
+    const value = catalog({
+      regions: [{ id: "routes", label: "Routes", mapCount: 1, maps: ["Route101"] }],
+      maps: [map],
+    })
+
+    expect(() => validateCatalog(value)).toThrow(
+      "encounterHabitat must contain valid source tile geometry",
     )
   })
 })

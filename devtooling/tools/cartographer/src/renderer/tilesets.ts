@@ -71,16 +71,16 @@ const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
   )
   if (header?.[1]) {
     const fields = new Map(
-      [...header[1].matchAll(/\.(tiles|palettes|metatiles)\s*=\s*(\w+)/g)].map((match) => [
-        match[1]!,
-        match[2]!,
-      ]),
+      [...header[1].matchAll(/\.(tiles|palettes|metatiles|metatileAttributes)\s*=\s*(\w+)/g)].map(
+        (match) => [match[1]!, match[2]!],
+      ),
     )
     const files = new Map<string, string>()
     const patterns: Record<string, [string, RegExp]> = {
       tiles: [graphics, /\[\].*?"([^"]+\/tiles(?:\.png|\.4bpp(?:\.lz)?))"/s],
       palettes: [graphics, /.*?\{.*?"([^"]+\/palettes\/\d+\.pal)"/s],
       metatiles: [metatiles, /\[\].*?"([^"]+\/metatiles\.bin)"/s],
+      metatileAttributes: [metatiles, /\[\].*?"([^"]+\/metatile_attributes\.bin)"/s],
     }
     for (const [field, [source, pattern]] of Object.entries(patterns)) {
       const resource = fields.get(field)
@@ -94,12 +94,14 @@ const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
     const tiles = files.get("tiles")
     const palettes = files.get("palettes")
     const metatilePath = files.get("metatiles")
-    if (tiles && palettes && metatilePath) {
+    const metatileAttributes = files.get("metatileAttributes")
+    if (tiles && palettes && metatilePath && metatileAttributes) {
       const pngTiles = tiles.replace(/\/tiles(?:\.png|\.4bpp(?:\.lz)?)$/, "/tiles.png")
       return {
         tiles: fs.existsSync(pngTiles) ? pngTiles : tiles,
         palettes: path.dirname(palettes),
         metatiles: metatilePath,
+        metatileAttributes,
       }
     }
   }
@@ -108,6 +110,7 @@ const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
     tiles: path.join(directory, "tiles.png"),
     palettes: path.join(directory, "palettes"),
     metatiles: path.join(directory, "metatiles.bin"),
+    metatileAttributes: path.join(directory, "metatile_attributes.bin"),
   }
 }
 
@@ -172,6 +175,8 @@ export const loadRenderAssets = (
     secondaryTiles: splitTiles(readIndexedPng(secondary.tiles)),
     primaryMetatiles: fs.readFileSync(primary.metatiles),
     secondaryMetatiles: fs.readFileSync(secondary.metatiles),
+    primaryMetatileAttributes: fs.readFileSync(primary.metatileAttributes),
+    secondaryMetatileAttributes: fs.readFileSync(secondary.metatileAttributes),
     palettes: Array.from({ length: paletteCount }, (_, index) =>
       readPalette(
         choosePalettePath(

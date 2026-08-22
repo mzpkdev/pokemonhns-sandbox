@@ -7,6 +7,8 @@ type PaletteToken =
   | "diagnostic-line"
   | "diagnostic-panel"
   | "field"
+  | "habitat-land"
+  | "habitat-water"
   | "ink"
   | "layout-overlap"
   | "muted"

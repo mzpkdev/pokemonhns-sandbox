@@ -47,6 +47,8 @@
   --color-cartographer-signal-strong: var(--color-cartographer-slate-100);
   --color-cartographer-amber: var(--color-cartographer-amber-500);
   --color-cartographer-layout-overlap: var(--color-cartographer-amber-400);
+  --color-cartographer-habitat-land: var(--color-cartographer-moss-500);
+  --color-cartographer-habitat-water: var(--color-cartographer-blue-500);
   --color-cartographer-diagnostic: var(--color-cartographer-garnet-500);
   --color-cartographer-diagnostic-line: var(--color-cartographer-garnet-600);
   --color-cartographer-diagnostic-border: var(--color-cartographer-garnet-700);

@@ -191,6 +191,18 @@ export type CatalogWildEncounters = {
   >
 }
 
+export type CatalogEncounterHabitatRectangle = {
+  xMetatiles: number
+  yMetatiles: number
+  widthMetatiles: number
+  heightMetatiles: number
+}
+
+export type CatalogEncounterHabitat = {
+  land: CatalogEncounterHabitatRectangle[]
+  water: CatalogEncounterHabitatRectangle[]
+}
+
 export type CatalogMap = {
   name: string
   id: string
@@ -236,6 +248,7 @@ export type CatalogMap = {
   warps: CatalogWarp[]
   objects: CatalogObject[]
   wildEncounters: CatalogWildEncounters
+  encounterHabitat: CatalogEncounterHabitat
 }
 
 export type MapCatalog = {
@@ -424,6 +437,32 @@ const hasWildEncounters = (value: unknown): value is CatalogWildEncounters => {
   )
 }
 
+const hasEncounterHabitatRectangle = (
+  value: unknown,
+): value is CatalogEncounterHabitatRectangle => {
+  const rectangle = asRecord(value)
+  return (
+    !!rectangle &&
+    hasInteger(rectangle.xMetatiles) &&
+    hasInteger(rectangle.yMetatiles) &&
+    hasInteger(rectangle.widthMetatiles) &&
+    hasInteger(rectangle.heightMetatiles) &&
+    rectangle.widthMetatiles > 0 &&
+    rectangle.heightMetatiles > 0
+  )
+}
+
+const hasEncounterHabitat = (value: unknown): value is CatalogEncounterHabitat => {
+  const habitat = asRecord(value)
+  return (
+    !!habitat &&
+    Array.isArray(habitat.land) &&
+    habitat.land.every(hasEncounterHabitatRectangle) &&
+    Array.isArray(habitat.water) &&
+    habitat.water.every(hasEncounterHabitatRectangle)
+  )
+}
+
 const hasCardinalDirection = (value: unknown): boolean => {
   return value === "up" || value === "down" || value === "left" || value === "right"
 }
@@ -499,9 +538,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   if (!root) {
     throw new CatalogValidationError(["catalog must be an object."], "The map catalog is invalid.")
   }
-  if (root.schemaVersion !== 4) {
+  if (root.schemaVersion !== 5) {
     details.push(
-      "schemaVersion must be 4. Regenerate the catalog with pnpm run cartographer:catalog.",
+      "schemaVersion must be 5. Regenerate the catalog with pnpm run cartographer:catalog.",
     )
   }
   if (!Array.isArray(root.maps)) {
@@ -556,6 +595,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
           details.push(`${map.name} wildEncounters[${setIndex}] belongs to a different map.`)
         }
       }
+    }
+    if (!hasEncounterHabitat(map.encounterHabitat)) {
+      details.push(`${map.name} encounterHabitat must contain valid source tile geometry.`)
     }
     if (map.image.widthPixels !== map.layout.widthMetatiles * catalog.pixelsPerMetatile) {
       details.push(`${map.name} has an inconsistent image width.`)
