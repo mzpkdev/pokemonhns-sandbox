@@ -151,6 +151,21 @@
     }),
   }
   const objectStyles = new Map<string, Style>()
+  const styleScales = new WeakMap<Style, number>()
+
+  const scaleForResolution = (resolution: number): number => {
+    const safeResolution = Math.max(resolution, 0.1)
+    return Math.min(1.8, Math.max(0.5, (6 / safeResolution) ** 0.4))
+  }
+
+  const scaledStyle = (style: Style, resolution: number): Style => {
+    const scale = scaleForResolution(resolution)
+    if (styleScales.get(style) !== scale) {
+      style.getImage()?.setScale(scale)
+      styleScales.set(style, scale)
+    }
+    return style
+  }
 
   let host = $state<HTMLDivElement | undefined>(undefined)
   let instance = $state<
@@ -303,22 +318,26 @@
     })
     const exits = new VectorLayer({
       source: exitSource,
-      style: (feature) =>
-        selectedWarp?.sourceMapName === feature.get("mapName") &&
-        selectedWarp?.warpId === feature.get("warpId")
-          ? selectedExitStyle
-          : exitStyle,
+      style: (feature, resolution) =>
+        scaledStyle(
+          selectedWarp?.sourceMapName === feature.get("mapName") &&
+            selectedWarp?.warpId === feature.get("warpId")
+            ? selectedExitStyle
+            : exitStyle,
+          resolution,
+        ),
     })
     const objects = new VectorLayer({
       source: objectSource,
-      style: (feature) => {
+      style: (feature, resolution) => {
         const object = feature.get("object") as CatalogObject | undefined
-        if (!object) return placeholderStyles.unresolved
+        if (!object) return scaledStyle(placeholderStyles.unresolved, resolution)
         const selected =
           selectedObject?.sourceMapName === feature.get("mapName") &&
           selectedObject?.objectId === feature.get("objectId")
         const objectStyle = objectStyleFor(object)
-        return selected ? [selectedObjectStyle, objectStyle] : objectStyle
+        if (!selected) return scaledStyle(objectStyle, resolution)
+        return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(objectStyle, resolution)]
       },
     })
     const view = new View({
