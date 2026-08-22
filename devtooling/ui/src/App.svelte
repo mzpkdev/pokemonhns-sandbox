@@ -8,7 +8,7 @@
 
   type ModuleId = "cartographer" | "metatiles"
 
-  const fadeIn = { delay: 125, duration: 250, easing: cubicOut }
+  const fadeIn = { delay: 75, duration: 125, easing: cubicOut }
 
   const moduleFromHash = (): ModuleId => {
     return window.location.hash === "#metatiles" ? "metatiles" : "cartographer"

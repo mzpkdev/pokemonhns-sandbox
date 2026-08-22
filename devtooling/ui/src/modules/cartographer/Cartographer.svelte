@@ -31,7 +31,7 @@
 
   type CartographerTab = "map" | "encounters"
 
-  const fadeIn = { delay: 125, duration: 250, easing: cubicOut }
+  const fadeIn = { delay: 75, duration: 125, easing: cubicOut }
 
   let loadState = $state<LoadState>({ kind: "loading" })
   let requestedRegion = $state<string | null>(null)
