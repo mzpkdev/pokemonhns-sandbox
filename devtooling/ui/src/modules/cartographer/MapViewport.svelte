@@ -292,9 +292,7 @@
 
   const updateExitVisibility = (): void => {
     if (!instance) return
-    instance.exits.setVisible(
-      showExits || (instance.view.getResolution() ?? Number.POSITIVE_INFINITY) <= 16,
-    )
+    instance.exits.setVisible(showExits)
   }
 
   const updateObjectVisibility = (): void => {
