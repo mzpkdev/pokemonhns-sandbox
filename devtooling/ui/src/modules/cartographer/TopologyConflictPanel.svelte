@@ -45,8 +45,8 @@
       Topology diagnostics
     </p>
     <p class="mb-3 mt-1 text-xs leading-5 text-cartographer-muted">
-      Direct mismatches compare two reciprocal records. Cycle closures retain the evidence but do
-      not mark a map as wrong, because the source cannot establish that.
+      Direct mismatches compare two reciprocal records. Cycle closures use a neutral dashed trace
+      and a review marker, but do not mark a map as wrong because the source cannot establish that.
     </p>
     <ul class="m-0 grid max-h-48 list-none gap-1.5 overflow-y-auto p-0">
       {#each diagnostics as diagnostic (diagnosticKey(diagnostic))}
