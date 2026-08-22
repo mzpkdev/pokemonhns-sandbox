@@ -88,11 +88,19 @@
   })
   const selectedStyle = new Style({
     fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.2) }),
-    stroke: new Stroke({ color: cartographerColor("signal"), width: 3 }),
+    stroke: new Stroke({
+      color: cartographerColor("signal-strong"),
+      lineDash: [10, 6],
+      width: 4,
+    }),
   })
   const selectedEncounterStyle = new Style({
     fill: new Fill({ color: "rgba(0, 0, 0, 0)" }),
-    stroke: new Stroke({ color: cartographerColor("signal-strong"), width: 5 }),
+    stroke: new Stroke({
+      color: cartographerColor("signal-strong"),
+      lineDash: [12, 8],
+      width: 5,
+    }),
   })
   const encounterStyles = new Map<string, { frame: Style; label: Style }>()
   const encounterStyleFor = (methods: string, labelled: boolean): Style => {
