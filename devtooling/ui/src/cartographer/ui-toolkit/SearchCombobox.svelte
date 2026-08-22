@@ -35,7 +35,7 @@
   selectionBehavior="preserve"
   onValueChange={handleValueChange}
 >
-  <Combobox.Label class="mb-1 block text-sm font-bold text-atlas-muted">{label}</Combobox.Label>
+  <Combobox.Label class="mb-1 block text-sm font-bold text-tographer-muted">{label}</Combobox.Label>
   <Combobox.Control>
     <Combobox.Input
       class="w-full rounded-md border border-[#9eaf9b] bg-white px-2.5 py-2 text-inherit focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#53704e]"
@@ -56,12 +56,14 @@
                 item={option}
               >
                 <Combobox.ItemText>{option.label}</Combobox.ItemText>
-                <small class="text-right break-words text-atlas-muted">{option.description}</small>
+                <small class="text-right break-words text-tographer-muted"
+                  >{option.description}</small
+                >
               </Combobox.Item>
             {/each}
           </Combobox.List>
         {:else}
-          <Combobox.Empty class="block px-3 py-2 text-sm text-atlas-muted"
+          <Combobox.Empty class="block px-3 py-2 text-sm text-tographer-muted"
             >{emptyText}</Combobox.Empty
           >
         {/if}

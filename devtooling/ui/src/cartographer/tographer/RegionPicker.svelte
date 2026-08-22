@@ -12,7 +12,7 @@
 </script>
 
 <nav
-  class="flex flex-wrap items-center gap-1.5 rounded-xl border border-atlas-border bg-atlas-panel p-4 shadow-[0_5px_18px_#56634c1b] md:block"
+  class="flex flex-wrap items-center gap-1.5 rounded-xl border border-tographer-border bg-tographer-panel p-4 shadow-[0_5px_18px_#56634c1b] md:block"
   aria-label="Regions"
 >
   <h2 class="mb-1 w-full text-base font-semibold md:mb-3">Regions</h2>

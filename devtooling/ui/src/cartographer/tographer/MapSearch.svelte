@@ -39,7 +39,7 @@
 </script>
 
 <section
-  class="rounded-xl border border-atlas-border bg-atlas-panel p-4 shadow-[0_5px_18px_#56634c1b]"
+  class="rounded-xl border border-tographer-border bg-tographer-panel p-4 shadow-[0_5px_18px_#56634c1b]"
   aria-label="Map search"
 >
   <h2 class="mb-3 text-base font-semibold">Find a map</h2>

@@ -1,9 +1,9 @@
 import { expect, test } from "webanvil/e2e"
 
-test("shows the atlas", async ({ page }) => {
+test("shows the tographer", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByRole("heading", { name: "Map atlas" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Tographer" })).toBeVisible()
   await expect(page.getByRole("navigation", { name: "Regions" })).toBeVisible()
 
   const mapSearch = page.getByRole("combobox", { name: "Source name or map section" })

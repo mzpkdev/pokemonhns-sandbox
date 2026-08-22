@@ -19,25 +19,25 @@
   import MapToolbar from "./MapToolbar.svelte"
   import type { CatalogMap, MapCatalog } from "./catalog.js"
   import {
-    atlasExtent,
+    tographerExtent,
     solveGeography,
     toOpenLayersExtent,
     visibleSurfaceMaps,
   } from "./geography.js"
   import type { FocusRequest, WarpSelection } from "./types.js"
-  import { mapImageUrl, type AtlasViewState } from "./urls.js"
+  import { mapImageUrl, type TographerViewState } from "./urls.js"
 
   type Props = {
     catalog: MapCatalog
     maps: CatalogMap[]
     selectedMapName?: string | null
     selectedWarp?: WarpSelection | null
-    initialView?: AtlasViewState | null
+    initialView?: TographerViewState | null
     focusRequest?: FocusRequest | null
     showExits?: boolean
     onSelectMap?: (name: string) => void
     onSelectWarp?: (selection: WarpSelection) => void
-    onCameraChange?: (view: AtlasViewState) => void
+    onCameraChange?: (view: TographerViewState) => void
     onToggleExits?: (value: boolean) => void
   }
 
@@ -97,7 +97,7 @@
 
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
-  let extent = $derived(atlasExtent(geography.placements, catalog.pixelsPerMetatile))
+  let extent = $derived(tographerExtent(geography.placements, catalog.pixelsPerMetatile))
 
   const updateExitVisibility = (): void => {
     if (!instance) return
@@ -129,7 +129,11 @@
   onMount(() => {
     if (!extent || !host) return
     const mapHost = host
-    const projection = new Projection({ code: "pokemonhns-atlas-pixels", units: "pixels", extent })
+    const projection = new Projection({
+      code: "pokemonhns-tographer-pixels",
+      units: "pixels",
+      extent,
+    })
     const createImageSource = (
       map: CatalogMap,
       imageExtent: [number, number, number, number],
@@ -265,8 +269,8 @@
 
 {#if extent}
   <section
-    class="overflow-hidden rounded-xl border border-atlas-border bg-atlas-panel shadow-[0_5px_18px_#56634c1b]"
-    aria-label="Interactive map atlas"
+    class="overflow-hidden rounded-xl border border-tographer-border bg-tographer-panel shadow-[0_5px_18px_#56634c1b]"
+    aria-label="Interactive tographer"
   >
     <MapToolbar
       surfaceMapCount={surfaceMaps.length}
@@ -283,7 +287,7 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <p class="m-0 px-4 py-3 text-sm text-atlas-muted">
+    <p class="m-0 px-4 py-3 text-sm text-tographer-muted">
       Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when
       Exits is enabled.
     </p>

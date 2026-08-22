@@ -2,6 +2,6 @@ import { defineOption } from "cmdore"
 
 export default defineOption({
   name: "catalog",
-  description: "Render every exterior map plus an atlas-ready catalog.json",
+  description: "Render every exterior map plus a tographer-ready catalog.json",
   arity: 0,
 })

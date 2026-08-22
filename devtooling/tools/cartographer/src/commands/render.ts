@@ -53,7 +53,7 @@ export default defineCommand({
     if (renderCatalogFile) {
       const outputDirectory = path.resolve(
         root,
-        outputPath === "build/map-renders" ? "build/map-atlas/map-catalog" : outputPath,
+        outputPath === "build/map-renders" ? "build/tographer/map-catalog" : outputPath,
       )
       const result = renderCatalog(root, outputDirectory)
       terminal.log(`rendered catalog for ${result.mapCount} map(s) to ${result.output}`)

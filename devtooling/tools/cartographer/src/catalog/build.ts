@@ -98,7 +98,7 @@ const createCatalogMap = (
   }
 }
 
-/** Render every exterior map plus the metadata needed by the static map atlas. */
+/** Render every exterior map plus the metadata needed by the static tographer. */
 export const renderCatalog = (root: string, output: string): RenderCatalogResult => {
   const layouts = sourceLayouts(root)
   const groups = sourceGroups(root)

@@ -16,7 +16,7 @@ export default defineConfig({
   plugins: [tailwindcss(), svelte()],
   vite: {
     base: "./",
-    publicDir: url.fileURLToPath(new url.URL("../../build/map-atlas/map-catalog", import.meta.url)),
+    publicDir: url.fileURLToPath(new url.URL("../../build/tographer/map-catalog", import.meta.url)),
   },
   test: {
     exclude: ["e2e/**"],

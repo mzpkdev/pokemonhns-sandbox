@@ -1,21 +1,25 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-  import AtlasHeader from "./atlas/AtlasHeader.svelte"
-  import MapDetails from "./atlas/MapDetails.svelte"
-  import MapSearch from "./atlas/MapSearch.svelte"
-  import MapViewport from "./atlas/MapViewport.svelte"
-  import RegionPicker from "./atlas/RegionPicker.svelte"
+  import TographerHeader from "./tographer/TographerHeader.svelte"
+  import MapDetails from "./tographer/MapDetails.svelte"
+  import MapSearch from "./tographer/MapSearch.svelte"
+  import MapViewport from "./tographer/MapViewport.svelte"
+  import RegionPicker from "./tographer/RegionPicker.svelte"
   import {
     CatalogValidationError,
     loadCatalog,
     type CatalogMap,
     type CatalogWarp,
     type MapCatalog,
-  } from "./atlas/catalog.js"
-  import { visibleSurfaceMaps } from "./atlas/geography.js"
-  import type { WarpSelection } from "./atlas/types.js"
-  import { atlasUrlWithState, parseAtlasUrlState, type AtlasViewState } from "./atlas/urls.js"
+  } from "./tographer/catalog.js"
+  import { visibleSurfaceMaps } from "./tographer/geography.js"
+  import type { WarpSelection } from "./tographer/types.js"
+  import {
+    tographerUrlWithState,
+    parseTographerUrlState,
+    type TographerViewState,
+  } from "./tographer/urls.js"
 
   type LoadState =
     | { kind: "loading" }
@@ -25,15 +29,15 @@
   let loadState = $state<LoadState>({ kind: "loading" })
   let requestedRegion = $state<string | null>(null)
   let requestedMap = $state<string | null>(null)
-  let initialView = $state<AtlasViewState | null>(null)
-  let currentView = $state<AtlasViewState | null>(null)
+  let initialView = $state<TographerViewState | null>(null)
+  let currentView = $state<TographerViewState | null>(null)
   let searchQuery = $state("")
   let selectedWarp = $state<WarpSelection | null>(null)
   let showExits = $state(false)
   let focusToken = $state(0)
 
   onMount(() => {
-    const state = parseAtlasUrlState(window.location.href)
+    const state = parseTographerUrlState(window.location.href)
     requestedRegion = state.region
     requestedMap = state.selectedMap
     initialView = state.view
@@ -78,7 +82,7 @@
 
   const replaceUrl = (): void => {
     if (!activeRegion) return
-    const next = atlasUrlWithState(window.location.href, {
+    const next = tographerUrlWithState(window.location.href, {
       region: activeRegion.id,
       selectedMap: selectedMap?.name ?? null,
       view: currentView,
@@ -112,7 +116,7 @@
     showExits = true
   }
 
-  const handleCameraChange = (view: AtlasViewState): void => {
+  const handleCameraChange = (view: TographerViewState): void => {
     currentView = view
     replaceUrl()
   }
@@ -122,7 +126,7 @@
   <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>Loading the map catalog...</p></main>
 {:else if loadState.kind === "error"}
   <main class="mx-auto mt-[12vh] max-w-2xl border-l-[0.35rem] border-[#af3f2e] bg-[#fff4ee] p-8">
-    <h1 class="mb-3 text-3xl font-bold">Map atlas unavailable</h1>
+    <h1 class="mb-3 text-3xl font-bold">Tographer unavailable</h1>
     <p>{loadState.message}</p>
     {#if loadState.details.length > 0}
       <ul>
@@ -134,7 +138,7 @@
   <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>The catalog has no regions.</p></main>
 {:else}
   <main class="min-h-screen p-[clamp(1rem,3vw,2.5rem)]">
-    <AtlasHeader {catalog} />
+    <TographerHeader {catalog} />
     <div class="grid gap-4 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
       <aside class="grid content-start gap-4">
         <RegionPicker
@@ -149,7 +153,7 @@
           class="mb-2 flex flex-col items-start justify-between gap-4 md:flex-row md:items-baseline"
         >
           <h2 class="mb-0 text-2xl font-semibold">{activeRegion.label}</h2>
-          <p class="m-0 text-sm text-atlas-muted md:text-right">
+          <p class="m-0 text-sm text-tographer-muted md:text-right">
             Only default-visible surface maps are drawn. Pan, scroll, or pinch to explore.
           </p>
         </div>

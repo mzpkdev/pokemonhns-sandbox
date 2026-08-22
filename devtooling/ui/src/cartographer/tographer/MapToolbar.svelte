@@ -26,7 +26,7 @@
 </script>
 
 <div
-  class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm text-atlas-muted md:items-center"
+  class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm text-tographer-muted md:items-center"
 >
   <span>{surfaceMapCount} surface maps, {componentCount} components</span>
   {#if residualCount > 0}

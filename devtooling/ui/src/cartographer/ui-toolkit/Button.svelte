@@ -24,9 +24,9 @@
     solid:
       "border border-[#8a5b10] bg-[#8a5b10] text-white hover:bg-[#704707] focus-visible:outline-[#704707]",
     selected:
-      "border border-atlas-forest bg-atlas-forest text-white hover:bg-[#365332] focus-visible:outline-[#53704e]",
+      "border border-tographer-forest bg-tographer-forest text-white hover:bg-[#365332] focus-visible:outline-[#53704e]",
     subtle:
-      "border border-transparent text-[#263e29] hover:bg-atlas-forest hover:text-white focus-visible:outline-[#53704e]",
+      "border border-transparent text-[#263e29] hover:bg-tographer-forest hover:text-white focus-visible:outline-[#53704e]",
   }
 </script>
 
