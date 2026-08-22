@@ -83,9 +83,7 @@ export type TopologySourceHeader = {
   pointer: string
 }
 
-export type TopologyConflict = {
-  code: "connection_placement_mismatch"
-  explanation: string
+export type TopologyConnectionRecord = {
   source: {
     map: string
     mapId: string
@@ -97,13 +95,66 @@ export type TopologyConflict = {
   }
   direction: "up" | "down" | "left" | "right"
   offsetMetatiles: number
-  expected: CatalogPlacement
-  actual: CatalogPlacement
-  establishedPlacement: {
-    source: TopologySourceHeader[]
-    destination: TopologySourceHeader[]
+}
+
+export type TopologyConnectionPair = {
+  connection: TopologyConnectionRecord
+  reverseConnection: TopologyConnectionRecord
+}
+
+export type TopologyDirectConnectionMismatch = {
+  code: "direct_connection_mismatch"
+  explanation: string
+  connection: TopologyConnectionRecord
+  reverseConnection: TopologyConnectionRecord
+  expectedReverse: {
+    direction: "up" | "down" | "left" | "right"
+    offsetMetatiles: number
+  }
+  forwardPlacement: CatalogPlacement
+  reversePlacement: CatalogPlacement
+}
+
+export type TopologyMissingReverseConnection = {
+  code: "missing_reverse_connection"
+  explanation: string
+  connection: TopologyConnectionRecord
+  expectedReverse: {
+    direction: "up" | "down" | "left" | "right"
+    offsetMetatiles: number
   }
 }
+
+export type TopologyCycleCandidate = {
+  map: string
+  mapId: string
+  rank: number
+  confidence: "none" | "low"
+  independentConnectionCount: number
+  remainingComponentSize: number
+  residualResolved: boolean
+  rationale: string
+}
+
+export type TopologyCycleClosureMismatch = {
+  code: "cycle_closure_mismatch"
+  explanation: string
+  maps: Array<{
+    map: string
+    mapId: string
+  }>
+  connections: TopologyConnectionPair[]
+  residualMetatiles: {
+    x: number
+    y: number
+  }
+  candidates: TopologyCycleCandidate[]
+}
+
+export type TopologyDiagnostic =
+  | TopologyDirectConnectionMismatch
+  | TopologyMissingReverseConnection
+  | TopologyCycleClosureMismatch
 
 export type CatalogMap = {
   name: string
@@ -188,7 +239,7 @@ export type CatalogMap = {
 
 export type MapCatalog = {
   $schema: "catalog.schema.json"
-  schemaVersion: 1
+  schemaVersion: 2
   format: "pokemonhns-exterior-map-catalog"
   pixelsPerMetatile: 16
   source: {
@@ -203,7 +254,7 @@ export type MapCatalog = {
     message: string
   }>
   topology: {
-    conflicts: TopologyConflict[]
+    conflicts: TopologyDiagnostic[]
   }
   regions: Array<CatalogRegion & { mapCount: number; maps: string[] }>
   maps: CatalogMap[]

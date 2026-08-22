@@ -20,9 +20,7 @@ export type CatalogTopologyHeader = {
   pointer: string
 }
 
-export type CatalogTopologyConflict = {
-  code: "connection_placement_mismatch"
-  explanation: string
+export type CatalogTopologyConnection = {
   source: {
     map: string
     mapId: string
@@ -34,13 +32,64 @@ export type CatalogTopologyConflict = {
   }
   direction: "up" | "down" | "left" | "right"
   offsetMetatiles: number
-  expected: CatalogPlacement
-  actual: CatalogPlacement
-  establishedPlacement: {
-    source: CatalogTopologyHeader[]
-    destination: CatalogTopologyHeader[]
+}
+
+export type CatalogTopologyConnectionPair = {
+  connection: CatalogTopologyConnection
+  reverseConnection: CatalogTopologyConnection
+}
+
+export type CatalogDirectTopologyMismatch = {
+  code: "direct_connection_mismatch"
+  explanation: string
+  connection: CatalogTopologyConnection
+  reverseConnection: CatalogTopologyConnection
+  expectedReverse: {
+    direction: "up" | "down" | "left" | "right"
+    offsetMetatiles: number
+  }
+  forwardPlacement: CatalogPlacement
+  reversePlacement: CatalogPlacement
+}
+
+export type CatalogMissingReverseConnection = {
+  code: "missing_reverse_connection"
+  explanation: string
+  connection: CatalogTopologyConnection
+  expectedReverse: {
+    direction: "up" | "down" | "left" | "right"
+    offsetMetatiles: number
   }
 }
+
+export type CatalogCycleTopologyMismatch = {
+  code: "cycle_closure_mismatch"
+  explanation: string
+  maps: Array<{
+    map: string
+    mapId: string
+  }>
+  connections: CatalogTopologyConnectionPair[]
+  residualMetatiles: {
+    x: number
+    y: number
+  }
+  candidates: Array<{
+    map: string
+    mapId: string
+    rank: number
+    confidence: "none" | "low"
+    independentConnectionCount: number
+    remainingComponentSize: number
+    residualResolved: boolean
+    rationale: string
+  }>
+}
+
+export type CatalogTopologyDiagnostic =
+  | CatalogDirectTopologyMismatch
+  | CatalogMissingReverseConnection
+  | CatalogCycleTopologyMismatch
 
 export type CatalogWarp = {
   warpId: string
@@ -142,7 +191,7 @@ export type MapCatalog = {
     workingTreeDirty: boolean
   }
   topology: {
-    conflicts: CatalogTopologyConflict[]
+    conflicts: CatalogTopologyDiagnostic[]
   }
   regions: Array<{
     id: string
@@ -172,12 +221,135 @@ const hasString = (value: unknown): value is string => {
   return typeof value === "string"
 }
 
+const hasNumber = (value: unknown): value is number => {
+  return typeof value === "number" && Number.isFinite(value)
+}
+
+const hasCardinalDirection = (value: unknown): boolean => {
+  return value === "up" || value === "down" || value === "left" || value === "right"
+}
+
+const hasTopologyHeader = (value: unknown): boolean => {
+  const header = asRecord(value)
+  return !!header && hasString(header.map) && hasString(header.path) && hasString(header.pointer)
+}
+
+const hasTopologyConnection = (value: unknown): boolean => {
+  const connection = asRecord(value)
+  const source = asRecord(connection?.source)
+  const destination = asRecord(connection?.destination)
+  return (
+    !!connection &&
+    !!source &&
+    !!destination &&
+    hasString(source.map) &&
+    hasString(source.mapId) &&
+    hasTopologyHeader(source.header) &&
+    hasString(destination.map) &&
+    hasString(destination.mapId) &&
+    hasCardinalDirection(connection.direction) &&
+    hasNumber(connection.offsetMetatiles)
+  )
+}
+
+const hasPlacement = (value: unknown): boolean => {
+  const placement = asRecord(value)
+  return (
+    !!placement &&
+    hasNumber(placement.x) &&
+    hasNumber(placement.y) &&
+    hasNumber(placement.width) &&
+    hasNumber(placement.height)
+  )
+}
+
+const hasExpectedReverse = (value: unknown): boolean => {
+  const expected = asRecord(value)
+  return (
+    !!expected && hasCardinalDirection(expected.direction) && hasNumber(expected.offsetMetatiles)
+  )
+}
+
+const hasCycleCandidate = (value: unknown): boolean => {
+  const candidate = asRecord(value)
+  return (
+    !!candidate &&
+    hasString(candidate.map) &&
+    hasString(candidate.mapId) &&
+    hasNumber(candidate.rank) &&
+    (candidate.confidence === "none" || candidate.confidence === "low") &&
+    hasNumber(candidate.independentConnectionCount) &&
+    hasNumber(candidate.remainingComponentSize) &&
+    typeof candidate.residualResolved === "boolean" &&
+    hasString(candidate.rationale)
+  )
+}
+
+const topologyDiagnosticIssue = (value: unknown): string | null => {
+  const diagnostic = asRecord(value)
+  if (!diagnostic || !hasString(diagnostic.code) || !hasString(diagnostic.explanation)) {
+    return "must include a supported code and explanation."
+  }
+  if (diagnostic.code === "direct_connection_mismatch") {
+    return hasTopologyConnection(diagnostic.connection) &&
+      hasTopologyConnection(diagnostic.reverseConnection) &&
+      hasExpectedReverse(diagnostic.expectedReverse) &&
+      hasPlacement(diagnostic.forwardPlacement) &&
+      hasPlacement(diagnostic.reversePlacement)
+      ? null
+      : "has an invalid direct reciprocal mismatch payload."
+  }
+  if (diagnostic.code === "missing_reverse_connection") {
+    return hasTopologyConnection(diagnostic.connection) &&
+      hasExpectedReverse(diagnostic.expectedReverse)
+      ? null
+      : "has an invalid missing reverse connection payload."
+  }
+  if (diagnostic.code !== "cycle_closure_mismatch") {
+    return `uses unsupported code ${JSON.stringify(diagnostic.code)}.`
+  }
+  const residual = asRecord(diagnostic.residualMetatiles)
+  const maps = diagnostic.maps
+  const connections = diagnostic.connections
+  const candidates = diagnostic.candidates
+  const mapsValid =
+    Array.isArray(maps) &&
+    maps.every((map) => {
+      const entry = asRecord(map)
+      return !!entry && hasString(entry.map) && hasString(entry.mapId)
+    })
+  const connectionsValid =
+    Array.isArray(connections) &&
+    connections.every((pair) => {
+      const entry = asRecord(pair)
+      return (
+        !!entry &&
+        hasTopologyConnection(entry.connection) &&
+        hasTopologyConnection(entry.reverseConnection)
+      )
+    })
+  return mapsValid &&
+    connectionsValid &&
+    Array.isArray(candidates) &&
+    candidates.every(hasCycleCandidate) &&
+    !!residual &&
+    hasNumber(residual.x) &&
+    hasNumber(residual.y)
+    ? null
+    : "has an invalid cycle closure payload."
+}
+
 /** Check the catalog fields the cartographer relies upon before rendering any map data. */
 export const validateCatalog = (value: unknown): MapCatalog => {
   const root = asRecord(value)
   const details: string[] = []
   if (!root) {
     throw new CatalogValidationError(["catalog must be an object."], "The map catalog is invalid.")
+  }
+  if (root.schemaVersion !== 2) {
+    details.push(
+      "schemaVersion must be 2. Regenerate the catalog with pnpm run cartographer:catalog.",
+    )
   }
   if (!Array.isArray(root.maps)) {
     details.push("maps must be an array.")
@@ -196,6 +368,10 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   }
 
   const catalog = root as unknown as MapCatalog
+  for (const [index, diagnostic] of catalog.topology.conflicts.entries()) {
+    const issue = topologyDiagnosticIssue(diagnostic)
+    if (issue) details.push(`topology.conflicts[${index}] ${issue}`)
+  }
   const mapNames = new Set<string>()
   const mapIds = new Set<string>()
   const regions = new Set(catalog.regions.map((region) => region.id))

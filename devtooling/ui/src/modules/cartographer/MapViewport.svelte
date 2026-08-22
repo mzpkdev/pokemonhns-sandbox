@@ -25,7 +25,9 @@
     CatalogMap,
     CatalogObject,
     CatalogPlacement,
-    CatalogTopologyConflict,
+    CatalogDirectTopologyMismatch,
+    CatalogMissingReverseConnection,
+    CatalogTopologyDiagnostic,
     MapCatalog,
   } from "./catalog.js"
   import {
@@ -122,15 +124,15 @@
       stroke: new Stroke({ color: "#303942", width: 1 }),
     }),
   })
-  const expectedConflictStyles = new Map<string, Style>()
-  const expectedConflictStyleFor = (mapName: string): Style => {
-    const existing = expectedConflictStyles.get(mapName)
+  const directMismatchStyles = new Map<string, Style>()
+  const directMismatchStyleFor = (mapName: string): Style => {
+    const existing = directMismatchStyles.get(mapName)
     if (existing) return existing
     const style = new Style({
       fill: new Fill({ color: "rgba(210, 133, 145, 0.10)" }),
       stroke: new Stroke({ color: "#f1a6b2", width: 3 }),
       text: new Text({
-        text: `Expected ${mapName}`,
+        text: `Forward ${mapName}`,
         font: "600 11px 'IBM Plex Mono', monospace",
         fill: new Fill({ color: "#f5c7ce" }),
         backgroundFill: new Fill({ color: "rgba(36, 26, 32, 0.86)" }),
@@ -143,10 +145,10 @@
       }),
       zIndex: 2,
     })
-    expectedConflictStyles.set(mapName, style)
+    directMismatchStyles.set(mapName, style)
     return style
   }
-  const conflictLineStyle = new Style({
+  const mismatchLineStyle = new Style({
     stroke: new Stroke({ color: "#b86f7c", width: 2, lineDash: [5, 5] }),
     zIndex: 1,
   })
@@ -223,24 +225,49 @@
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
   let extent = $derived(cartographerExtent(geography.placements, catalog.pixelsPerMetatile))
-  let topologyConflicts = $derived(
-    catalog.topology.conflicts.filter(
-      (conflict) =>
-        geography.placements[conflict.source.map] && geography.placements[conflict.destination.map],
-    ),
-  )
+  const isDirectMismatch = (
+    diagnostic: CatalogTopologyDiagnostic,
+  ): diagnostic is CatalogDirectTopologyMismatch => {
+    return diagnostic.code === "direct_connection_mismatch"
+  }
 
-  const visualConflictFor = (
-    conflict: CatalogTopologyConflict,
-  ): { expected: typeof conflict.expected; actual: typeof conflict.actual } => {
-    const actual = geography.placements[conflict.destination.map]!
+  const isDirectDiagnostic = (
+    diagnostic: CatalogTopologyDiagnostic,
+  ): diagnostic is CatalogDirectTopologyMismatch | CatalogMissingReverseConnection => {
+    return (
+      diagnostic.code === "direct_connection_mismatch" ||
+      diagnostic.code === "missing_reverse_connection"
+    )
+  }
+
+  let topologyDiagnostics = $derived(
+    catalog.topology.conflicts.filter((diagnostic) => {
+      if (isDirectDiagnostic(diagnostic)) {
+        return (
+          geography.placements[diagnostic.connection.source.map] &&
+          geography.placements[diagnostic.connection.destination.map]
+        )
+      }
+      return diagnostic.maps.some((map) => geography.placements[map.map])
+    }),
+  )
+  let directTopologyMismatches = $derived(topologyDiagnostics.filter(isDirectMismatch))
+
+  const visualDirectMismatchFor = (
+    diagnostic: CatalogDirectTopologyMismatch,
+  ): { expected: CatalogPlacement; actual: CatalogPlacement } => {
+    const source = geography.placements[diagnostic.connection.source.map]!
     return {
       expected: {
-        ...conflict.expected,
-        x: actual.x - (conflict.actual.x - conflict.expected.x),
-        y: actual.y - (conflict.actual.y - conflict.expected.y),
+        ...diagnostic.forwardPlacement,
+        x: source.x + diagnostic.forwardPlacement.x,
+        y: source.y + diagnostic.forwardPlacement.y,
       },
-      actual,
+      actual: {
+        ...diagnostic.reversePlacement,
+        x: source.x + diagnostic.reversePlacement.x,
+        y: source.y + diagnostic.reversePlacement.y,
+      },
     }
   }
 
@@ -383,15 +410,15 @@
         )
       }
     }
-    for (const conflict of topologyConflicts) {
-      const visual = visualConflictFor(conflict)
+    for (const diagnostic of directTopologyMismatches) {
+      const visual = visualDirectMismatchFor(diagnostic)
       const expectedExtent = toOpenLayersExtent(visual.expected, catalog.pixelsPerMetatile)
       const actualExtent = toOpenLayersExtent(visual.actual, catalog.pixelsPerMetatile)
       conflictSource.addFeature(
         new Feature({
           geometry: polygonFromExtent(expectedExtent),
-          kind: "expected",
-          expectedMapName: conflict.destination.map,
+          kind: "forward",
+          expectedMapName: diagnostic.connection.destination.map,
         }),
       )
       if (!placementsOverlap(visual.expected, visual.actual)) {
@@ -444,8 +471,8 @@
     const conflicts = new VectorLayer({
       source: conflictSource,
       style: (feature) => {
-        if (feature.get("kind") !== "expected") return conflictLineStyle
-        return expectedConflictStyleFor(feature.get("expectedMapName") as string)
+        if (feature.get("kind") !== "forward") return mismatchLineStyle
+        return directMismatchStyleFor(feature.get("expectedMapName") as string)
       },
       visible: showTopologyConflicts,
     })
@@ -543,7 +570,7 @@
     <MapToolbar
       surfaceMapCount={surfaceMaps.length}
       componentCount={geography.components.length}
-      residualCount={topologyConflicts.length}
+      topologyDiagnosticCount={topologyDiagnostics.length}
       {showTopologyConflicts}
       {showExits}
       {showObjects}
@@ -559,7 +586,7 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <TopologyConflictPanel conflicts={topologyConflicts} visible={showTopologyConflicts} />
+    <TopologyConflictPanel diagnostics={topologyDiagnostics} visible={showTopologyConflicts} />
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >

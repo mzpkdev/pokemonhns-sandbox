@@ -5,7 +5,7 @@
   type Props = {
     surfaceMapCount: number
     componentCount: number
-    residualCount: number
+    topologyDiagnosticCount: number
     showTopologyConflicts: boolean
     showExits: boolean
     showObjects: boolean
@@ -20,7 +20,7 @@
   let {
     surfaceMapCount,
     componentCount,
-    residualCount,
+    topologyDiagnosticCount,
     showTopologyConflicts,
     showExits,
     showObjects,
@@ -37,9 +37,9 @@
   class="flex flex-wrap items-center gap-x-4 gap-y-2 bg-[#14171a] px-4 py-3 text-sm text-cartographer-muted"
 >
   <span class="text-xs">{surfaceMapCount} surfaces · {componentCount} groups</span>
-  {#if residualCount > 0}
+  {#if topologyDiagnosticCount > 0}
     <Checkbox checked={showTopologyConflicts} onCheckedChange={onToggleTopologyConflicts}
-      >Conflicts ({residualCount})</Checkbox
+      >Topology diagnostics ({topologyDiagnosticCount})</Checkbox
     >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>
