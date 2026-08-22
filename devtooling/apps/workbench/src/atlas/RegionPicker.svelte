@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { MapCatalog } from "./catalog.js"
-  import { cn } from "../lib/cn.js"
+  import Button from "../ui-toolkit/Button.svelte"
 
   type Props = {
     regions: MapCatalog["regions"]
@@ -17,16 +17,13 @@
 >
   <h2 class="mb-1 w-full text-base font-semibold md:mb-3">Regions</h2>
   {#each regions as region}
-    <button
-      type="button"
-      class={cn(
-        "flex w-auto items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition hover:bg-atlas-forest hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#53704e] md:w-full",
-        region.id === activeRegionId && "bg-atlas-forest text-white",
-      )}
+    <Button
+      class="flex w-auto items-center justify-between gap-2 rounded-lg px-3 py-2 text-left md:w-full"
+      variant={region.id === activeRegionId ? "selected" : "subtle"}
       onclick={() => onSelectRegion?.(region.id)}
     >
       <span>{region.label}</span>
       <small class="opacity-75">{region.mapCount} catalog maps</small>
-    </button>
+    </Button>
   {/each}
 </nav>

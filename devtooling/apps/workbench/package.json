@@ -16,6 +16,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@ark-ui/svelte": "^5.23.1",
     "clsx": "^2.1.1",
     "ol": "^10.10.0",
     "svelte": "^5.56.10",

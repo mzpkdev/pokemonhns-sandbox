@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CatalogMap, CatalogWarp } from "./catalog.js"
   import type { WarpSelection } from "./types.js"
+  import Button from "../ui-toolkit/Button.svelte"
   import { cn } from "../lib/cn.js"
 
   type Props = {
@@ -66,26 +67,25 @@
           {#each selectedMap.warps as warp (warp.warpId)}
             {@const destination = destinationFor(warp)}
             <li>
-              <button
+              <Button
                 class={cn(
-                  "flex w-full items-center justify-between gap-3 rounded-lg border border-[#c5d1c2] bg-white px-3 py-2 text-left transition hover:bg-[#e5efdc] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#53704e]",
+                  "flex w-full items-center justify-between gap-3 rounded-lg border-[#c5d1c2] px-3 py-2 text-left hover:bg-[#e5efdc] focus-visible:outline-[#53704e]",
                   selectedWarp?.sourceMapName === selectedMap.name &&
                     selectedWarp?.warpId === warp.warpId &&
                     "bg-[#e5efdc]",
                 )}
-                type="button"
                 onclick={() => onSelectWarp?.(warp)}
               >
                 <span>Warp {warp.warpId} · ({warp.xMetatiles}, {warp.yMetatiles})</span>
                 <small class="text-right break-words text-atlas-muted"
                   >{destination?.name ?? warp.destinationMap ?? warp.destinationMapId}</small
                 >
-              </button>
+              </Button>
               {#if destination && renderedMapNames.has(destination.name) && selectedWarp?.sourceMapName === selectedMap.name && selectedWarp?.warpId === warp.warpId}
-                <button
-                  type="button"
-                  class="mt-2 min-h-9 rounded-md border border-[#8a5b10] bg-[#8a5b10] px-3 py-1.5 text-white hover:bg-[#704707] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]"
-                  onclick={() => onFocusMap?.(destination.name)}>Focus {destination.name}</button
+                <Button
+                  class="mt-2 min-h-9"
+                  variant="solid"
+                  onclick={() => onFocusMap?.(destination.name)}>Focus {destination.name}</Button
                 >
               {/if}
             </li>

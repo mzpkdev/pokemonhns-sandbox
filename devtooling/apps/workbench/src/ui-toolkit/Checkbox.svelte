@@ -1,0 +1,34 @@
+<script lang="ts">
+  import { Checkbox as ArkCheckbox } from "@ark-ui/svelte/checkbox"
+  import type { Snippet } from "svelte"
+
+  type Props = {
+    checked: boolean
+    children?: Snippet
+    onCheckedChange?: (checked: boolean) => void
+  }
+
+  let { checked = $bindable(), children, onCheckedChange }: Props = $props()
+
+  const handleCheckedChange = (details: { checked: boolean | "indeterminate" }): void => {
+    onCheckedChange?.(details.checked === true)
+  }
+</script>
+
+<ArkCheckbox.Root
+  bind:checked
+  class="inline-flex cursor-pointer items-center gap-1.5 font-bold whitespace-nowrap text-[#263e29]"
+  onCheckedChange={handleCheckedChange}
+>
+  <ArkCheckbox.Control
+    class="pointer-events-none flex size-[1.1rem] items-center justify-center rounded border border-[#8a5b10] bg-white text-white transition data-[state=checked]:bg-[#8a5b10] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]"
+  >
+    <ArkCheckbox.Indicator>
+      <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12"
+        ><path d="m2 6 2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="2" /></svg
+      >
+    </ArkCheckbox.Indicator>
+  </ArkCheckbox.Control>
+  <ArkCheckbox.HiddenInput />
+  <ArkCheckbox.Label>{@render children?.()}</ArkCheckbox.Label>
+</ArkCheckbox.Root>

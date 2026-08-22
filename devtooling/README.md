@@ -3,9 +3,9 @@
 This is an isolated Node 24 workspace for tools that support the Pokemon HnS
 fork. It does not participate in the ROM's Makefile build.
 
-The workspace uses pnpm workspaces, Turborepo, WebAnvil, and TypeScript 7.
-WebAnvil owns builds, formatting, linting, test commands, workbench browser
-tests, and declaration generation.
+The workspace uses pnpm workspaces, Turborepo, WebAnvil, TypeScript 7, and Ark
+UI in the Svelte workbench. WebAnvil owns builds, formatting, linting, test
+commands, workbench browser tests, and declaration generation.
 
 ## Layout
 
@@ -19,6 +19,9 @@ real shared consumer.
 `apps/workbench` is the Svelte map atlas. It consumes the static catalog and
 terrain images created by `apps/map-render`; it does not read the ROM or source
 tree in the browser.
+
+`apps/workbench/src/ui-toolkit` owns styled local UI primitives. It wraps Ark UI
+for stateful controls so atlas components can stay focused on map behavior.
 
 ## Commands
 
