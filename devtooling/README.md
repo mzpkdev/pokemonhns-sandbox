@@ -22,8 +22,8 @@ when it has a real independent consumer.
 created by `tools/cartographer`; it does not read the ROM or source
 tree in the browser.
 
-`ui/src/ui-toolkit` owns styled local UI primitives. It wraps Ark UI for stateful
-controls so atlas components can stay focused on map behavior.
+`ui/src/cartographer/ui-toolkit` owns styled local UI primitives. It wraps Ark
+UI for stateful controls so atlas components can stay focused on map behavior.
 
 ## Commands
 
