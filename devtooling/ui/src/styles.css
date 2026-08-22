@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cartographer-ink: #e7edf7;
-  --color-cartographer-canvas: #080d17;
-  --color-cartographer-panel: #111a2b;
-  --color-cartographer-panel-raised: #18243a;
-  --color-cartographer-border: #2d3c56;
-  --color-cartographer-signal: #75b9ff;
-  --color-cartographer-signal-soft: #c3deff;
-  --color-cartographer-amber: #d8a861;
-  --color-cartographer-muted: #91a2bd;
+  --color-cartographer-ink: #e5e7eb;
+  --color-cartographer-canvas: #111315;
+  --color-cartographer-panel: #191c20;
+  --color-cartographer-panel-raised: #22262b;
+  --color-cartographer-border: #383e46;
+  --color-cartographer-signal: #8fa7bd;
+  --color-cartographer-signal-soft: #cbd5df;
+  --color-cartographer-amber: #c0a778;
+  --color-cartographer-muted: #a4abb4;
   --font-cartographer-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -24,7 +24,7 @@
 
   body {
     @apply m-0 min-w-80 bg-cartographer-canvas;
-    background-image: radial-gradient(circle at 78% -10%, #183660 0, transparent 29rem);
+    background-image: radial-gradient(circle at 78% -10%, #252a30 0, transparent 29rem);
   }
 
   button,
@@ -33,7 +33,7 @@
   }
 
   ::selection {
-    background: #75b9ff55;
+    background: #8fa7bd55;
     color: #ffffff;
   }
 }

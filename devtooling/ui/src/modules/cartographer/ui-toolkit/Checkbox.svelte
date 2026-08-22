@@ -21,7 +21,7 @@
   onCheckedChange={handleCheckedChange}
 >
   <ArkCheckbox.Control
-    class="pointer-events-none flex size-[1.1rem] items-center justify-center rounded-sm border border-cartographer-border bg-[#0b1220] text-[#07101d] transition-colors data-[state=checked]:border-cartographer-signal data-[state=checked]:bg-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
+    class="pointer-events-none flex size-[1.1rem] items-center justify-center rounded-sm border border-cartographer-border bg-[#14171a] text-[#101214] transition-colors data-[state=checked]:border-cartographer-signal data-[state=checked]:bg-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
   >
     <ArkCheckbox.Indicator>
       <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12"

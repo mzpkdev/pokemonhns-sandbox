@@ -60,25 +60,25 @@
     stroke: new Stroke({ color: "rgba(0, 0, 0, 0)", width: 1 }),
   })
   const selectedStyle = new Style({
-    fill: new Fill({ color: "rgba(117, 185, 255, 0.20)" }),
-    stroke: new Stroke({ color: "#75b9ff", width: 3 }),
+    fill: new Fill({ color: "rgba(143, 167, 189, 0.20)" }),
+    stroke: new Stroke({ color: "#8fa7bd", width: 3 }),
   })
   const hoverStyle = new Style({
-    fill: new Fill({ color: "rgba(216, 168, 97, 0.18)" }),
-    stroke: new Stroke({ color: "#d8a861", width: 2 }),
+    fill: new Fill({ color: "rgba(192, 167, 120, 0.18)" }),
+    stroke: new Stroke({ color: "#c0a778", width: 2 }),
   })
   const exitStyle = new Style({
     image: new CircleStyle({
       radius: 9,
-      fill: new Fill({ color: "#d8a861" }),
-      stroke: new Stroke({ color: "#0b1220", width: 3 }),
+      fill: new Fill({ color: "#c0a778" }),
+      stroke: new Stroke({ color: "#14171a", width: 3 }),
     }),
   })
   const selectedExitStyle = new Style({
     image: new CircleStyle({
       radius: 11,
-      fill: new Fill({ color: "#75b9ff" }),
-      stroke: new Stroke({ color: "#e7edf7", width: 3 }),
+      fill: new Fill({ color: "#8fa7bd" }),
+      stroke: new Stroke({ color: "#e5e7eb", width: 3 }),
     }),
   })
 
@@ -300,7 +300,15 @@
 
 <style>
   .cartographer-map-field {
-    background: radial-gradient(circle at center, #1d3858 0, #09111d 75%);
+    background-color: #14171a;
+    background-image:
+      linear-gradient(#ffffff08 1px, transparent 1px),
+      linear-gradient(90deg, #ffffff08 1px, transparent 1px),
+      radial-gradient(circle at center, #292f36 0, #14171a 75%);
+    background-size:
+      32px 32px,
+      32px 32px,
+      auto;
   }
 
   .cartographer-map-field :global(.ol-viewport) {
