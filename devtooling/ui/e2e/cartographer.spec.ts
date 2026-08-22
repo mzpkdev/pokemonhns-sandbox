@@ -128,6 +128,14 @@ test("shows the cartographer", async ({ page }) => {
   await route32Set.locator(":scope > summary").click()
   const fishing = route32Set.locator('details[aria-label="Fishing encounter method"]')
   await fishing.locator(":scope > summary").click()
+  await route32Set.locator('details[aria-label="Land encounter method"] > summary').click()
+  await route32Set.locator('details[aria-label="Water encounter method"] > summary').click()
+  await expect
+    .poll(() => route32Set.evaluate((section) => section.scrollWidth <= section.clientWidth))
+    .toBe(true)
+  await expect
+    .poll(() => page.evaluate(() => document.body.scrollWidth === document.body.clientWidth))
+    .toBe(true)
   await expect(route32Set.getByLabel("Old Rod fishing")).toBeVisible()
   await expect(route32Set.getByLabel("Good Rod fishing")).toBeVisible()
   await expect(route32Set.getByText("MAGIKARP", { exact: true }).first()).toBeVisible()

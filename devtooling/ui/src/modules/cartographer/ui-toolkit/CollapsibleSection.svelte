@@ -13,7 +13,7 @@
   let { title, label = title, meta, count, open = false, children }: Props = $props()
 </script>
 
-<details class="border-b border-cartographer-border" {open} aria-label={label}>
+<details class="min-w-0 border-b border-cartographer-border" {open} aria-label={label}>
   <summary
     class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none hover:bg-cartographer-panel-raised focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cartographer-signal"
   >
