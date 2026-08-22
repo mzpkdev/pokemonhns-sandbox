@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CatalogMap, CatalogObject, CatalogWarp } from "./catalog.js"
   import type { ObjectSelection, WarpSelection } from "./types.js"
+  import { mapImageUrl } from "./urls.js"
   import Button from "./ui-toolkit/Button.svelte"
   import { cn } from "./lib/cn.js"
 
@@ -32,6 +33,11 @@
       null
     )
   }
+
+  const objectFor = (map: CatalogMap, selection: ObjectSelection | null): CatalogObject | null => {
+    if (selection?.sourceMapName !== map.name) return null
+    return map.objects.find((object) => object.objectId === selection.objectId) ?? null
+  }
 </script>
 
 <aside
@@ -50,12 +56,91 @@
     </p>
   {:else}
     {@const objects = selectedMap.objects ?? []}
+    {@const inspectedObject = objectFor(selectedMap, selectedObject)}
     <p
       class="mb-1 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
     >
       Map inspector
     </p>
     <h3 class="mb-4 text-xl font-semibold tracking-[-0.02em]">{selectedMap.name}</h3>
+    {#if inspectedObject}
+      <section class="mb-4 border border-cartographer-signal bg-cartographer-signal/10 p-3">
+        <p
+          class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
+        >
+          Object inspector
+        </p>
+        <div class="mt-3 flex items-start gap-3">
+          {#if inspectedObject.sprite}
+            <div
+              class="flex size-12 shrink-0 items-end justify-center border border-cartographer-border bg-cartographer-panel"
+            >
+              <img
+                src={mapImageUrl(inspectedObject.sprite.path)}
+                alt={inspectedObject.graphicsId}
+                width={inspectedObject.sprite.widthPixels}
+                height={inspectedObject.sprite.heightPixels}
+                class="max-h-10 max-w-10 object-contain [image-rendering:pixelated]"
+              />
+            </div>
+          {/if}
+          <div class="min-w-0">
+            <h4
+              class="m-0 break-words font-cartographer-mono text-sm font-semibold text-cartographer-signal-soft"
+            >
+              {inspectedObject.graphicsId}
+            </h4>
+            <p class="mb-0 mt-1 font-cartographer-mono text-[0.68rem] text-cartographer-muted">
+              {inspectedObject.objectId} · ({inspectedObject.xMetatiles}, {inspectedObject.yMetatiles})
+            </p>
+          </div>
+        </div>
+        <dl class="m-0 mt-3 grid gap-2 border-t border-cartographer-border pt-3 text-xs">
+          <div class="flex justify-between gap-3">
+            <dt class="text-cartographer-muted">Script</dt>
+            <dd class="m-0 break-all text-right">{inspectedObject.script}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-cartographer-muted">Flag</dt>
+            <dd class="m-0 break-all text-right">{inspectedObject.flag}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-cartographer-muted">Movement</dt>
+            <dd class="m-0 break-all text-right">
+              {inspectedObject.movementType} · {inspectedObject.movementRange.x} × {inspectedObject
+                .movementRange.y}
+            </dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-cartographer-muted">Trainer / state</dt>
+            <dd class="m-0 break-all text-right">
+              {inspectedObject.trainerType} · {inspectedObject.trainerSightOrBerryTreeId}
+            </dd>
+          </div>
+          {#if inspectedObject.sprite}
+            <div class="flex justify-between gap-3">
+              <dt class="text-cartographer-muted">Sprite</dt>
+              <dd class="m-0 text-right">
+                {inspectedObject.sprite.widthPixels} × {inspectedObject.sprite.heightPixels}px
+              </dd>
+            </div>
+            <div class="grid gap-1 border-t border-cartographer-border pt-2">
+              <dt class="text-cartographer-muted">Resolved from</dt>
+              <dd
+                class="m-0 break-all font-cartographer-mono text-[0.68rem] text-cartographer-signal-soft"
+              >
+                {inspectedObject.sprite.source}
+              </dd>
+            </div>
+          {:else}
+            <div class="border-t border-cartographer-border pt-2 text-[#e7a1a9]">
+              {inspectedObject.diagnostic?.message ??
+                "No source sprite resolved for this object. The map uses the fallback marker."}
+            </div>
+          {/if}
+        </dl>
+      </section>
+    {/if}
     <dl class="m-0 grid gap-3 border-y border-cartographer-border py-3 text-sm">
       <div class="grid gap-1 md:grid-cols-[minmax(7rem,10rem)_minmax(0,1fr)] md:gap-3">
         <dt
@@ -163,33 +248,9 @@
                 <span>{object.graphicsId} · ({object.xMetatiles}, {object.yMetatiles})</span>
                 <small
                   class="text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
-                  >{object.sprite ? "Sprite ready" : "No sprite"}</small
+                  >{selected ? "Selected" : object.sprite ? "Sprite ready" : "No sprite"}</small
                 >
               </Button>
-              {#if selected}
-                <dl
-                  class="m-0 grid gap-1 border-x border-b border-cartographer-border px-3 py-2 text-xs"
-                >
-                  <div class="flex justify-between gap-3">
-                    <dt class="text-cartographer-muted">Script</dt>
-                    <dd class="m-0 break-all text-right">{object.script}</dd>
-                  </div>
-                  <div class="flex justify-between gap-3">
-                    <dt class="text-cartographer-muted">Flag</dt>
-                    <dd class="m-0 break-all text-right">{object.flag}</dd>
-                  </div>
-                  <div class="flex justify-between gap-3">
-                    <dt class="text-cartographer-muted">Movement</dt>
-                    <dd class="m-0 break-all text-right">{object.movementType}</dd>
-                  </div>
-                  {#if !object.sprite}
-                    <div class="border-t border-cartographer-border pt-2 text-[#e7a1a9]">
-                      {object.diagnostic?.message ??
-                        "No source sprite resolved for this object. The map uses the fallback marker."}
-                    </div>
-                  {/if}
-                </dl>
-              {/if}
             </li>
           {/each}
         </ul>

@@ -25,5 +25,7 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByRole("option", { name: /Route15/ }).click()
   await expect(page.getByRole("heading", { name: "Route15" })).toBeVisible()
   await page.getByRole("button", { name: /OBJ_EVENT_GFX_ITEM_BALL/ }).click()
+  await expect(page.getByText("Object inspector")).toBeVisible()
   await expect(page.getByText("Route15_EventScript_PPup")).toBeVisible()
+  await expect(page.getByText("Sprite", { exact: true })).toBeVisible()
 })
