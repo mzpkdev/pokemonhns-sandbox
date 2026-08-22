@@ -275,7 +275,9 @@
             />
           {/key}
         </div>
-        <EncounterPanel {selectedMap} />
+        <div class="min-w-0">
+          <EncounterPanel {selectedMap} />
+        </div>
       {/if}
     </div>
   </section>
