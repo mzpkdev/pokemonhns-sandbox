@@ -1,6 +1,6 @@
 import { mount } from "svelte"
 
-import App from "./cartographer/App.svelte"
-import "./cartographer/styles.css"
+import App from "./App.svelte"
+import "./styles.css"
 
 mount(App, { target: document.getElementById("app")! })

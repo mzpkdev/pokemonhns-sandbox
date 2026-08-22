@@ -3,7 +3,7 @@ import { expect, test } from "webanvil/e2e"
 test("shows the cartographer", async ({ page }) => {
   await page.goto("/")
 
-  await expect(page.getByRole("heading", { name: "Cartographer" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Cartographer" })).toBeVisible()
   await expect(page.getByRole("navigation", { name: "Regions" })).toBeVisible()
 
   const mapSearch = page.getByRole("combobox", { name: "Source name or map section" })

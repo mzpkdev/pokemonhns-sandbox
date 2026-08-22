@@ -17,9 +17,10 @@ map selection and camera state, native and overview image switching, map facts,
 and warp navigation. Its generated input is ignored under
 `build/cartographer/map-catalog/`.
 
-Cartographer code lives in `src/cartographer/`, including its styled interface primitives
-under `src/cartographer/ui-toolkit/`. The map search combobox and exits checkbox
-wrap Ark UI; compose these local controls to keep the cartographer's visual and
+`src/App.svelte` owns the page shell and module navigation. Each module lives under
+`src/modules/`. Cartographer and its styled interface primitives live in
+`src/modules/cartographer/`, including `ui-toolkit/`. The map search combobox and exits
+checkbox wrap Ark UI; compose these local controls to keep the cartographer's visual and
 accessibility contracts consistent.
 
 The browser test expects a generated catalog. Run the root `pnpm run e2e`

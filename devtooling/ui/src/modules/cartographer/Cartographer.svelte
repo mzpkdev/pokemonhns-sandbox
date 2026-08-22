@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-  import CartographerHeader from "./CartographerHeader.svelte"
   import MapDetails from "./MapDetails.svelte"
   import MapSearch from "./MapSearch.svelte"
   import MapViewport from "./MapViewport.svelte"
@@ -123,9 +122,9 @@
 </script>
 
 {#if loadState.kind === "loading"}
-  <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>Loading the map catalog...</p></main>
+  <section class="mx-auto mt-[12vh] max-w-2xl p-8"><p>Loading the map catalog...</p></section>
 {:else if loadState.kind === "error"}
-  <main class="mx-auto mt-[12vh] max-w-2xl border-l-[0.35rem] border-[#af3f2e] bg-[#fff4ee] p-8">
+  <section class="mx-auto mt-[12vh] max-w-2xl border-l-[0.35rem] border-[#af3f2e] bg-[#fff4ee] p-8">
     <h1 class="mb-3 text-3xl font-bold">Cartographer unavailable</h1>
     <p>{loadState.message}</p>
     {#if loadState.details.length > 0}
@@ -133,12 +132,11 @@
         {#each loadState.details as detail}<li>{detail}</li>{/each}
       </ul>
     {/if}
-  </main>
+  </section>
 {:else if !catalog || !activeRegion}
-  <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>The catalog has no regions.</p></main>
+  <section class="mx-auto mt-[12vh] max-w-2xl p-8"><p>The catalog has no regions.</p></section>
 {:else}
-  <main class="min-h-screen p-[clamp(1rem,3vw,2.5rem)]">
-    <CartographerHeader {catalog} />
+  <section class="p-[clamp(1rem,3vw,2.5rem)]">
     <div class="grid gap-4 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
       <aside class="grid content-start gap-4">
         <RegionPicker
@@ -188,5 +186,5 @@
         />
       </div>
     </div>
-  </main>
+  </section>
 {/if}
