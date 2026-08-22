@@ -37,6 +37,7 @@
   let includeUnused = $state(false)
   let selectedSourceId = $state<string | null>(null)
   let contextLoadState = $state<ContextLoadState>({ kind: "idle" })
+  let renderedContext = $state<MetatileRenderContext | null>(null)
   let contextController: AbortController | null = null
 
   const filterMetatiles = (
@@ -75,6 +76,10 @@
     loadMetatileContext(entry, controller.signal)
       .then((context) => {
         if (controller.signal.aborted) return
+        renderedContext = context
+        activeTilesetKind = "primary"
+        selectedSourceId = null
+        query = ""
         contextLoadState = { kind: "ready", context }
       })
       .catch((error: unknown) => {
@@ -124,10 +129,9 @@
       catalog?.contexts[0] ??
       null,
   )
-  let activeContext = $derived(
-    contextLoadState.kind === "ready" && contextLoadState.context.id === activeContextEntry?.id
-      ? contextLoadState.context
-      : null,
+  let activeContext = $derived(renderedContext)
+  let renderedContextEntry = $derived(
+    catalog?.contexts.find((context) => context.id === activeContext?.id) ?? null,
   )
   let activeTileset = $derived<MetatileTileset | null>(
     activeContext ? activeContext[activeTilesetKind] : null,
@@ -158,9 +162,6 @@
     const nextContext = catalog?.contexts.find((context) => context.id === id)
     if (!nextContext || nextContext.id === activeContextId) return
     activeContextId = id
-    activeTilesetKind = "primary"
-    selectedSourceId = null
-    query = ""
     requestContext(nextContext)
   }
 
@@ -205,7 +206,7 @@
       The generated catalog has no render contexts to browse.
     </p>
   </section>
-{:else if contextLoadState.kind === "loading" || contextLoadState.kind === "idle"}
+{:else if (contextLoadState.kind === "loading" || contextLoadState.kind === "idle") && !activeContext}
   <section
     class="mx-auto mt-[18vh] max-w-md border border-cartographer-border bg-cartographer-panel p-6"
   >
@@ -214,7 +215,7 @@
       {contextLabel(activeContextEntry)}
     </p>
   </section>
-{:else if contextLoadState.kind === "error"}
+{:else if contextLoadState.kind === "error" && !activeContext}
   <section
     class="mx-auto mt-[12vh] max-w-2xl border border-cartographer-diagnostic-border bg-cartographer-diagnostic-panel p-7 shadow-cartographer-error"
   >
@@ -227,7 +228,7 @@
       </ul>
     {/if}
   </section>
-{:else if !activeContext || !activeTileset}
+{:else if !activeContext || !activeTileset || !renderedContextEntry}
   <section
     class="mx-auto mt-[12vh] max-w-2xl border border-cartographer-border bg-cartographer-panel p-8"
   >
@@ -259,6 +260,7 @@
         <MetatileContextPicker
           contexts={catalog.contexts}
           activeContextId={activeContextEntry.id}
+          loadingContextId={contextLoadState.kind === "loading" ? contextLoadState.id : null}
           onSelectContext={selectContext}
         />
         <section
@@ -307,8 +309,13 @@
               Render context
             </p>
             <p class="mb-0 mt-1 break-words text-sm font-medium text-cartographer-ink">
-              {contextLabel(activeContextEntry)}
+              {contextLabel(renderedContextEntry)}
             </p>
+            {#if contextLoadState.kind === "loading"}
+              <p class="mb-0 mt-1 text-xs text-cartographer-muted">
+                Loading {contextLabel(activeContextEntry)}…
+              </p>
+            {/if}
           </div>
           <nav class="flex shrink-0 gap-1" aria-label="Tileset layer">
             <Button

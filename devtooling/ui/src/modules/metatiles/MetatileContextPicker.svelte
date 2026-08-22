@@ -5,10 +5,11 @@
   type Props = {
     activeContextId: string
     contexts: readonly MetatileCatalogContext[]
+    loadingContextId?: string | null
     onSelectContext?: (id: string) => void
   }
 
-  let { activeContextId, contexts, onSelectContext }: Props = $props()
+  let { activeContextId, contexts, loadingContextId = null, onSelectContext }: Props = $props()
   let query = $state("")
 
   const labelFor = (context: MetatileCatalogContext): string => {
@@ -50,6 +51,8 @@
     <Button
       class="grid w-full min-w-0 gap-1 px-2.5 py-2 text-left text-sm"
       variant={context.id === activeContextId ? "selected" : "subtle"}
+      aria-busy={context.id === loadingContextId ? "true" : undefined}
+      aria-current={context.id === activeContextId ? "true" : undefined}
       onclick={() => onSelectContext?.(context.id)}
     >
       <span class="break-words font-medium">{labelFor(context)}</span>

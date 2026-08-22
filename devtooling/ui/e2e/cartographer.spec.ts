@@ -203,7 +203,20 @@ test("shows the cartographer", async ({ page }) => {
   await expect(metatileBrowser.locator('button[aria-label*=":0x"]').first()).toBeVisible()
 
   await page.getByRole("searchbox", { name: "Find a render context" }).fill("Building_Dome")
-  await page.getByRole("button", { name: /gTileset_Building_Dome \+ gTileset_BattleDome/ }).click()
+  await page.route(
+    "**/metatiles/contexts/emerald--building-dome--battle-dome/catalog.json",
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 250))
+      await route.continue()
+    },
+  )
+  const battleDomeContext = page.getByRole("button", {
+    name: /gTileset_Building_Dome \+ gTileset_BattleDome/,
+  })
+  await battleDomeContext.click()
+  await expect(battleDomeContext).toHaveAttribute("aria-current", "true")
+  await expect(battleDomeContext).toHaveAttribute("aria-busy", "true")
+  await expect(metatileBrowser.getByText("gTileset_General + gTileset_Cave")).toBeVisible()
   await expect(metatileBrowser.getByText(/0 shown · 0 used/)).toBeVisible()
   await expect(
     metatileBrowser.getByText("This tileset has no metatiles used by maps in this render context."),
