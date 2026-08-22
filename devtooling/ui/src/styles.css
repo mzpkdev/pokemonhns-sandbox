@@ -69,6 +69,9 @@
 
 @layer base {
   :root {
+    /* OpenLayers resolves these at runtime, so retain them even without Tailwind utilities. */
+    --color-cartographer-habitat-land: var(--color-cartographer-moss-500);
+    --color-cartographer-habitat-water: var(--color-cartographer-blue-500);
     color: var(--color-cartographer-ink);
     background: var(--color-cartographer-canvas);
     font-family:

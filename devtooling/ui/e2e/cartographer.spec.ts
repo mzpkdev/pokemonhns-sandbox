@@ -5,6 +5,15 @@ test("shows the cartographer", async ({ page }) => {
 
   await expect(page.getByRole("link", { name: "Cartographer" })).toBeVisible()
   await expect(page.getByRole("navigation", { name: "Regions" })).toBeVisible()
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--color-cartographer-habitat-land")
+          .trim(),
+      ),
+    )
+    .toBe("#7f9875")
 
   const mapSearch = page.getByRole("combobox", { name: "Name or map section" })
   await mapSearch.fill("Route29")
