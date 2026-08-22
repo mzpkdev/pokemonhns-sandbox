@@ -99,7 +99,7 @@ const hasString = (value: unknown): value is string => {
   return typeof value === "string"
 }
 
-/** Check the catalog fields the tographer relies upon before rendering any map data. */
+/** Check the catalog fields the cartographer relies upon before rendering any map data. */
 export const validateCatalog = (value: unknown): MapCatalog => {
   const root = asRecord(value)
   const details: string[] = []
@@ -156,7 +156,7 @@ export const loadCatalog = async (signal?: AbortSignal): Promise<MapCatalog> => 
   const response = await fetch(catalogUrl(), { cache: "no-store", signal })
   if (!response.ok) {
     throw new Error(
-      `Could not load the map catalog (${response.status} ${response.statusText}). Run pnpm run tographer:catalog first.`,
+      `Could not load the map catalog (${response.status} ${response.statusText}). Run pnpm run cartographer:catalog first.`,
     )
   }
   return validateCatalog(await response.json())

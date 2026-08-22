@@ -9,7 +9,7 @@ Build the renderer once, then run it from `devtooling/`:
 pnpm run build
 pnpm run cartographer Route29 NewBarkTown --output build/map-renders
 pnpm run cartographer --all-exteriors --output build/all-exterior-maps
-pnpm run cartographer --catalog --output build/tographer/map-catalog
+pnpm run cartographer --catalog --output build/cartographer/map-catalog
 ```
 
 The workspace command runs this package's `main` entry. Its `wcartographer`
@@ -28,6 +28,6 @@ The command writes `<map-name>.png` files to the output directory. It renders
 terrain only, so events, NPCs, weather, animations, and story state are absent.
 
 `--catalog` writes every exterior terrain image and a `catalog.json` manifest
-for the Svelte tographer. The manifest records source identifiers, map metadata,
+for the Svelte cartographer. The manifest records source identifiers, map metadata,
 cardinal connections, warps, image dimensions, hashes, and deterministic
 one-quarter nearest-neighbour overview images.

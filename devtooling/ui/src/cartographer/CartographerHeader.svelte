@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { MapCatalog } from "./catalog.js"
-  import { cn } from "../lib/cn.js"
+  import { cn } from "./lib/cn.js"
 
   type Props = { catalog: MapCatalog }
 
@@ -12,7 +12,7 @@
     <p class="mb-1 text-xs font-bold tracking-[0.12em] text-[#577044] uppercase">
       Pokemon Heart &amp; Soul
     </p>
-    <h1 class="m-0 text-[clamp(1.7rem,4vw,2.6rem)] font-bold">Tographer</h1>
+    <h1 class="m-0 text-[clamp(1.7rem,4vw,2.6rem)] font-bold">Cartographer</h1>
   </div>
   <p class="m-0 flex items-center gap-2 text-sm text-[#4b5a4c]">
     Source {catalog.source.revision.slice(0, 12)}

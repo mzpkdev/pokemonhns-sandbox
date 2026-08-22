@@ -79,7 +79,7 @@ const boundsFor = (names: readonly string[], placements: Record<string, Placemen
   return { x: left, y: top, width: right - left, height: bottom - top }
 }
 
-/** The default tographer only places surface maps that the catalog exposes by default. */
+/** The default cartographer only places surface maps that the catalog exposes by default. */
 export const visibleSurfaceMaps = (maps: readonly CatalogMap[]): CatalogMap[] => {
   return maps.filter((map) => map.world.layer === "surface" && map.world.defaultVisible)
 }
@@ -206,7 +206,7 @@ export const toOpenLayersExtent = (
   return [x, -(y + height), x + width, -y]
 }
 
-export const tographerExtent = (
+export const cartographerExtent = (
   placements: Record<string, Placement>,
   pixelsPerMetatile: number,
 ): [number, number, number, number] | null => {

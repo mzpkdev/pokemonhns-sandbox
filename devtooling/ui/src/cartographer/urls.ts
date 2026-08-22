@@ -1,26 +1,26 @@
 /** Build an asset URL that works from both Vite and a relative static deployment. */
-export const tographerUrl = (path: string, baseUrl = import.meta.env.BASE_URL): string => {
+export const cartographerUrl = (path: string, baseUrl = import.meta.env.BASE_URL): string => {
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`
   return `${normalizedBase}${path.replace(/^\/+/, "")}`
 }
 
 export const catalogUrl = (baseUrl?: string): string => {
-  return tographerUrl("catalog.json", baseUrl)
+  return cartographerUrl("catalog.json", baseUrl)
 }
 
 export const mapImageUrl = (path: string, baseUrl?: string): string => {
-  return tographerUrl(path, baseUrl)
+  return cartographerUrl(path, baseUrl)
 }
 
-export type TographerViewState = {
+export type CartographerViewState = {
   center: [number, number]
   zoom: number
 }
 
-export type TographerUrlState = {
+export type CartographerUrlState = {
   region: string | null
   selectedMap: string | null
-  view: TographerViewState | null
+  view: CartographerViewState | null
 }
 
 const parameter = (url: URL, name: string): string | null => {
@@ -33,7 +33,7 @@ const numberParameter = (url: URL, name: string): number | null => {
   return Number.isFinite(number) ? number : null
 }
 
-export const parseTographerUrlState = (href: string): TographerUrlState => {
+export const parseCartographerUrlState = (href: string): CartographerUrlState => {
   const url = new URL(href, window.location.origin)
   const x = numberParameter(url, "x")
   const y = numberParameter(url, "y")
@@ -45,7 +45,7 @@ export const parseTographerUrlState = (href: string): TographerUrlState => {
   }
 }
 
-export const tographerUrlWithState = (href: string, state: TographerUrlState): string => {
+export const cartographerUrlWithState = (href: string, state: CartographerUrlState): string => {
   const url = new URL(href, window.location.origin)
   for (const name of ["region", "map", "x", "y", "zoom"]) {
     url.searchParams.delete(name)

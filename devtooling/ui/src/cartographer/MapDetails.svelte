@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { CatalogMap, CatalogWarp } from "./catalog.js"
   import type { WarpSelection } from "./types.js"
-  import Button from "../ui-toolkit/Button.svelte"
-  import { cn } from "../lib/cn.js"
+  import Button from "./ui-toolkit/Button.svelte"
+  import { cn } from "./lib/cn.js"
 
   type Props = {
     maps: readonly CatalogMap[]
@@ -25,7 +25,7 @@
 </script>
 
 <aside
-  class="mt-4 rounded-xl border border-tographer-border bg-tographer-panel p-4 shadow-[0_5px_18px_#56634c1b]"
+  class="mt-4 rounded-xl border border-cartographer-border bg-cartographer-panel p-4 shadow-[0_5px_18px_#56634c1b]"
   aria-live="polite"
 >
   {#if !selectedMap}
@@ -36,25 +36,25 @@
     <h3 class="mb-3 text-xl font-semibold">{selectedMap.name}</h3>
     <dl class="m-0 grid gap-2">
       <div class="grid gap-1 md:grid-cols-[minmax(7rem,10rem)_minmax(0,1fr)] md:gap-3">
-        <dt class="font-bold text-tographer-muted">Source ID</dt>
+        <dt class="font-bold text-cartographer-muted">Source ID</dt>
         <dd class="m-0 break-words"><code>{selectedMap.id}</code></dd>
       </div>
       <div class="grid gap-1 md:grid-cols-[minmax(7rem,10rem)_minmax(0,1fr)] md:gap-3">
-        <dt class="font-bold text-tographer-muted">Map section</dt>
+        <dt class="font-bold text-cartographer-muted">Map section</dt>
         <dd class="m-0 break-words">{selectedMap.mapSection ?? "Not assigned"}</dd>
       </div>
       <div class="grid gap-1 md:grid-cols-[minmax(7rem,10rem)_minmax(0,1fr)] md:gap-3">
-        <dt class="font-bold text-tographer-muted">Layout</dt>
+        <dt class="font-bold text-cartographer-muted">Layout</dt>
         <dd class="m-0 break-words">
           {selectedMap.layout.widthMetatiles} × {selectedMap.layout.heightMetatiles} metatiles
         </dd>
       </div>
       <div class="grid gap-1 md:grid-cols-[minmax(7rem,10rem)_minmax(0,1fr)] md:gap-3">
-        <dt class="font-bold text-tographer-muted">Tographer state</dt>
+        <dt class="font-bold text-cartographer-muted">Cartographer state</dt>
         <dd class="m-0 break-words">
           {renderedMapNames.has(selectedMap.name)
             ? "Rendered default-visible surface map"
-            : "Not visible in the default tographer"}
+            : "Not visible in the default cartographer"}
         </dd>
       </div>
     </dl>
@@ -77,7 +77,7 @@
                 onclick={() => onSelectWarp?.(warp)}
               >
                 <span>Warp {warp.warpId} · ({warp.xMetatiles}, {warp.yMetatiles})</span>
-                <small class="text-right break-words text-tographer-muted"
+                <small class="text-right break-words text-cartographer-muted"
                   >{destination?.name ?? warp.destinationMap ?? warp.destinationMapId}</small
                 >
               </Button>

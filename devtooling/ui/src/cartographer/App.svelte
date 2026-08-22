@@ -1,25 +1,25 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-  import TographerHeader from "./tographer/TographerHeader.svelte"
-  import MapDetails from "./tographer/MapDetails.svelte"
-  import MapSearch from "./tographer/MapSearch.svelte"
-  import MapViewport from "./tographer/MapViewport.svelte"
-  import RegionPicker from "./tographer/RegionPicker.svelte"
+  import CartographerHeader from "./CartographerHeader.svelte"
+  import MapDetails from "./MapDetails.svelte"
+  import MapSearch from "./MapSearch.svelte"
+  import MapViewport from "./MapViewport.svelte"
+  import RegionPicker from "./RegionPicker.svelte"
   import {
     CatalogValidationError,
     loadCatalog,
     type CatalogMap,
     type CatalogWarp,
     type MapCatalog,
-  } from "./tographer/catalog.js"
-  import { visibleSurfaceMaps } from "./tographer/geography.js"
-  import type { WarpSelection } from "./tographer/types.js"
+  } from "./catalog.js"
+  import { visibleSurfaceMaps } from "./geography.js"
+  import type { WarpSelection } from "./types.js"
   import {
-    tographerUrlWithState,
-    parseTographerUrlState,
-    type TographerViewState,
-  } from "./tographer/urls.js"
+    cartographerUrlWithState,
+    parseCartographerUrlState,
+    type CartographerViewState,
+  } from "./urls.js"
 
   type LoadState =
     | { kind: "loading" }
@@ -29,15 +29,15 @@
   let loadState = $state<LoadState>({ kind: "loading" })
   let requestedRegion = $state<string | null>(null)
   let requestedMap = $state<string | null>(null)
-  let initialView = $state<TographerViewState | null>(null)
-  let currentView = $state<TographerViewState | null>(null)
+  let initialView = $state<CartographerViewState | null>(null)
+  let currentView = $state<CartographerViewState | null>(null)
   let searchQuery = $state("")
   let selectedWarp = $state<WarpSelection | null>(null)
   let showExits = $state(false)
   let focusToken = $state(0)
 
   onMount(() => {
-    const state = parseTographerUrlState(window.location.href)
+    const state = parseCartographerUrlState(window.location.href)
     requestedRegion = state.region
     requestedMap = state.selectedMap
     initialView = state.view
@@ -82,7 +82,7 @@
 
   const replaceUrl = (): void => {
     if (!activeRegion) return
-    const next = tographerUrlWithState(window.location.href, {
+    const next = cartographerUrlWithState(window.location.href, {
       region: activeRegion.id,
       selectedMap: selectedMap?.name ?? null,
       view: currentView,
@@ -116,7 +116,7 @@
     showExits = true
   }
 
-  const handleCameraChange = (view: TographerViewState): void => {
+  const handleCameraChange = (view: CartographerViewState): void => {
     currentView = view
     replaceUrl()
   }
@@ -126,7 +126,7 @@
   <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>Loading the map catalog...</p></main>
 {:else if loadState.kind === "error"}
   <main class="mx-auto mt-[12vh] max-w-2xl border-l-[0.35rem] border-[#af3f2e] bg-[#fff4ee] p-8">
-    <h1 class="mb-3 text-3xl font-bold">Tographer unavailable</h1>
+    <h1 class="mb-3 text-3xl font-bold">Cartographer unavailable</h1>
     <p>{loadState.message}</p>
     {#if loadState.details.length > 0}
       <ul>
@@ -138,7 +138,7 @@
   <main class="mx-auto mt-[12vh] max-w-2xl p-8"><p>The catalog has no regions.</p></main>
 {:else}
   <main class="min-h-screen p-[clamp(1rem,3vw,2.5rem)]">
-    <TographerHeader {catalog} />
+    <CartographerHeader {catalog} />
     <div class="grid gap-4 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
       <aside class="grid content-start gap-4">
         <RegionPicker
@@ -153,7 +153,7 @@
           class="mb-2 flex flex-col items-start justify-between gap-4 md:flex-row md:items-baseline"
         >
           <h2 class="mb-0 text-2xl font-semibold">{activeRegion.label}</h2>
-          <p class="m-0 text-sm text-tographer-muted md:text-right">
+          <p class="m-0 text-sm text-cartographer-muted md:text-right">
             Only default-visible surface maps are drawn. Pan, scroll, or pinch to explore.
           </p>
         </div>

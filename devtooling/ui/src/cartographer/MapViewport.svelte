@@ -19,25 +19,25 @@
   import MapToolbar from "./MapToolbar.svelte"
   import type { CatalogMap, MapCatalog } from "./catalog.js"
   import {
-    tographerExtent,
+    cartographerExtent,
     solveGeography,
     toOpenLayersExtent,
     visibleSurfaceMaps,
   } from "./geography.js"
   import type { FocusRequest, WarpSelection } from "./types.js"
-  import { mapImageUrl, type TographerViewState } from "./urls.js"
+  import { mapImageUrl, type CartographerViewState } from "./urls.js"
 
   type Props = {
     catalog: MapCatalog
     maps: CatalogMap[]
     selectedMapName?: string | null
     selectedWarp?: WarpSelection | null
-    initialView?: TographerViewState | null
+    initialView?: CartographerViewState | null
     focusRequest?: FocusRequest | null
     showExits?: boolean
     onSelectMap?: (name: string) => void
     onSelectWarp?: (selection: WarpSelection) => void
-    onCameraChange?: (view: TographerViewState) => void
+    onCameraChange?: (view: CartographerViewState) => void
     onToggleExits?: (value: boolean) => void
   }
 
@@ -97,7 +97,7 @@
 
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
-  let extent = $derived(tographerExtent(geography.placements, catalog.pixelsPerMetatile))
+  let extent = $derived(cartographerExtent(geography.placements, catalog.pixelsPerMetatile))
 
   const updateExitVisibility = (): void => {
     if (!instance) return
@@ -130,7 +130,7 @@
     if (!extent || !host) return
     const mapHost = host
     const projection = new Projection({
-      code: "pokemonhns-tographer-pixels",
+      code: "pokemonhns-cartographer-pixels",
       units: "pixels",
       extent,
     })
@@ -269,8 +269,8 @@
 
 {#if extent}
   <section
-    class="overflow-hidden rounded-xl border border-tographer-border bg-tographer-panel shadow-[0_5px_18px_#56634c1b]"
-    aria-label="Interactive tographer"
+    class="overflow-hidden rounded-xl border border-cartographer-border bg-cartographer-panel shadow-[0_5px_18px_#56634c1b]"
+    aria-label="Interactive cartographer"
   >
     <MapToolbar
       surfaceMapCount={surfaceMaps.length}
@@ -287,7 +287,7 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <p class="m-0 px-4 py-3 text-sm text-tographer-muted">
+    <p class="m-0 px-4 py-3 text-sm text-cartographer-muted">
       Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when
       Exits is enabled.
     </p>
