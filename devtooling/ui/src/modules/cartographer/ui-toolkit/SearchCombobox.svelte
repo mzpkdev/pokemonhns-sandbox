@@ -35,12 +35,13 @@
   selectionBehavior="preserve"
   onValueChange={handleValueChange}
 >
-  <Combobox.Label class="mb-1 block text-sm font-bold text-cartographer-muted"
+  <Combobox.Label
+    class="mb-2 block font-cartographer-mono text-[0.68rem] font-bold tracking-[0.1em] text-cartographer-muted"
     >{label}</Combobox.Label
   >
   <Combobox.Control>
     <Combobox.Input
-      class="w-full rounded-md border border-[#9eaf9b] bg-white px-2.5 py-2 text-inherit focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#53704e]"
+      class="w-full rounded-sm border border-cartographer-border bg-[#0b1220] px-2.5 py-2 text-sm text-cartographer-ink placeholder:text-[#64738a] focus-visible:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
       {placeholder}
       type="search"
     />
@@ -48,17 +49,18 @@
   {#if query.trim()}
     <Combobox.Positioner class="z-10 w-full">
       <Combobox.Content
-        class="mt-1 max-h-72 overflow-auto rounded-lg border border-[#c5d1c2] bg-white p-1.5 shadow-[0_5px_18px_#56634c1b]"
+        class="mt-1 max-h-72 overflow-auto rounded-sm border border-cartographer-border bg-[#111a2b] p-1.5 shadow-[0_1.5rem_3rem_#020611cc]"
       >
         {#if options.length > 0}
-          <Combobox.List class="grid list-none gap-1.5 p-0">
+          <Combobox.List class="grid list-none gap-1 p-0">
             {#each options as option (option.value)}
               <Combobox.Item
-                class="flex cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left outline-none transition hover:bg-[#e5efdc] data-[highlighted]:bg-[#e5efdc] data-[state=checked]:bg-[#d3ebcf]"
+                class="flex cursor-pointer items-center justify-between gap-3 rounded-sm px-3 py-2 text-left text-sm outline-none transition-colors hover:bg-cartographer-signal/10 data-[highlighted]:bg-cartographer-signal/10 data-[state=checked]:bg-cartographer-signal/15"
                 item={option}
               >
                 <Combobox.ItemText>{option.label}</Combobox.ItemText>
-                <small class="text-right break-words text-cartographer-muted"
+                <small
+                  class="text-right break-words font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >{option.description}</small
                 >
               </Combobox.Item>

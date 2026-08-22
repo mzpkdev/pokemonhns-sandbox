@@ -39,14 +39,18 @@
 </script>
 
 <section
-  class="rounded-xl border border-cartographer-border bg-cartographer-panel p-4 shadow-[0_5px_18px_#56634c1b]"
+  class="border border-cartographer-border bg-cartographer-panel p-3 shadow-[0_1.5rem_4rem_#02061166]"
   aria-label="Map search"
 >
-  <h2 class="mb-3 text-base font-semibold">Find a map</h2>
+  <h2
+    class="mb-3 border-b border-cartographer-border pb-2 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.14em] text-cartographer-signal"
+  >
+    SOURCE SEARCH
+  </h2>
   <SearchCombobox
     bind:query
     emptyText="No source maps or map sections match."
-    label="Source name or map section"
+    label="NAME OR MAP SECTION"
     {options}
     placeholder="e.g. Route29 or MAPSEC..."
     onSelect={(name) => onSelectMap?.(name, true)}

@@ -17,11 +17,11 @@
 
 <ArkCheckbox.Root
   bind:checked
-  class="inline-flex cursor-pointer items-center gap-1.5 font-bold whitespace-nowrap text-[#263e29]"
+  class="inline-flex cursor-pointer items-center gap-1.5 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.1em] whitespace-nowrap text-cartographer-muted"
   onCheckedChange={handleCheckedChange}
 >
   <ArkCheckbox.Control
-    class="pointer-events-none flex size-[1.1rem] items-center justify-center rounded border border-[#8a5b10] bg-white text-white transition data-[state=checked]:bg-[#8a5b10] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#704707]"
+    class="pointer-events-none flex size-[1.1rem] items-center justify-center rounded-sm border border-cartographer-border bg-[#0b1220] text-[#07101d] transition-colors data-[state=checked]:border-cartographer-signal data-[state=checked]:bg-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
   >
     <ArkCheckbox.Indicator>
       <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12"

@@ -122,11 +122,25 @@
 </script>
 
 {#if loadState.kind === "loading"}
-  <section class="mx-auto mt-[12vh] max-w-2xl p-8"><p>Loading the map catalog...</p></section>
+  <section
+    class="mx-auto mt-[18vh] max-w-md border border-cartographer-border bg-cartographer-panel p-6"
+  >
+    <p class="m-0 font-cartographer-mono text-xs tracking-[0.12em] text-cartographer-signal">
+      READING CATALOG…
+    </p>
+    <div class="mt-4 h-px w-full overflow-hidden bg-cartographer-border">
+      <div class="h-full w-2/5 bg-cartographer-signal"></div>
+    </div>
+  </section>
 {:else if loadState.kind === "error"}
-  <section class="mx-auto mt-[12vh] max-w-2xl border-l-[0.35rem] border-[#af3f2e] bg-[#fff4ee] p-8">
-    <h1 class="mb-3 text-3xl font-bold">Cartographer unavailable</h1>
-    <p>{loadState.message}</p>
+  <section
+    class="mx-auto mt-[12vh] max-w-2xl border border-[#8f5560] bg-[#251824] p-7 shadow-[0_0_0_1px_#8f556033]"
+  >
+    <p class="m-0 font-cartographer-mono text-xs font-bold tracking-[0.14em] text-[#f29aaa]">
+      CATALOG READ FAILED
+    </p>
+    <h1 class="mb-3 mt-3 text-2xl font-semibold">Cartographer unavailable</h1>
+    <p class="text-cartographer-muted">{loadState.message}</p>
     {#if loadState.details.length > 0}
       <ul>
         {#each loadState.details as detail}<li>{detail}</li>{/each}
@@ -134,11 +148,34 @@
     {/if}
   </section>
 {:else if !catalog || !activeRegion}
-  <section class="mx-auto mt-[12vh] max-w-2xl p-8"><p>The catalog has no regions.</p></section>
+  <section
+    class="mx-auto mt-[12vh] max-w-2xl border border-cartographer-border bg-cartographer-panel p-8"
+  >
+    <p>The catalog has no regions.</p>
+  </section>
 {:else}
-  <section class="p-[clamp(1rem,3vw,2.5rem)]">
-    <div class="grid gap-4 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
-      <aside class="grid content-start gap-4">
+  <section class="mx-auto max-w-[1800px] p-[clamp(1rem,2.4vw,2.25rem)]">
+    <header
+      class="mb-5 flex flex-col gap-3 border-b border-cartographer-border pb-4 sm:flex-row sm:items-end sm:justify-between"
+    >
+      <div>
+        <p
+          class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.16em] text-cartographer-signal"
+        >
+          EXTERIOR TERRAIN INDEX
+        </p>
+        <h1 class="m-0 mt-1 text-[clamp(1.4rem,2.2vw,2.1rem)] font-semibold tracking-[-0.035em]">
+          {activeRegion.label}
+        </h1>
+      </div>
+      <p
+        class="m-0 max-w-md font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted sm:text-right"
+      >
+        {maps.length} source maps · only default-visible surface maps are plotted
+      </p>
+    </header>
+    <div class="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)_20rem]">
+      <aside class="grid content-start gap-3">
         <RegionPicker
           regions={catalog.regions}
           activeRegionId={activeRegion.id}
@@ -146,15 +183,7 @@
         />
         <MapSearch maps={catalog.maps} bind:query={searchQuery} onSelectMap={selectMap} />
       </aside>
-      <div>
-        <div
-          class="mb-2 flex flex-col items-start justify-between gap-4 md:flex-row md:items-baseline"
-        >
-          <h2 class="mb-0 text-2xl font-semibold">{activeRegion.label}</h2>
-          <p class="m-0 text-sm text-cartographer-muted md:text-right">
-            Only default-visible surface maps are drawn. Pan, scroll, or pinch to explore.
-          </p>
-        </div>
+      <div class="min-w-0">
         {#key activeRegion.id}
           <MapViewport
             {catalog}
@@ -176,15 +205,15 @@
             onToggleExits={(value) => (showExits = value)}
           />
         {/key}
-        <MapDetails
-          maps={catalog.maps}
-          {selectedMap}
-          {selectedWarp}
-          {renderedMapNames}
-          onSelectWarp={selectWarp}
-          onFocusMap={(name) => selectMap(name, true)}
-        />
       </div>
+      <MapDetails
+        maps={catalog.maps}
+        {selectedMap}
+        {selectedWarp}
+        {renderedMapNames}
+        onSelectWarp={selectWarp}
+        onFocusMap={(name) => selectMap(name, true)}
+      />
     </div>
   </section>
 {/if}

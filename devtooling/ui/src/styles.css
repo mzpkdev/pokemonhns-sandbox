@@ -1,28 +1,46 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cartographer-ink: #162218;
-  --color-cartographer-canvas: #eef0e5;
-  --color-cartographer-panel: #fbfcf6;
-  --color-cartographer-border: #bfcdbd;
-  --color-cartographer-forest: #304d32;
-  --color-cartographer-muted: #536053;
+  --color-cartographer-ink: #e7edf7;
+  --color-cartographer-canvas: #080d17;
+  --color-cartographer-panel: #111a2b;
+  --color-cartographer-panel-raised: #18243a;
+  --color-cartographer-border: #2d3c56;
+  --color-cartographer-signal: #62d6ed;
+  --color-cartographer-signal-soft: #a8e8f5;
+  --color-cartographer-amber: #f1bb5d;
+  --color-cartographer-muted: #91a2bd;
+  --font-cartographer-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 @layer base {
   :root {
     color: var(--color-cartographer-ink);
     background: var(--color-cartographer-canvas);
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-family: "Avenir Next", Avenir, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     @apply m-0 min-w-80 bg-cartographer-canvas;
+    background-image:
+      radial-gradient(circle at 78% -10%, #183660 0, transparent 29rem),
+      linear-gradient(90deg, #ffffff03 1px, transparent 1px),
+      linear-gradient(#ffffff03 1px, transparent 1px);
+    background-size:
+      auto,
+      32px 32px,
+      32px 32px;
   }
 
   button,
   input {
     font: inherit;
+  }
+
+  ::selection {
+    background: #62d6ed55;
+    color: #ffffff;
   }
 }

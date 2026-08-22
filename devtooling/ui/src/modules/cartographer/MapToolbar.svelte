@@ -26,16 +26,25 @@
 </script>
 
 <div
-  class="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm text-cartographer-muted md:items-center"
+  class="flex flex-wrap items-center gap-x-4 gap-y-2 bg-[#0b1220] px-4 py-3 text-sm text-cartographer-muted"
 >
-  <span>{surfaceMapCount} surface maps, {componentCount} components</span>
+  <span class="font-cartographer-mono text-[0.68rem] tracking-[0.08em]"
+    >{surfaceMapCount} SURFACES · {componentCount} GROUPS</span
+  >
   {#if residualCount > 0}
-    <span class="font-bold text-[#994a14]">{residualCount} topology conflicts retained</span>
+    <span
+      class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.08em] text-cartographer-amber"
+      >{residualCount} TOPOLOGY CONFLICTS</span
+    >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>
-  <div class="ml-0 flex gap-1.5 md:ml-auto" aria-label="Map controls">
-    <Button class="px-2 py-1" onclick={() => onZoomOut?.()}>−</Button>
-    <Button class="px-2 py-1" onclick={() => onZoomIn?.()}>+</Button>
-    <Button onclick={() => onFit?.()}>Fit / reset</Button>
+  <div class="ml-0 flex gap-1.5 sm:ml-auto" aria-label="Map controls">
+    <Button class="px-2 py-1 font-cartographer-mono text-xs" onclick={() => onZoomOut?.()}>−</Button
+    >
+    <Button class="px-2 py-1 font-cartographer-mono text-xs" onclick={() => onZoomIn?.()}>+</Button>
+    <Button
+      class="font-cartographer-mono text-[0.68rem] tracking-[0.08em]"
+      onclick={() => onFit?.()}>FIT VIEW</Button
+    >
   </div>
 </div>

@@ -60,25 +60,25 @@
     stroke: new Stroke({ color: "rgba(0, 0, 0, 0)", width: 1 }),
   })
   const selectedStyle = new Style({
-    fill: new Fill({ color: "rgba(255, 211, 95, 0.16)" }),
-    stroke: new Stroke({ color: "#ffb703", width: 3 }),
+    fill: new Fill({ color: "rgba(98, 214, 237, 0.20)" }),
+    stroke: new Stroke({ color: "#62d6ed", width: 3 }),
   })
   const hoverStyle = new Style({
-    fill: new Fill({ color: "rgba(229, 238, 123, 0.22)" }),
-    stroke: new Stroke({ color: "#d8ee78", width: 2 }),
+    fill: new Fill({ color: "rgba(241, 187, 93, 0.18)" }),
+    stroke: new Stroke({ color: "#f1bb5d", width: 2 }),
   })
   const exitStyle = new Style({
     image: new CircleStyle({
       radius: 9,
-      fill: new Fill({ color: "#ee6c4d" }),
-      stroke: new Stroke({ color: "#fffdf7", width: 3 }),
+      fill: new Fill({ color: "#f1bb5d" }),
+      stroke: new Stroke({ color: "#0b1220", width: 3 }),
     }),
   })
   const selectedExitStyle = new Style({
     image: new CircleStyle({
       radius: 11,
-      fill: new Fill({ color: "#f77f00" }),
-      stroke: new Stroke({ color: "#432818", width: 3 }),
+      fill: new Fill({ color: "#62d6ed" }),
+      stroke: new Stroke({ color: "#e7edf7", width: 3 }),
     }),
   })
 
@@ -269,7 +269,7 @@
 
 {#if extent}
   <section
-    class="overflow-hidden rounded-xl border border-cartographer-border bg-cartographer-panel shadow-[0_5px_18px_#56634c1b]"
+    class="overflow-hidden border border-cartographer-border bg-cartographer-panel shadow-[0_1.5rem_4rem_#02061199]"
     aria-label="Interactive cartographer"
   >
     <MapToolbar
@@ -283,15 +283,34 @@
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
     />
     <div
-      class="h-[60vh] min-h-88 border-t border-[#d6dfd3] bg-[#cfdacc] md:h-[min(70vh,48rem)] md:min-h-112"
+      class="cartographer-map-field h-[58vh] min-h-88 border-t border-cartographer-border md:h-[min(70vh,48rem)] md:min-h-112"
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <p class="m-0 px-4 py-3 text-sm text-cartographer-muted">
-      Pan, scroll, or pinch to explore. Click a map for details; exits appear when zoomed in or when
-      Exits is enabled.
+    <p
+      class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
+    >
+      PAN · SCROLL · PINCH TO INSPECT. SELECT A MAP FOR SOURCE DETAILS. EXITS APPEAR AT CLOSE RANGE.
     </p>
   </section>
 {:else}
   <p class="p-8">This region has no default-visible surface maps.</p>
 {/if}
+
+<style>
+  .cartographer-map-field {
+    background-color: #09111d;
+    background-image:
+      linear-gradient(#62d6ed10 1px, transparent 1px),
+      linear-gradient(90deg, #62d6ed10 1px, transparent 1px),
+      radial-gradient(circle at center, #1d4466 0, #09111d 72%);
+    background-size:
+      24px 24px,
+      24px 24px,
+      auto;
+  }
+
+  .cartographer-map-field :global(.ol-viewport) {
+    font-family: var(--font-cartographer-mono);
+  }
+</style>
