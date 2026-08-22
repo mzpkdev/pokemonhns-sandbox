@@ -321,6 +321,7 @@
     if (visible) next.delete(label)
     else next.add(label)
     hiddenObjectKinds = next
+    instance?.objects.changed()
   }
 
   $effect(() => {
