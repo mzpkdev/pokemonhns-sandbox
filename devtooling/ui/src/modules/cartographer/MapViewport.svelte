@@ -313,7 +313,7 @@
     if (!instance) return
     instance.atlasOverlaps.setVisible(showAtlasOverlaps)
     for (const [name, layer] of instance.imageLayers) {
-      layer.setOpacity(showAtlasOverlaps && atlasOverlapMapNames.has(name) ? 0.72 : 1)
+      layer.setOpacity(showAtlasOverlaps && atlasOverlapMapNames.has(name) ? 0.5 : 1)
     }
   }
 
