@@ -28,6 +28,7 @@
   } from "./geography.js"
   import type { FocusRequest, ObjectSelection, WarpSelection } from "./types.js"
   import { mapImageUrl, type CartographerViewState } from "./urls.js"
+  import { objectPlaceholderFor, type ObjectPlaceholderKind } from "./object-placeholders.js"
 
   type Props = {
     catalog: MapCatalog
@@ -98,15 +99,43 @@
       stroke: new Stroke({ color: "#e5e7eb", width: 2 }),
     }),
   })
-  const unresolvedObjectStyle = new Style({
-    image: new RegularShape({
-      points: 4,
-      radius: 7,
-      angle: Math.PI / 4,
-      fill: new Fill({ color: "#9f5d68" }),
-      stroke: new Stroke({ color: "#14171a", width: 2 }),
+  const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
+    stateful: new Style({
+      image: new RegularShape({
+        points: 4,
+        radius: 6,
+        angle: Math.PI / 4,
+        fill: new Fill({ color: "#7f9875" }),
+        stroke: new Stroke({ color: "#14171a", width: 2 }),
+      }),
     }),
-  })
+    variable: new Style({
+      image: new RegularShape({
+        points: 4,
+        radius: 6,
+        angle: Math.PI / 4,
+        fill: new Fill({ color: "#8295a7" }),
+        stroke: new Stroke({ color: "#14171a", width: 2 }),
+      }),
+    }),
+    expression: new Style({
+      image: new RegularShape({
+        points: 3,
+        radius: 7,
+        fill: new Fill({ color: "#b19a6a" }),
+        stroke: new Stroke({ color: "#14171a", width: 2 }),
+      }),
+    }),
+    unresolved: new Style({
+      image: new RegularShape({
+        points: 4,
+        radius: 6,
+        angle: Math.PI / 4,
+        fill: new Fill({ color: "#a86772" }),
+        stroke: new Stroke({ color: "#14171a", width: 2 }),
+      }),
+    }),
+  }
   const objectStyles = new Map<string, Style>()
 
   let host = $state<HTMLDivElement | undefined>(undefined)
@@ -142,7 +171,9 @@
   }
 
   const objectStyleFor = (object: CatalogObject): Style => {
-    if (!object.sprite) return unresolvedObjectStyle
+    const placeholder = objectPlaceholderFor(object)
+    if (placeholder) return placeholderStyles[placeholder.kind]
+    if (!object.sprite) return placeholderStyles.unresolved
     const existing = objectStyles.get(object.sprite.path)
     if (existing) return existing
     const style = new Style({
@@ -267,7 +298,7 @@
       source: objectSource,
       style: (feature) => {
         const object = feature.get("object") as CatalogObject | undefined
-        if (!object) return unresolvedObjectStyle
+        if (!object) return placeholderStyles.unresolved
         const selected =
           selectedObject?.sourceMapName === feature.get("mapName") &&
           selectedObject?.objectId === feature.get("objectId")

@@ -2,6 +2,7 @@
   import type { CatalogMap, CatalogObject, CatalogWarp } from "./catalog.js"
   import type { ObjectSelection, WarpSelection } from "./types.js"
   import { mapImageUrl } from "./urls.js"
+  import { objectPlaceholderFor } from "./object-placeholders.js"
   import Button from "./ui-toolkit/Button.svelte"
   import { cn } from "./lib/cn.js"
 
@@ -57,6 +58,7 @@
   {:else}
     {@const objects = selectedMap.objects ?? []}
     {@const inspectedObject = objectFor(selectedMap, selectedObject)}
+    {@const inspectedPlaceholder = inspectedObject ? objectPlaceholderFor(inspectedObject) : null}
     <p
       class="mb-1 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
     >
@@ -82,6 +84,14 @@
                 height={inspectedObject.sprite.heightPixels}
                 class="max-h-10 max-w-10 object-contain [image-rendering:pixelated]"
               />
+            </div>
+          {:else if inspectedPlaceholder}
+            <div
+              class="object-placeholder flex size-12 shrink-0 items-center justify-center border border-cartographer-border bg-cartographer-panel"
+              data-kind={inspectedPlaceholder.kind}
+              aria-label={inspectedPlaceholder.label}
+            >
+              <span aria-hidden="true"></span>
             </div>
           {/if}
           <div class="min-w-0">
@@ -133,9 +143,16 @@
               </dd>
             </div>
           {:else}
-            <div class="border-t border-cartographer-border pt-2 text-[#e7a1a9]">
-              {inspectedObject.diagnostic?.message ??
-                "No source sprite resolved for this object. The map uses the fallback marker."}
+            <div class="border-t border-cartographer-border pt-2">
+              {#if inspectedPlaceholder}
+                <p class="m-0 font-cartographer-mono text-[0.68rem] text-cartographer-muted">
+                  {inspectedPlaceholder.label}
+                </p>
+              {/if}
+              <p class="mb-0 mt-1 text-[#e7a1a9]">
+                {inspectedObject.diagnostic?.message ??
+                  "No source sprite resolved for this object. The map uses the fallback marker."}
+              </p>
             </div>
           {/if}
         </dl>
@@ -237,6 +254,7 @@
             {@const selected =
               selectedObject?.sourceMapName === selectedMap.name &&
               selectedObject?.objectId === object.objectId}
+            {@const placeholder = objectPlaceholderFor(object)}
             <li>
               <Button
                 class={cn(
@@ -248,7 +266,11 @@
                 <span>{object.graphicsId} · ({object.xMetatiles}, {object.yMetatiles})</span>
                 <small
                   class="text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
-                  >{selected ? "Selected" : object.sprite ? "Sprite ready" : "No sprite"}</small
+                  >{selected
+                    ? "Selected"
+                    : object.sprite
+                      ? "Sprite ready"
+                      : (placeholder?.label ?? "No sprite")}</small
                 >
               </Button>
             </li>
@@ -258,3 +280,39 @@
     </section>
   {/if}
 </aside>
+
+<style>
+  .object-placeholder > span {
+    display: block;
+  }
+
+  .object-placeholder[data-kind="stateful"] > span {
+    width: 12px;
+    height: 12px;
+    background: #7f9875;
+    border: 2px solid #14171a;
+  }
+
+  .object-placeholder[data-kind="variable"] > span,
+  .object-placeholder[data-kind="unresolved"] > span {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #14171a;
+  }
+
+  .object-placeholder[data-kind="variable"] > span {
+    background: #8295a7;
+  }
+
+  .object-placeholder[data-kind="expression"] > span {
+    width: 0;
+    height: 0;
+    border-bottom: 13px solid #b19a6a;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+  }
+
+  .object-placeholder[data-kind="unresolved"] > span {
+    background: #a86772;
+  }
+</style>
