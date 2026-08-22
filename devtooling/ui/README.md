@@ -8,8 +8,8 @@ Run these commands from `devtooling/`:
 
 ```sh
 pnpm run map-atlas:catalog
-pnpm --filter @pokemonhns/devtooling-workbench run dev
-pnpm --filter @pokemonhns/devtooling-workbench run e2e
+pnpm --filter @pokemonhns/devtooling-ui run dev
+pnpm --filter @pokemonhns/devtooling-ui run e2e
 ```
 
 The atlas provides region selection, map and map-section search, URL-persisted

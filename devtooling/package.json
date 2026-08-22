@@ -10,7 +10,7 @@
     "e2e": "pnpm run map-atlas:catalog && turbo run e2e",
     "format": "turbo run format",
     "lint": "turbo run lint",
-    "map-atlas": "pnpm run map-atlas:catalog && pnpm --filter @pokemonhns/devtooling-workbench run dev",
+    "map-atlas": "pnpm run map-atlas:catalog && pnpm --filter @pokemonhns/devtooling-ui run dev",
     "map-atlas:catalog": "pnpm run build && pnpm --filter @pokemonhns/devtooling-map-render exec hns-map-render --catalog --output build/map-atlas/map-catalog",
     "map-render": "pnpm --filter @pokemonhns/devtooling-map-render run render",
     "test": "turbo run test",

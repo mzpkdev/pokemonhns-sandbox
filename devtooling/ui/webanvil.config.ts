@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 import { svelte } from "@sveltejs/vite-plugin-svelte"
 import { defineConfig } from "webanvil"
 
-import { codeStyle } from "../../webanvil.shared.js"
+import { codeStyle } from "../webanvil.shared.js"
 
 export default defineConfig({
   ...codeStyle,
@@ -16,9 +16,7 @@ export default defineConfig({
   plugins: [tailwindcss(), svelte()],
   vite: {
     base: "./",
-    publicDir: url.fileURLToPath(
-      new url.URL("../../../build/map-atlas/map-catalog", import.meta.url),
-    ),
+    publicDir: url.fileURLToPath(new url.URL("../../build/map-atlas/map-catalog", import.meta.url)),
   },
   test: {
     exclude: ["e2e/**"],
