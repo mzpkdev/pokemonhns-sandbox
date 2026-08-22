@@ -10,14 +10,15 @@
   --color-cartographer-signal-soft: #cbd5df;
   --color-cartographer-amber: #c0a778;
   --color-cartographer-muted: #a4abb4;
-  --font-cartographer-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-cartographer-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 }
 
 @layer base {
   :root {
     color: var(--color-cartographer-ink);
     background: var(--color-cartographer-canvas);
-    font-family: "Avenir Next", Avenir, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-family:
+      "Instrument Sans", "Avenir Next", Avenir, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
