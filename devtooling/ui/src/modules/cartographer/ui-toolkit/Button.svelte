@@ -34,7 +34,7 @@
   {...rest}
   {type}
   class={cn(
-    "rounded-sm px-3 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 disabled:cursor-not-allowed disabled:opacity-60",
+    "px-3 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 disabled:cursor-not-allowed disabled:opacity-60",
     variants[variant],
     className,
   )}

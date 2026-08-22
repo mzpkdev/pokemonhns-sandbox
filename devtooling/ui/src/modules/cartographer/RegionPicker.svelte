@@ -23,7 +23,7 @@
   </div>
   {#each regions as region}
     <Button
-      class="flex w-auto items-center justify-between gap-2 rounded-sm px-2.5 py-2 text-left text-sm md:w-full"
+      class="flex w-auto items-center justify-between gap-2 px-2.5 py-2 text-left text-sm md:w-full"
       variant={region.id === activeRegionId ? "selected" : "subtle"}
       onclick={() => onSelectRegion?.(region.id)}
     >
