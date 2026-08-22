@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
 
+import type { CatalogMetatile, MetatileTileset } from "./catalog.js"
+
 import {
   MetatileCatalogValidationError,
+  metatileAtlasPosition,
   metatileScopedLabel,
   validateMetatileCatalog,
   validateMetatileContextCatalog,
@@ -106,6 +109,18 @@ const contextCatalog = (overrides: Record<string, unknown> = {}): Record<string,
 }
 
 describe("validateMetatileCatalog", () => {
+  it("keeps usage-ranked metatile previews at their source atlas locations", () => {
+    const displayOrder = [metatile("gTileset_General", 368), metatile("gTileset_General", 0)]
+    const atlas = tileset("gTileset_General", "primary", 0) as unknown as MetatileTileset
+
+    expect(
+      displayOrder.map((entry) => metatileAtlasPosition(entry as CatalogMetatile, atlas)),
+    ).toEqual([
+      { column: 16, row: 11 },
+      { column: 0, row: 0 },
+    ])
+  })
+
   it("accepts context-rendered metatiles with a scoped source identity", () => {
     const index = validateMetatileCatalog(catalog())
     const entry = index.contexts[0]

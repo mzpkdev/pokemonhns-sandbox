@@ -54,7 +54,7 @@
       class="grid grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-px bg-cartographer-border p-px"
       aria-label={`${tileset.tilesetId} metatiles`}
     >
-      {#each metatiles as metatile, index (metatile.sourceId)}
+      {#each metatiles as metatile (metatile.sourceId)}
         <Button
           class={cn(
             "group grid min-w-0 place-items-center gap-1.5 border-transparent bg-cartographer-panel px-1.5 py-2 font-cartographer-mono text-[0.61rem] hover:bg-cartographer-panel-raised focus-visible:outline-cartographer-signal",
@@ -65,7 +65,7 @@
           variant="subtle"
           onclick={() => onSelect?.(metatile)}
         >
-          <MetatilePreview {index} {metatile} size={48} {tileset} />
+          <MetatilePreview {metatile} size={48} {tileset} />
           <span
             class="w-full truncate text-center text-cartographer-muted group-hover:text-cartographer-ink"
             >0x{metatile.id.toString(16).toUpperCase().padStart(3, "0")}</span

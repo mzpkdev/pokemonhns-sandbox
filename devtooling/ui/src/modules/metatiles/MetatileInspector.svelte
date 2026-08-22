@@ -5,12 +5,11 @@
   import MetatilePreview from "./MetatilePreview.svelte"
 
   type Props = {
-    index: number | null
     metatile: CatalogMetatile | null
     tileset: MetatileTileset | null
   }
 
-  let { index, metatile, tileset }: Props = $props()
+  let { metatile, tileset }: Props = $props()
 
   const hexadecimal = (value: number): string => `0x${value.toString(16).toUpperCase()}`
 
@@ -25,7 +24,7 @@
   aria-live="polite"
   aria-label="Metatile inspector"
 >
-  {#if !metatile || !tileset || index === null}
+  {#if !metatile || !tileset}
     <div class="p-4">
       <p
         class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
@@ -50,7 +49,7 @@
         {metatileScopedLabel(metatile)}
       </h2>
       <div class="mt-4 flex items-start gap-4 border-y border-cartographer-border py-4">
-        <MetatilePreview {index} {metatile} size={112} {tileset} />
+        <MetatilePreview {metatile} size={112} {tileset} />
         <dl class="m-0 min-w-0 grid flex-1 gap-2 text-xs">
           <div class="grid gap-0.5">
             <dt class="font-cartographer-mono text-[0.65rem] text-cartographer-muted">Local ID</dt>

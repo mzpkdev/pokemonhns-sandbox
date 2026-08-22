@@ -52,7 +52,11 @@ export const classifyObject = (
   if (event.graphics_id === "OBJ_EVENT_GFX_ITEM_BALL") {
     return { id: "item", label: "Item", evidence: "graphics", action }
   }
-  if (/^OBJ_EVENT_GFX_MON_BASE\s*\+\s*SPECIES_\w+$/.test(event.graphics_id)) {
+  if (
+    /^OBJ_EVENT_GFX_MON_BASE\s*\+\s*SPECIES_\w+(?:\s*\+\s*SPECIES_SHINY_TAG)?$/.test(
+      event.graphics_id,
+    )
+  ) {
     return { id: "pokemon", label: "Pokémon", evidence: "graphics", action }
   }
   if (event.graphics_id === "OBJ_EVENT_GFX_LIGHT_SPRITE") {

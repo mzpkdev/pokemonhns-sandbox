@@ -7,7 +7,7 @@ import type { IndexedPng, Layout, RenderAssets, Rgb, TilesetAssets } from "./typ
 
 const renderAssets = new Map<string, RenderAssets>()
 
-const readPalette = (filePath: string): Rgb[] => {
+export const readPalette = (filePath: string): Rgb[] => {
   const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/)
   const colorCount = Number(lines[2])
   const colors = lines

@@ -422,3 +422,12 @@ export const loadMetatileContext = async (
 export const metatileScopedLabel = (metatile: CatalogMetatile): string => {
   return metatile.sourceId
 }
+
+/** Atlas order follows the source metatile ID, never the UI's filtered or usage-ranked list. */
+export const metatileAtlasPosition = (
+  metatile: CatalogMetatile,
+  tileset: MetatileTileset,
+): { column: number; row: number } => ({
+  column: metatile.id % tileset.atlas.columns,
+  row: Math.floor(metatile.id / tileset.atlas.columns),
+})

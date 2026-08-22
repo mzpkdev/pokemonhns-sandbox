@@ -4,7 +4,7 @@ import { CatalogValidationError, validateCatalog } from "./catalog.js"
 
 const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     pixelsPerMetatile: 16,
     regions: [],
     maps: [],
@@ -22,6 +22,7 @@ const mapWithWildEncounters = (
     region: "routes",
     image: { widthPixels: 16, heightPixels: 16 },
     layout: { widthMetatiles: 1, heightMetatiles: 1 },
+    objects: [],
     wildEncounters,
     encounterHabitat: { land: [], water: [] },
   }
@@ -114,7 +115,7 @@ const wildEncounters = (): Record<string, unknown> => {
 describe("validateCatalog", () => {
   it("rejects stale catalog schemas before the viewport can interpret their topology", () => {
     expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow(CatalogValidationError)
-    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 5")
+    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 6")
   })
 
   it("rejects unsupported topology diagnostic codes", () => {
@@ -130,7 +131,7 @@ describe("validateCatalog", () => {
   })
 
   it("accepts the current empty diagnostic contract", () => {
-    expect(validateCatalog(catalog()).schemaVersion).toBe(5)
+    expect(validateCatalog(catalog()).schemaVersion).toBe(6)
   })
 
   it("accepts source-backed wild encounter sets and explicit missing runtime variants", () => {
@@ -167,6 +168,17 @@ describe("validateCatalog", () => {
 
     expect(() => validateCatalog(value)).toThrow(
       "encounterHabitat must contain valid source tile geometry",
+    )
+  })
+
+  it("rejects map objects without an explicit shiny-state flag", () => {
+    const value = catalog({
+      regions: [{ id: "routes", label: "Routes", mapCount: 1, maps: ["Route101"] }],
+      maps: [{ ...mapWithWildEncounters(wildEncounters()), objects: [{ objectId: "0" }] }],
+    })
+
+    expect(() => validateCatalog(value)).toThrow(
+      "objects must contain an explicit shiny-state flag",
     )
   })
 })

@@ -2,7 +2,8 @@ import * as crypto from "node:crypto"
 import * as fs from "node:fs"
 import * as path from "node:path"
 
-import { cropSpriteFrame, writeRgbaPng } from "../renderer/png"
+import { cropSpriteFrame, replaceSpritePalette, writeRgbaPng } from "../renderer/png"
+import { readPalette } from "../renderer/tilesets"
 import { classifyObject, type ObjectKind } from "./object-kind"
 import { posixRelative, sha256 } from "./source"
 import type { ObjectEvent } from "./types"
@@ -24,6 +25,7 @@ export type CatalogObject = {
   objectId: string
   kind: ObjectKind
   graphicsId: string
+  isShiny: boolean
   xMetatiles: number
   yMetatiles: number
   elevation: number
@@ -48,6 +50,9 @@ export type ObjectSourceTables = {
   graphicsInfoById: Map<string, string>
   frameByGraphicsInfo: Map<string, SourceFrame>
   frameBySpecies: Map<string, SourceFrame>
+  berryPreviewByName: Map<string, SourceFrame>
+  berryPreviewByTreeId: Map<string, SourceFrame>
+  berryPreviewFallback: SourceFrame | null
 }
 
 const sourceFile = (root: string, relative: string): string => {
@@ -112,9 +117,74 @@ const pictureSources = (root: string): Map<string, string> => {
   return result
 }
 
+/**
+ * A berry tree's live stage and berry are stored in save data, so the catalog cannot render
+ * its runtime state. It shows the flowering frame from its new-game source assignment instead.
+ */
+const berryTreePreviewFrames = (
+  root: string,
+  sources: ReadonlyMap<string, string>,
+): { byName: Map<string, SourceFrame>; fallback: SourceFrame | null } => {
+  const text = readSource(root, "berry_tree_graphics_tables.h")
+  const tables = new Map<string, string>()
+  for (const match of text.matchAll(
+    /static const struct SpriteFrameImage\s+(sPicTable_\w+BerryTree)\[\]\s*=\s*\{([\s\S]*?)\};/g,
+  )) {
+    const [, tableName, body] = match
+    if (tableName && body) tables.set(tableName, body)
+  }
+  const frameFor = (tableName: string, frameIndex: number): SourceFrame | null => {
+    const body = tables.get(tableName)
+    if (!body) return null
+    const frames = [
+      ...body.matchAll(/overworld_frame\((gObjectEventPic_\w+),\s*(\d+),\s*(\d+),\s*(\d+)\)/g),
+    ]
+    const frame = frames[frameIndex]
+    if (!frame) return null
+    const [, graphicsId, widthTiles, heightTiles, sourceFrameIndex] = frame
+    if (!graphicsId || !widthTiles || !heightTiles || !sourceFrameIndex) return null
+    const source = sources.get(graphicsId)
+    if (!source) return null
+    return {
+      graphicsId,
+      source,
+      widthPixels: Number(widthTiles) * 8,
+      heightPixels: Number(heightTiles) * 8,
+      frameIndex: Number(sourceFrameIndex),
+    }
+  }
+  const byName = new Map<string, SourceFrame>()
+  for (const match of text.matchAll(
+    /\[ITEM_(\w+)_BERRY\s*-\s*FIRST_BERRY_INDEX\]\s*=\s*(sPicTable_\w+BerryTree),/g,
+  )) {
+    const [, berryName, tableName] = match
+    const frame = berryName && tableName ? frameFor(tableName, 3) : null
+    if (berryName && frame) byName.set(berryName, frame)
+  }
+  return { byName, fallback: frameFor("sPicTable_PechaBerryTree", 0) }
+}
+
+const berryTreeAssignments = (
+  root: string,
+  framesByName: ReadonlyMap<string, SourceFrame>,
+): Map<string, SourceFrame> => {
+  const assignments = new Map<string, SourceFrame>()
+  const source = readRootSource(root, "data/scripts/new_game.inc")
+  for (const match of source.matchAll(
+    /\bsetberrytree\s+(BERRY_TREE_\w+)\s*,\s*ITEM_TO_BERRY\(ITEM_(\w+)_BERRY\)/g,
+  )) {
+    const [, treeId, berryName] = match
+    const frame = berryName ? framesByName.get(berryName) : null
+    if (treeId && frame) assignments.set(treeId, frame)
+  }
+  return assignments
+}
+
 export const objectSourceTables = (root: string): ObjectSourceTables => {
   const tables = picTables(root)
   const sources = pictureSources(root)
+  const berryPreviews = berryTreePreviewFrames(root, sources)
+  const berryAssignments = berryTreeAssignments(root, berryPreviews.byName)
   const resolveFrame = (
     tableName: string,
     graphicsId: string,
@@ -210,14 +280,24 @@ export const objectSourceTables = (root: string): ObjectSourceTables => {
       }
     }
   }
-  return { graphicsInfoById, frameByGraphicsInfo, frameBySpecies }
+  return {
+    graphicsInfoById,
+    frameByGraphicsInfo,
+    frameBySpecies,
+    berryPreviewByName: berryPreviews.byName,
+    berryPreviewByTreeId: berryAssignments,
+    berryPreviewFallback: berryPreviews.fallback,
+  }
 }
 
 const resolveFrame = (
   tables: ObjectSourceTables,
-  graphicsId: string,
+  event: ObjectEvent,
 ): SourceFrame | ObjectDiagnostic => {
-  const species = graphicsId.match(/^OBJ_EVENT_GFX_MON_BASE\s*\+\s*(SPECIES_\w+)$/)?.[1]
+  const { graphics_id: graphicsId } = event
+  const species = graphicsId.match(
+    /^OBJ_EVENT_GFX_MON_BASE\s*\+\s*(SPECIES_\w+?)(?:\s*\+\s*SPECIES_SHINY_TAG)?$/,
+  )?.[1]
   if (species) {
     return (
       tables.frameBySpecies.get(species) ?? {
@@ -225,6 +305,21 @@ const resolveFrame = (
         message: `${graphicsId}: ${species} has no source follower graphic`,
       }
     )
+  }
+  if (graphicsId === "OBJ_EVENT_GFX_BERRY_TREE") {
+    const assignedFrame = tables.berryPreviewByTreeId.get(event.trainer_sight_or_berry_tree_id)
+    if (assignedFrame) return assignedFrame
+    const berryNames = [...tables.berryPreviewByName.keys()]
+      .filter((berryName) =>
+        new RegExp(`(?:^|_)${berryName}(?:_|$)`).test(event.trainer_sight_or_berry_tree_id),
+      )
+      .sort((left, right) => right.length - left.length)
+    const frame = berryNames.length > 0 ? tables.berryPreviewByName.get(berryNames[0]!) : null
+    if (frame ?? tables.berryPreviewFallback) return frame ?? tables.berryPreviewFallback!
+    return {
+      code: "unresolved_berry_tree_graphics",
+      message: `${graphicsId}: berry tree source preview is unavailable`,
+    }
   }
   if (!/^OBJ_EVENT_GFX_\w+$/.test(graphicsId)) {
     return {
@@ -248,15 +343,37 @@ const isDiagnostic = (value: SourceFrame | ObjectDiagnostic): value is ObjectDia
   return "code" in value
 }
 
-const writeFrame = (output: string, frame: SourceFrame): CatalogObject["sprite"] => {
+const shinyPaletteFor = (
+  root: string,
+  frame: SourceFrame,
+): { normal: string; shiny: string } | null => {
+  const species = path.basename(frame.source, ".png")
+  const directory = path.join(root, "graphics", "pokemon", species)
+  const normal = path.join(directory, "normal.pal")
+  const shiny = path.join(directory, "shiny.pal")
+  return fs.existsSync(normal) && fs.existsSync(shiny) ? { normal, shiny } : null
+}
+
+const writeFrame = (
+  output: string,
+  frame: SourceFrame,
+  shinyPalette: { normal: string; shiny: string } | null = null,
+): CatalogObject["sprite"] => {
   if (!fs.existsSync(frame.source)) {
     return null
   }
-  const cropped = cropSpriteFrame(frame.source, {
+  let cropped = cropSpriteFrame(frame.source, {
     index: frame.frameIndex,
     width: frame.widthPixels,
     height: frame.heightPixels,
   })
+  if (shinyPalette) {
+    cropped = replaceSpritePalette(
+      cropped,
+      readPalette(shinyPalette.normal),
+      readPalette(shinyPalette.shiny),
+    )
+  }
   const digest = crypto
     .createHash("sha256")
     .update(`${cropped.width}x${cropped.height}:`)
@@ -285,14 +402,15 @@ export const catalogObjects = (
 ): CatalogObject[] => {
   return events.map((event, index) => {
     const objectId = String(index)
-    const resolved = resolveFrame(tables, event.graphics_id)
+    const resolved = resolveFrame(tables, event)
+    const isShiny = /\+\s*SPECIES_SHINY_TAG$/.test(event.graphics_id)
     let sprite: CatalogObject["sprite"] = null
     let diagnostic: ObjectDiagnostic | null = null
     if (isDiagnostic(resolved)) {
       diagnostic = resolved
     } else {
       try {
-        sprite = writeFrame(output, resolved)
+        sprite = writeFrame(output, resolved, isShiny ? shinyPaletteFor(root, resolved) : null)
         if (!sprite) {
           diagnostic = {
             code: "missing_source_sprite",
@@ -310,6 +428,7 @@ export const catalogObjects = (
       objectId,
       kind: classifyObject(event, sprite?.source ?? null, scripts.get(event.script)),
       graphicsId: event.graphics_id,
+      isShiny,
       xMetatiles: event.x,
       yMetatiles: event.y,
       elevation: event.elevation,

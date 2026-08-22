@@ -92,6 +92,7 @@ export type CatalogObject = {
     action: string | null
   }
   graphicsId: string
+  isShiny: boolean
   xMetatiles: number
   yMetatiles: number
   elevation: number
@@ -463,6 +464,11 @@ const hasEncounterHabitat = (value: unknown): value is CatalogEncounterHabitat =
   )
 }
 
+const hasCatalogObject = (value: unknown): value is CatalogObject => {
+  const object = asRecord(value)
+  return !!object && typeof object.isShiny === "boolean"
+}
+
 const hasCardinalDirection = (value: unknown): boolean => {
   return value === "up" || value === "down" || value === "left" || value === "right"
 }
@@ -538,9 +544,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   if (!root) {
     throw new CatalogValidationError(["catalog must be an object."], "The map catalog is invalid.")
   }
-  if (root.schemaVersion !== 5) {
+  if (root.schemaVersion !== 6) {
     details.push(
-      "schemaVersion must be 5. Regenerate the catalog with pnpm run cartographer:catalog.",
+      "schemaVersion must be 6. Regenerate the catalog with pnpm run cartographer:catalog.",
     )
   }
   if (!Array.isArray(root.maps)) {
@@ -598,6 +604,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
     }
     if (!hasEncounterHabitat(map.encounterHabitat)) {
       details.push(`${map.name} encounterHabitat must contain valid source tile geometry.`)
+    }
+    if (!Array.isArray(map.objects) || !map.objects.every(hasCatalogObject)) {
+      details.push(`${map.name} objects must contain an explicit shiny-state flag.`)
     }
     if (map.image.widthPixels !== map.layout.widthMetatiles * catalog.pixelsPerMetatile) {
       details.push(`${map.name} has an inconsistent image width.`)

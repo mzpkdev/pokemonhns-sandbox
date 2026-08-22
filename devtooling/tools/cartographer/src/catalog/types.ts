@@ -285,6 +285,7 @@ export type CatalogMap = {
     objectId: string
     kind: CatalogObjectKind
     graphicsId: string
+    isShiny: boolean
     xMetatiles: number
     yMetatiles: number
     elevation: number
@@ -310,7 +311,7 @@ export type CatalogMap = {
 
 export type MapCatalog = {
   $schema: "catalog.schema.json"
-  schemaVersion: 5
+  schemaVersion: 6
   format: "pokemonhns-exterior-map-catalog"
   pixelsPerMetatile: 16
   source: {

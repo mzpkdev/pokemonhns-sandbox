@@ -146,14 +146,6 @@
   let selectedMetatile = $derived(
     activeTileset?.metatiles.find((metatile) => metatile.sourceId === selectedSourceId) ?? null,
   )
-  let selectedIndex = $derived(
-    selectedMetatile && activeTileset
-      ? activeTileset.metatiles.findIndex(
-          (metatile) => metatile.sourceId === selectedMetatile.sourceId,
-        )
-      : null,
-  )
-
   const contextLabel = (context: MetatileCatalogContext): string => {
     return `${context.primaryTileset} + ${context.secondaryTileset}`
   }
@@ -338,11 +330,7 @@
           onSelect={(metatile) => (selectedSourceId = metatile.sourceId)}
         />
       </main>
-      <MetatileInspector
-        index={selectedIndex}
-        metatile={selectedMetatile}
-        tileset={activeTileset}
-      />
+      <MetatileInspector metatile={selectedMetatile} tileset={activeTileset} />
     </div>
   </section>
 {/if}

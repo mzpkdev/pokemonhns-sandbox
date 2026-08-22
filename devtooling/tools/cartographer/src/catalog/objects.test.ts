@@ -78,6 +78,57 @@ describe("source-backed object graphics", () => {
     }
   })
 
+  it("renders a source-backed static berry-tree preview and shiny species expression", () => {
+    const objects = catalogObjects(
+      sourceRoot,
+      outputRoot,
+      [
+        event("OBJ_EVENT_GFX_BERRY_TREE", {
+          movement_type: "MOVEMENT_TYPE_BERRY_TREE_GROWTH",
+          trainer_sight_or_berry_tree_id: "BERRY_TREE_KELPSY_2",
+        }),
+        event("OBJ_EVENT_GFX_MON_BASE+SPECIES_MAGIKARP+SPECIES_SHINY_TAG"),
+      ],
+      tables,
+    )
+
+    expect(objects.map((object) => object.diagnostic)).toEqual([null, null])
+    expect(objects.map((object) => object.kind.id)).toEqual(["berry-tree", "pokemon"])
+    expect(objects.map((object) => object.isShiny)).toEqual([false, true])
+    expect(objects[0]?.sprite?.source).toMatch(
+      /graphics\/object_events\/pics\/berry_trees\/kelpsy\.png$/,
+    )
+    expect(objects[0]?.sprite).toMatchObject({ widthPixels: 16, heightPixels: 32 })
+    expect(objects[1]?.sprite?.source).toMatch(
+      /graphics\/object_events\/pics\/pokemon\/magikarp\.png$/,
+    )
+    expect(objects[1]?.sprite?.sha256).not.toBe(
+      catalogObjects(
+        sourceRoot,
+        outputRoot,
+        [event("OBJ_EVENT_GFX_MON_BASE+SPECIES_MAGIKARP")],
+        tables,
+      )[0]?.sprite?.sha256,
+    )
+  })
+
+  it("uses the source new-game berry assignment ahead of a tree ID's name", () => {
+    const [tree] = catalogObjects(
+      sourceRoot,
+      outputRoot,
+      [
+        event("OBJ_EVENT_GFX_BERRY_TREE", {
+          movement_type: "MOVEMENT_TYPE_BERRY_TREE_GROWTH",
+          trainer_sight_or_berry_tree_id: "BERRY_TREE_ROUTE_123_POMEG_1",
+        }),
+      ],
+      tables,
+    )
+
+    expect(tree?.diagnostic).toBeNull()
+    expect(tree?.sprite?.source).toMatch(/graphics\/object_events\/pics\/berry_trees\/tamato\.png$/)
+  })
+
   it("classifies event roles and recognizes map-local item and battle scripts", () => {
     const scripts = mapScriptBodies(sourceRoot, "Route15")
     const objects = catalogObjects(

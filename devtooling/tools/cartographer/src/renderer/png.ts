@@ -2,7 +2,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import * as zlib from "node:zlib"
 
-import type { IndexedPng } from "./types"
+import type { IndexedPng, Rgb } from "./types"
 
 const pngSignature = "89504e470d0a1a0a"
 
@@ -303,6 +303,32 @@ export const cropSpriteFrame = (
     )
   }
   return { width: frame.width, height: frame.height, pixels }
+}
+
+export const replaceSpritePalette = (
+  sprite: RgbaPng,
+  original: readonly Rgb[],
+  replacement: readonly Rgb[],
+): RgbaPng => {
+  if (original.length !== replacement.length) {
+    throw new Error("sprite palettes have different color counts")
+  }
+  const pixels = new Uint8Array(sprite.pixels)
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    if (pixels[offset + 3] === 0) continue
+    const index = original.findIndex(
+      (color) =>
+        color[0] === pixels[offset] &&
+        color[1] === pixels[offset + 1] &&
+        color[2] === pixels[offset + 2],
+    )
+    const color = replacement[index]
+    if (!color) continue
+    pixels[offset] = color[0]
+    pixels[offset + 1] = color[1]
+    pixels[offset + 2] = color[2]
+  }
+  return { ...sprite, pixels }
 }
 
 export const writeRgbaPng = (
