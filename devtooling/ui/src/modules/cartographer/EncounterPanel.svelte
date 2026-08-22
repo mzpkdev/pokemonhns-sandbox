@@ -26,7 +26,9 @@
   } as const
 </script>
 
-<section class="border border-cartographer-border bg-cartographer-panel shadow-cartographer-panel">
+<section
+  class="min-w-0 border border-cartographer-border bg-cartographer-panel shadow-cartographer-panel"
+>
   {#if !selectedMap}
     <div class="p-6">
       <p
@@ -66,10 +68,10 @@
         </p>
       </div>
     {:else}
-      <div class="grid gap-5 p-5">
+      <div class="grid min-w-0 gap-5 p-5">
         {#if selectedMap.wildEncounters.variants.length > 0}
           <section
-            class="border border-cartographer-border"
+            class="min-w-0 border border-cartographer-border"
             aria-label="Runtime encounter variants"
           >
             <header
@@ -110,7 +112,7 @@
           {@const listedMethods = new Set(encounterSet.methods.map((method) => method.type))}
           {@const missingMethods = methodTypes.filter((type) => !listedMethods.has(type))}
           <section
-            class="border border-cartographer-border"
+            class="min-w-0 border border-cartographer-border"
             aria-label={`Source set ${encounterSet.baseLabel}`}
           >
             <header
@@ -139,7 +141,10 @@
             <div class="grid divide-y divide-cartographer-border">
               {#each encounterSet.methods as method (method.type)}
                 {@const visibleSlots = visibleEncounterSlots(method)}
-                <section class="p-4" aria-label={`${methodLabels[method.type]} encounter method`}>
+                <section
+                  class="min-w-0 p-4"
+                  aria-label={`${methodLabels[method.type]} encounter method`}
+                >
                   <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <h3 class="m-0 text-base font-semibold">{methodLabels[method.type]}</h3>
                     <p class="m-0 font-cartographer-mono text-xs text-cartographer-muted">
@@ -160,10 +165,10 @@
                     {@const ungroupedSlots = visibleSlots.filter(
                       (slot) => slot.groups.length === 0,
                     )}
-                    <div class="grid gap-4">
+                    <div class="grid min-w-0 gap-4">
                       {#each groupIds as groupId (groupId)}
                         <section
-                          class="border border-cartographer-border"
+                          class="min-w-0 border border-cartographer-border"
                           aria-label={`${rodLabel(groupId)} fishing`}
                         >
                           <header
@@ -183,7 +188,7 @@
                         </section>
                       {/each}
                       {#if ungroupedSlots.length > 0}
-                        <section class="border border-cartographer-border p-3">
+                        <section class="min-w-0 border border-cartographer-border p-3">
                           <p class="m-0 text-sm text-cartographer-muted">
                             Slots without a recorded source group
                           </p>
