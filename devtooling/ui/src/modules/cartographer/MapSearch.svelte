@@ -43,14 +43,14 @@
   aria-label="Map search"
 >
   <h2
-    class="mb-3 border-b border-cartographer-border pb-2 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.14em] text-cartographer-signal"
+    class="mb-3 border-b border-cartographer-border pb-2 text-sm font-semibold text-cartographer-signal"
   >
-    SOURCE SEARCH
+    Find a map
   </h2>
   <SearchCombobox
     bind:query
     emptyText="No source maps or map sections match."
-    label="NAME OR MAP SECTION"
+    label="Name or map section"
     {options}
     placeholder="e.g. Route29 or MAPSEC..."
     onSelect={(name) => onSelectMap?.(name, true)}

@@ -32,7 +32,7 @@
     <p
       class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
     >
-      INSPECTOR
+      Inspector
     </p>
     <h3 class="mb-3 mt-3 text-lg font-semibold">No map selected</h3>
     <p class="m-0 leading-6 text-cartographer-muted">
@@ -42,7 +42,7 @@
     <p
       class="mb-1 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
     >
-      MAP INSPECTOR
+      Map inspector
     </p>
     <h3 class="mb-4 text-xl font-semibold tracking-[-0.02em]">{selectedMap.name}</h3>
     <dl class="m-0 grid gap-3 border-y border-cartographer-border py-3 text-sm">
@@ -50,7 +50,7 @@
         <dt
           class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.08em] text-cartographer-muted"
         >
-          SOURCE ID
+          Source ID
         </dt>
         <dd class="m-0 break-words font-cartographer-mono text-xs text-cartographer-signal-soft">
           <code>{selectedMap.id}</code>
@@ -60,7 +60,7 @@
         <dt
           class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.08em] text-cartographer-muted"
         >
-          SECTION
+          Section
         </dt>
         <dd class="m-0 break-words">{selectedMap.mapSection ?? "Not assigned"}</dd>
       </div>
@@ -68,7 +68,7 @@
         <dt
           class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.08em] text-cartographer-muted"
         >
-          LAYOUT
+          Layout
         </dt>
         <dd class="m-0 break-words">
           {selectedMap.layout.widthMetatiles} × {selectedMap.layout.heightMetatiles} metatiles
@@ -78,7 +78,7 @@
         <dt
           class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.08em] text-cartographer-muted"
         >
-          RENDER STATE
+          Render state
         </dt>
         <dd class="m-0 break-words">
           {renderedMapNames.has(selectedMap.name)

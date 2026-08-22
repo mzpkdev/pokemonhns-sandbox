@@ -6,7 +6,7 @@ test("shows the cartographer", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Cartographer" })).toBeVisible()
   await expect(page.getByRole("navigation", { name: "Regions" })).toBeVisible()
 
-  const mapSearch = page.getByRole("combobox", { name: "NAME OR MAP SECTION" })
+  const mapSearch = page.getByRole("combobox", { name: "Name or map section" })
   await mapSearch.fill("Route29")
   await page.getByRole("option", { name: /Route29/ }).click()
   await expect(page.getByRole("heading", { name: "Route29" })).toBeVisible()

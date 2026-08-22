@@ -16,23 +16,17 @@
     aria-label="Modules"
   >
     <div class="flex items-center gap-3 py-3">
-      <span
-        class="font-cartographer-mono text-[0.68rem] font-bold tracking-[0.18em] text-cartographer-muted"
-        >WAYFARER / DEVTOOLS</span
-      >
+      <span class="text-xs font-semibold tracking-[0.08em] text-cartographer-muted">Wayfarer</span>
       <span aria-hidden="true" class="h-3.5 w-px bg-cartographer-border"></span>
       <a
-        class="relative inline-flex items-center font-cartographer-mono text-xs font-bold tracking-[0.12em] text-cartographer-signal no-underline after:absolute after:-bottom-3 after:left-0 after:h-px after:w-full after:bg-cartographer-signal"
+        class="relative inline-flex items-center text-sm font-semibold text-cartographer-signal no-underline after:absolute after:-bottom-3 after:left-0 after:h-px after:w-full after:bg-cartographer-signal"
         href="/"
         aria-current="page"
       >
-        CARTOGRAPHER
+        Cartographer
       </a>
     </div>
-    <span
-      class="hidden items-center font-cartographer-mono text-[0.68rem] tracking-[0.14em] text-cartographer-muted sm:flex"
-      >WORLD SOURCE · LOCAL</span
-    >
+    <span class="hidden items-center text-xs text-cartographer-muted sm:flex">Local source</span>
   </nav>
 
   <Cartographer />

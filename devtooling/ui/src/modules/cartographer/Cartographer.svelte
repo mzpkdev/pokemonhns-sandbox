@@ -125,9 +125,7 @@
   <section
     class="mx-auto mt-[18vh] max-w-md border border-cartographer-border bg-cartographer-panel p-6"
   >
-    <p class="m-0 font-cartographer-mono text-xs tracking-[0.12em] text-cartographer-signal">
-      READING CATALOG…
-    </p>
+    <p class="m-0 text-sm font-medium text-cartographer-signal">Loading catalog…</p>
     <div class="mt-4 h-px w-full overflow-hidden bg-cartographer-border">
       <div class="h-full w-2/5 bg-cartographer-signal"></div>
     </div>
@@ -136,9 +134,7 @@
   <section
     class="mx-auto mt-[12vh] max-w-2xl border border-[#8f5560] bg-[#251824] p-7 shadow-[0_0_0_1px_#8f556033]"
   >
-    <p class="m-0 font-cartographer-mono text-xs font-bold tracking-[0.14em] text-[#f29aaa]">
-      CATALOG READ FAILED
-    </p>
+    <p class="m-0 text-sm font-semibold text-[#f29aaa]">Catalog unavailable</p>
     <h1 class="mb-3 mt-3 text-2xl font-semibold">Cartographer unavailable</h1>
     <p class="text-cartographer-muted">{loadState.message}</p>
     {#if loadState.details.length > 0}
@@ -159,11 +155,7 @@
       class="mb-5 flex flex-col gap-3 border-b border-cartographer-border pb-4 sm:flex-row sm:items-end sm:justify-between"
     >
       <div>
-        <p
-          class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.16em] text-cartographer-signal"
-        >
-          EXTERIOR TERRAIN INDEX
-        </p>
+        <p class="m-0 text-sm font-medium text-cartographer-signal">World maps</p>
         <h1 class="m-0 mt-1 text-[clamp(1.4rem,2.2vw,2.1rem)] font-semibold tracking-[-0.035em]">
           {activeRegion.label}
         </h1>
@@ -171,7 +163,7 @@
       <p
         class="m-0 max-w-md font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted sm:text-right"
       >
-        {maps.length} source maps · only default-visible surface maps are plotted
+        {maps.length} source maps · only default-visible surface maps are shown
       </p>
     </header>
     <div class="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)_20rem]">

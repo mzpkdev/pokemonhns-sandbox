@@ -6,9 +6,9 @@
   --color-cartographer-panel: #111a2b;
   --color-cartographer-panel-raised: #18243a;
   --color-cartographer-border: #2d3c56;
-  --color-cartographer-signal: #62d6ed;
-  --color-cartographer-signal-soft: #a8e8f5;
-  --color-cartographer-amber: #f1bb5d;
+  --color-cartographer-signal: #75b9ff;
+  --color-cartographer-signal-soft: #c3deff;
+  --color-cartographer-amber: #d8a861;
   --color-cartographer-muted: #91a2bd;
   --font-cartographer-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
@@ -24,14 +24,7 @@
 
   body {
     @apply m-0 min-w-80 bg-cartographer-canvas;
-    background-image:
-      radial-gradient(circle at 78% -10%, #183660 0, transparent 29rem),
-      linear-gradient(90deg, #ffffff03 1px, transparent 1px),
-      linear-gradient(#ffffff03 1px, transparent 1px);
-    background-size:
-      auto,
-      32px 32px,
-      32px 32px;
+    background-image: radial-gradient(circle at 78% -10%, #183660 0, transparent 29rem);
   }
 
   button,
@@ -40,7 +33,7 @@
   }
 
   ::selection {
-    background: #62d6ed55;
+    background: #75b9ff55;
     color: #ffffff;
   }
 }

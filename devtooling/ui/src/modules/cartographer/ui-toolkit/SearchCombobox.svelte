@@ -35,8 +35,7 @@
   selectionBehavior="preserve"
   onValueChange={handleValueChange}
 >
-  <Combobox.Label
-    class="mb-2 block font-cartographer-mono text-[0.68rem] font-bold tracking-[0.1em] text-cartographer-muted"
+  <Combobox.Label class="mb-2 block text-xs font-medium text-cartographer-muted"
     >{label}</Combobox.Label
   >
   <Combobox.Control>
