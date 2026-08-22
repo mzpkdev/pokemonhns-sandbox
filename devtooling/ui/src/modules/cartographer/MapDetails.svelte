@@ -239,16 +239,18 @@
             <li>
               <Button
                 class={cn(
-                  "flex w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
+                  "flex min-w-0 w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
                   selectedWarp?.sourceMapName === selectedMap.name &&
                     selectedWarp?.warpId === warp.warpId &&
                     "border-cartographer-signal bg-cartographer-signal/10",
                 )}
                 onclick={() => onSelectWarp?.(warp)}
               >
-                <span>Warp {warp.warpId} · ({warp.xMetatiles}, {warp.yMetatiles})</span>
+                <span class="min-w-0 shrink break-words"
+                  >Warp {warp.warpId} · ({warp.xMetatiles}, {warp.yMetatiles})</span
+                >
                 <small
-                  class="text-right break-words font-cartographer-mono text-[0.68rem] text-cartographer-muted"
+                  class="min-w-0 max-w-[60%] shrink break-words text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >{destination?.name ?? warp.destinationMap ?? warp.destinationMapId}</small
                 >
               </Button>

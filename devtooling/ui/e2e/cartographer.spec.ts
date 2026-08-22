@@ -50,6 +50,16 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByRole("option", { name: /Route32/ }).click()
   await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
 
+  await mapSearch.fill("Route36")
+  await page.getByRole("option", { name: /Route36/ }).click()
+  const exitCard = page.getByRole("button", { name: /Warp 0/ })
+  await expect(exitCard).toBeVisible()
+  await expect
+    .poll(() => exitCard.evaluate((element) => element.scrollWidth <= element.clientWidth))
+    .toBe(true)
+
+  await mapSearch.fill("Route32")
+  await page.getByRole("option", { name: /Route32/ }).click()
   const cartographerViews = page.getByRole("navigation", { name: "Cartographer views" })
   await cartographerViews.getByRole("button", { name: "Encounters", exact: true }).click()
   await expect(page.getByLabel("Interactive cartographer")).toBeVisible()
