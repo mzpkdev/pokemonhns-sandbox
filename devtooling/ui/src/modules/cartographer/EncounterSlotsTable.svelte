@@ -12,7 +12,7 @@
   }
 </script>
 
-<div class="overflow-x-auto border border-cartographer-border">
+<div class="cartographer-scrollbar overflow-x-auto border border-cartographer-border">
   <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
     <thead class="bg-cartographer-panel-raised text-cartographer-muted">
       <tr class="font-cartographer-mono text-[0.68rem] tracking-[0.06em]">

@@ -94,3 +94,28 @@
     color: var(--color-cartographer-ink);
   }
 }
+
+@layer utilities {
+  .cartographer-scrollbar {
+    scrollbar-color: var(--color-cartographer-border-strong) var(--color-cartographer-field);
+    scrollbar-width: thin;
+  }
+
+  .cartographer-scrollbar::-webkit-scrollbar {
+    height: 0.5rem;
+    width: 0.5rem;
+  }
+
+  .cartographer-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-cartographer-field);
+  }
+
+  .cartographer-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-cartographer-border-strong);
+    border: 2px solid var(--color-cartographer-field);
+  }
+
+  .cartographer-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-cartographer-signal);
+  }
+}
