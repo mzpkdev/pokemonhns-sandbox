@@ -15,6 +15,7 @@
   import RegularShape from "ol/style/RegularShape"
   import Stroke from "ol/style/Stroke"
   import Style from "ol/style/Style"
+  import Text from "ol/style/Text"
   import View from "ol/View"
   import "ol/ol.css"
 
@@ -121,11 +122,30 @@
       stroke: new Stroke({ color: "#303942", width: 1 }),
     }),
   })
-  const expectedConflictStyle = new Style({
-    fill: new Fill({ color: "rgba(210, 133, 145, 0.28)" }),
-    stroke: new Stroke({ color: "#f1a6b2", width: 3 }),
-    zIndex: 2,
-  })
+  const expectedConflictStyles = new Map<string, Style>()
+  const expectedConflictStyleFor = (mapName: string): Style => {
+    const existing = expectedConflictStyles.get(mapName)
+    if (existing) return existing
+    const style = new Style({
+      fill: new Fill({ color: "rgba(210, 133, 145, 0.10)" }),
+      stroke: new Stroke({ color: "#f1a6b2", width: 3 }),
+      text: new Text({
+        text: `Expected ${mapName}`,
+        font: "600 11px 'IBM Plex Mono', monospace",
+        fill: new Fill({ color: "#f5c7ce" }),
+        backgroundFill: new Fill({ color: "rgba(36, 26, 32, 0.86)" }),
+        padding: [3, 5, 3, 5],
+        textAlign: "left",
+        textBaseline: "top",
+        offsetX: 7,
+        offsetY: 7,
+        overflow: true,
+      }),
+      zIndex: 2,
+    })
+    expectedConflictStyles.set(mapName, style)
+    return style
+  }
   const conflictLineStyle = new Style({
     stroke: new Stroke({ color: "#b86f7c", width: 2, lineDash: [5, 5] }),
     zIndex: 1,
@@ -368,7 +388,11 @@
       const expectedExtent = toOpenLayersExtent(visual.expected, catalog.pixelsPerMetatile)
       const actualExtent = toOpenLayersExtent(visual.actual, catalog.pixelsPerMetatile)
       conflictSource.addFeature(
-        new Feature({ geometry: polygonFromExtent(expectedExtent), kind: "expected" }),
+        new Feature({
+          geometry: polygonFromExtent(expectedExtent),
+          kind: "expected",
+          expectedMapName: conflict.destination.map,
+        }),
       )
       if (!placementsOverlap(visual.expected, visual.actual)) {
         conflictSource.addFeature(
@@ -419,8 +443,10 @@
     })
     const conflicts = new VectorLayer({
       source: conflictSource,
-      style: (feature) =>
-        feature.get("kind") === "expected" ? expectedConflictStyle : conflictLineStyle,
+      style: (feature) => {
+        if (feature.get("kind") !== "expected") return conflictLineStyle
+        return expectedConflictStyleFor(feature.get("expectedMapName") as string)
+      },
       visible: showTopologyConflicts,
     })
     const view = new View({
