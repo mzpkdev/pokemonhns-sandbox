@@ -33,6 +33,87 @@ export type CatalogObjectKind = {
   action: string | null
 }
 
+export type CatalogSourcePointer = {
+  path: string
+  pointer: string
+}
+
+export type CatalogEncounterSlot = {
+  slotIndex: number
+  slotRate: number
+  slotRateSource: CatalogSourcePointer
+  groups: Array<{
+    id: string
+    source: CatalogSourcePointer
+  }>
+  minLevel: number
+  maxLevel: number
+  speciesId: string
+  speciesLabel: string
+  source: CatalogSourcePointer
+}
+
+export type CatalogEncounterMethod = {
+  type: "land_mons" | "water_mons" | "rock_smash_mons" | "fishing_mons"
+  encounterRate: number
+  source: CatalogSourcePointer
+  slots: CatalogEncounterSlot[]
+}
+
+export type CatalogEncounterSet = {
+  mapId: string
+  mapName: string
+  baseLabel: string
+  header: {
+    groupLabel: string
+    groupIndex: number
+    headerIndex: number
+  }
+  source: CatalogSourcePointer
+  methods: CatalogEncounterMethod[]
+}
+
+export type CatalogEncounterVariant = {
+  id: "base" | "normal_day" | "normal_night" | "alternate_day" | "alternate_night"
+  timeBasedEncounterValue: 0 | 1 | 2 | 3 | 4
+  offset: 0 | 1 | 2 | 3
+  headerIndex: number
+  availability: "available" | "missing_contiguous_header"
+  set: {
+    baseLabel: string
+    source: CatalogSourcePointer
+  } | null
+}
+
+export type CatalogWildEncounters = {
+  sets: CatalogEncounterSet[]
+  variants: CatalogEncounterVariant[]
+  diagnostics: CatalogEncounterDiagnostic[]
+}
+
+export type CatalogEncounterDiagnostic =
+  | {
+      code: "excluded_source_slot"
+      reason: "species_none" | "zero_slot_rate"
+      setBaseLabel: string
+      methodType: CatalogEncounterMethod["type"]
+      slotIndex: number
+      speciesId: string
+      slotRate: number
+      source: CatalogSourcePointer
+    }
+  | {
+      code: "unaddressable_source_slot"
+      reason: "outside_method_slot_table"
+      setBaseLabel: string
+      methodType: CatalogEncounterMethod["type"]
+      slotIndex: number
+      speciesId: string
+      minLevel: number
+      maxLevel: number
+      source: CatalogSourcePointer
+    }
+
 export type SourceMap = {
   id: string
   layout: string
@@ -201,11 +282,12 @@ export type CatalogMap = {
     } | null
     diagnostic: { code: string; message: string } | null
   }>
+  wildEncounters: CatalogWildEncounters
 }
 
 export type MapCatalog = {
   $schema: "catalog.schema.json"
-  schemaVersion: 3
+  schemaVersion: 4
   format: "pokemonhns-exterior-map-catalog"
   pixelsPerMetatile: 16
   source: {

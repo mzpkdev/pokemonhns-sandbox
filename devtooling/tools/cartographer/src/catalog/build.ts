@@ -11,6 +11,7 @@ import { catalogRegions, categoryFor, mapOutputPaths, regionFor } from "./classi
 import { catalogObjects, objectSourceTables } from "./objects"
 import type { ObjectSourceTables } from "./objects"
 import { mapScriptBodies } from "./scripts"
+import { sourceWildEncounters } from "./encounters"
 import { topologyConflicts } from "./topology"
 import {
   posixRelative,
@@ -20,7 +21,14 @@ import {
   sourceMaps,
   sourceState,
 } from "./source"
-import type { CatalogMap, Layout, MapCatalog, RenderCatalogResult, SourceMap } from "./types"
+import type {
+  CatalogMap,
+  CatalogWildEncounters,
+  Layout,
+  MapCatalog,
+  RenderCatalogResult,
+  SourceMap,
+} from "./types"
 
 const createCatalogMap = (
   root: string,
@@ -31,6 +39,7 @@ const createCatalogMap = (
   group: string,
   namesById: Map<string, string>,
   objectTables: ObjectSourceTables,
+  wildEncounters: CatalogWildEncounters,
 ): CatalogMap => {
   const region = regionFor(name, group)
   const category = categoryFor(source.map_type)
@@ -108,6 +117,7 @@ const createCatalogMap = (
       destinationMap: namesById.get(warp.dest_map) ?? null,
     })),
     objects,
+    wildEncounters,
   }
 }
 
@@ -119,6 +129,7 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
   const mapsByName = sourceMaps(root, exteriorMaps)
   const namesById = new Map([...mapsByName].map(([name, map]) => [map.id, name]))
   const objectTables = objectSourceTables(root)
+  const wildEncountersByMap = sourceWildEncounters(root, namesById)
   const maps: CatalogMap[] = []
 
   for (const name of exteriorMaps) {
@@ -140,13 +151,14 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
         groups.get(name) ?? "gMapGroup_Unassigned",
         namesById,
         objectTables,
+        wildEncountersByMap.get(name) ?? { sets: [], variants: [], diagnostics: [] },
       ),
     )
   }
 
   const catalog: MapCatalog = {
     $schema: "catalog.schema.json",
-    schemaVersion: 3,
+    schemaVersion: 4,
     format: "pokemonhns-exterior-map-catalog",
     pixelsPerMetatile: 16,
     source: sourceState(root),

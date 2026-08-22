@@ -41,6 +41,21 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByRole("option", { name: /Route32/ }).click()
   await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
 
+  const cartographerViews = page.getByRole("navigation", { name: "Cartographer views" })
+  await cartographerViews.getByRole("button", { name: "Encounters", exact: true }).click()
+  const runtimeVariants = page.getByLabel("Runtime encounter variants")
+  await expect(runtimeVariants).toBeVisible()
+  await expect(runtimeVariants.getByText("Normal night", { exact: true })).toBeVisible()
+  await expect(runtimeVariants.getByText("gRoute32_Night", { exact: true })).toBeVisible()
+  await expect(runtimeVariants.getByText("Missing contiguous header", { exact: true })).toHaveCount(
+    2,
+  )
+  const route32Set = page.getByLabel("Source set gRoute32", { exact: true })
+  await expect(route32Set.getByLabel("Old Rod fishing")).toBeVisible()
+  await expect(route32Set.getByLabel("Good Rod fishing")).toBeVisible()
+  await expect(route32Set.getByText("MAGIKARP", { exact: true }).first()).toBeVisible()
+
+  await cartographerViews.getByRole("button", { name: "Map", exact: true }).click()
   const atlasOverlaps = page.getByRole("checkbox", { name: /Overlaps/ })
   await expect(atlasOverlaps).toBeVisible()
   await page

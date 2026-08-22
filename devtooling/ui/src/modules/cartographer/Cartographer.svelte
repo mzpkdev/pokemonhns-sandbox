@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
+  import EncounterPanel from "./EncounterPanel.svelte"
   import MapDetails from "./MapDetails.svelte"
   import MapSearch from "./MapSearch.svelte"
   import MapViewport from "./MapViewport.svelte"
@@ -26,6 +27,8 @@
     | { kind: "ready"; catalog: MapCatalog }
     | { kind: "error"; message: string; details: string[] }
 
+  type CartographerTab = "map" | "encounters"
+
   let loadState = $state<LoadState>({ kind: "loading" })
   let requestedRegion = $state<string | null>(null)
   let requestedMap = $state<string | null>(null)
@@ -37,6 +40,7 @@
   let showExits = $state(false)
   let showObjects = $state(false)
   let focusToken = $state(0)
+  let activeTab = $state<CartographerTab>("map")
 
   onMount(() => {
     const state = parseCartographerUrlState(window.location.href)
@@ -164,20 +168,42 @@
   </section>
 {:else}
   <section class="mx-auto max-w-[1800px] p-[clamp(1rem,2.4vw,2.25rem)]">
-    <header
-      class="mb-5 flex flex-col gap-3 border-b border-cartographer-border pb-4 sm:flex-row sm:items-end sm:justify-between"
-    >
+    <header class="mb-5 border-b border-cartographer-border pb-4">
       <div>
         <p class="m-0 text-sm font-medium text-cartographer-signal">World maps</p>
         <h1 class="m-0 mt-1 text-[clamp(1.4rem,2.2vw,2.1rem)] font-semibold tracking-[-0.035em]">
           {activeRegion.label}
         </h1>
       </div>
-      <p
-        class="m-0 max-w-md font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted sm:text-right"
-      >
-        {maps.length} source maps · only default-visible surface maps are shown
-      </p>
+      <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <nav class="flex gap-1" aria-label="Cartographer views">
+          <button
+            class="border border-cartographer-border px-3 py-2 text-sm font-medium transition-colors hover:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cartographer-signal"
+            class:border-cartographer-signal={activeTab === "map"}
+            class:bg-cartographer-signal={activeTab === "map"}
+            class:text-cartographer-canvas={activeTab === "map"}
+            aria-controls="cartographer-map"
+            aria-pressed={activeTab === "map"}
+            type="button"
+            onclick={() => (activeTab = "map")}>Map</button
+          >
+          <button
+            class="border border-cartographer-border px-3 py-2 text-sm font-medium transition-colors hover:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cartographer-signal"
+            class:border-cartographer-signal={activeTab === "encounters"}
+            class:bg-cartographer-signal={activeTab === "encounters"}
+            class:text-cartographer-canvas={activeTab === "encounters"}
+            aria-controls="cartographer-encounters"
+            aria-pressed={activeTab === "encounters"}
+            type="button"
+            onclick={() => (activeTab = "encounters")}>Encounters</button
+          >
+        </nav>
+        <p
+          class="m-0 max-w-md font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted sm:text-right"
+        >
+          {maps.length} source maps · only default-visible surface maps are shown
+        </p>
+      </div>
     </header>
     <div class="grid gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)_20rem]">
       <aside class="grid content-start gap-3">
@@ -188,49 +214,55 @@
         />
         <MapSearch maps={catalog.maps} bind:query={searchQuery} onSelectMap={selectMap} />
       </aside>
-      <div class="min-w-0">
-        {#key activeRegion.id}
-          <MapViewport
-            {catalog}
-            {maps}
-            selectedMapName={selectedMap?.name}
-            {selectedWarp}
-            {selectedObject}
-            {initialView}
-            focusRequest={focusToken > 0 && selectedMap
-              ? { mapName: selectedMap.name, token: focusToken }
-              : null}
-            {showExits}
-            {showObjects}
-            onSelectMap={selectMap}
-            onSelectWarp={(selection) => {
-              selectMap(selection.sourceMapName)
-              selectedWarp = selection
-              selectedObject = null
-              showExits = true
-            }}
-            onSelectObject={(selection) => {
-              selectMap(selection.sourceMapName)
-              selectedObject = selection
-              selectedWarp = null
-              showObjects = true
-            }}
-            onCameraChange={handleCameraChange}
-            onToggleExits={(value) => (showExits = value)}
-            onToggleObjects={(value) => (showObjects = value)}
-          />
-        {/key}
-      </div>
-      <MapDetails
-        maps={catalog.maps}
-        {selectedMap}
-        {selectedWarp}
-        {selectedObject}
-        {renderedMapNames}
-        onSelectWarp={selectWarp}
-        onSelectObject={selectObject}
-        onFocusMap={(name) => selectMap(name, true)}
-      />
+      {#if activeTab === "map"}
+        <div id="cartographer-map" class="min-w-0">
+          {#key activeRegion.id}
+            <MapViewport
+              {catalog}
+              {maps}
+              selectedMapName={selectedMap?.name}
+              {selectedWarp}
+              {selectedObject}
+              {initialView}
+              focusRequest={focusToken > 0 && selectedMap
+                ? { mapName: selectedMap.name, token: focusToken }
+                : null}
+              {showExits}
+              {showObjects}
+              onSelectMap={selectMap}
+              onSelectWarp={(selection) => {
+                selectMap(selection.sourceMapName)
+                selectedWarp = selection
+                selectedObject = null
+                showExits = true
+              }}
+              onSelectObject={(selection) => {
+                selectMap(selection.sourceMapName)
+                selectedObject = selection
+                selectedWarp = null
+                showObjects = true
+              }}
+              onCameraChange={handleCameraChange}
+              onToggleExits={(value) => (showExits = value)}
+              onToggleObjects={(value) => (showObjects = value)}
+            />
+          {/key}
+        </div>
+        <MapDetails
+          maps={catalog.maps}
+          {selectedMap}
+          {selectedWarp}
+          {selectedObject}
+          {renderedMapNames}
+          onSelectWarp={selectWarp}
+          onSelectObject={selectObject}
+          onFocusMap={(name) => selectMap(name, true)}
+        />
+      {:else}
+        <div id="cartographer-encounters" class="min-w-0 xl:col-span-2">
+          <EncounterPanel {selectedMap} />
+        </div>
+      {/if}
     </div>
   </section>
 {/if}

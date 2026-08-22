@@ -105,6 +105,83 @@ export type CatalogObject = {
   diagnostic: { code: string; message: string } | null
 }
 
+export type CatalogSourcePointer = {
+  path: string
+  pointer: string
+}
+
+export type CatalogWildEncounterSlot = {
+  slotIndex: number
+  slotRate: number
+  slotRateSource: CatalogSourcePointer
+  groups: Array<{
+    id: string
+    source: CatalogSourcePointer
+  }>
+  minLevel: number
+  maxLevel: number
+  speciesId: string
+  speciesLabel?: string
+  source: CatalogSourcePointer
+}
+
+export type CatalogWildEncounterMethod = {
+  type: "land_mons" | "water_mons" | "rock_smash_mons" | "fishing_mons"
+  encounterRate: number
+  source: CatalogSourcePointer
+  slots: CatalogWildEncounterSlot[]
+}
+
+export type CatalogWildEncounterSet = {
+  mapId: string
+  mapName: string
+  baseLabel: string
+  header: {
+    groupLabel: string
+    groupIndex: number
+    headerIndex: number
+  }
+  source: CatalogSourcePointer
+  methods: CatalogWildEncounterMethod[]
+}
+
+export type CatalogWildEncounterVariant = {
+  id: "base" | "normal_day" | "normal_night" | "alternate_day" | "alternate_night"
+  timeBasedEncounterValue: 0 | 1 | 2 | 3 | 4
+  offset: 0 | 1 | 2 | 3
+  headerIndex: number
+  availability: "available" | "missing_contiguous_header"
+  set: {
+    baseLabel: string
+    source: CatalogSourcePointer
+  } | null
+}
+
+export type CatalogWildEncounters = {
+  sets: CatalogWildEncounterSet[]
+  variants: CatalogWildEncounterVariant[]
+  diagnostics: Array<
+    | {
+        code: "excluded_source_slot"
+        reason: "species_none" | "zero_slot_rate"
+        setBaseLabel: string
+        methodType: CatalogWildEncounterMethod["type"]
+        slotIndex: number
+        speciesId: string
+        slotRate: number
+        source: CatalogSourcePointer
+      }
+    | {
+        code: "unaddressable_source_slot"
+        setBaseLabel: string
+        methodType: CatalogWildEncounterMethod["type"]
+        slotIndex: number
+        speciesId: string
+        source: CatalogSourcePointer
+      }
+  >
+}
+
 export type CatalogMap = {
   name: string
   id: string
@@ -149,6 +226,7 @@ export type CatalogMap = {
   connections: CatalogConnection[]
   warps: CatalogWarp[]
   objects: CatalogObject[]
+  wildEncounters: CatalogWildEncounters
 }
 
 export type MapCatalog = {
@@ -193,6 +271,135 @@ const hasString = (value: unknown): value is string => {
 
 const hasNumber = (value: unknown): value is number => {
   return typeof value === "number" && Number.isFinite(value)
+}
+
+const hasInteger = (value: unknown): value is number => {
+  return hasNumber(value) && Number.isInteger(value)
+}
+
+const hasSourcePointer = (value: unknown): value is CatalogSourcePointer => {
+  const pointer = asRecord(value)
+  return !!pointer && hasString(pointer.path) && hasString(pointer.pointer)
+}
+
+const wildEncounterTypes = ["land_mons", "water_mons", "rock_smash_mons", "fishing_mons"] as const
+
+const hasWildEncounterType = (value: unknown): value is CatalogWildEncounterMethod["type"] => {
+  return (
+    typeof value === "string" &&
+    wildEncounterTypes.includes(value as CatalogWildEncounterMethod["type"])
+  )
+}
+
+const hasWildEncounterSlot = (value: unknown): value is CatalogWildEncounterSlot => {
+  const slot = asRecord(value)
+  return (
+    !!slot &&
+    hasInteger(slot.slotIndex) &&
+    hasNumber(slot.slotRate) &&
+    hasSourcePointer(slot.slotRateSource) &&
+    Array.isArray(slot.groups) &&
+    slot.groups.every((group) => {
+      const record = asRecord(group)
+      return !!record && hasString(record.id) && hasSourcePointer(record.source)
+    }) &&
+    hasInteger(slot.minLevel) &&
+    hasInteger(slot.maxLevel) &&
+    slot.minLevel <= slot.maxLevel &&
+    hasString(slot.speciesId) &&
+    (slot.speciesLabel === undefined || hasString(slot.speciesLabel)) &&
+    hasSourcePointer(slot.source)
+  )
+}
+
+const hasWildEncounterMethod = (value: unknown): value is CatalogWildEncounterMethod => {
+  const method = asRecord(value)
+  return (
+    !!method &&
+    hasWildEncounterType(method.type) &&
+    hasNumber(method.encounterRate) &&
+    hasSourcePointer(method.source) &&
+    Array.isArray(method.slots) &&
+    method.slots.every(hasWildEncounterSlot)
+  )
+}
+
+const hasWildEncounterSet = (value: unknown): value is CatalogWildEncounterSet => {
+  const set = asRecord(value)
+  return (
+    !!set &&
+    hasString(set.mapId) &&
+    hasString(set.mapName) &&
+    hasString(set.baseLabel) &&
+    !!asRecord(set.header) &&
+    hasString(asRecord(set.header)?.groupLabel) &&
+    hasInteger(asRecord(set.header)?.groupIndex) &&
+    hasInteger(asRecord(set.header)?.headerIndex) &&
+    hasSourcePointer(set.source) &&
+    Array.isArray(set.methods) &&
+    set.methods.every(hasWildEncounterMethod)
+  )
+}
+
+const wildEncounterVariantIds = [
+  "base",
+  "normal_day",
+  "normal_night",
+  "alternate_day",
+  "alternate_night",
+] as const
+
+const hasWildEncounterVariant = (value: unknown): value is CatalogWildEncounterVariant => {
+  const variant = asRecord(value)
+  const set = asRecord(variant?.set)
+  return (
+    !!variant &&
+    typeof variant.id === "string" &&
+    wildEncounterVariantIds.includes(variant.id as CatalogWildEncounterVariant["id"]) &&
+    [0, 1, 2, 3, 4].includes(variant.timeBasedEncounterValue as number) &&
+    [0, 1, 2, 3].includes(variant.offset as number) &&
+    hasInteger(variant.headerIndex) &&
+    (variant.availability === "available" ||
+      variant.availability === "missing_contiguous_header") &&
+    (variant.availability === "available"
+      ? !!set && hasString(set.baseLabel) && hasSourcePointer(set.source)
+      : variant.set === null)
+  )
+}
+
+const hasWildEncounterDiagnostics = (value: unknown): boolean => {
+  return (
+    Array.isArray(value) &&
+    value.every((diagnostic) => {
+      const record = asRecord(diagnostic)
+      const hasCommonSourceSlotFields =
+        !!record &&
+        hasString(record.setBaseLabel) &&
+        hasWildEncounterType(record.methodType) &&
+        hasInteger(record.slotIndex) &&
+        hasString(record.speciesId) &&
+        hasSourcePointer(record.source)
+      return (
+        (record?.code === "excluded_source_slot" &&
+          (record.reason === "species_none" || record.reason === "zero_slot_rate") &&
+          hasNumber(record.slotRate) &&
+          hasCommonSourceSlotFields) ||
+        (record?.code === "unaddressable_source_slot" && hasCommonSourceSlotFields)
+      )
+    })
+  )
+}
+
+const hasWildEncounters = (value: unknown): value is CatalogWildEncounters => {
+  const encounters = asRecord(value)
+  return (
+    !!encounters &&
+    Array.isArray(encounters.sets) &&
+    encounters.sets.every(hasWildEncounterSet) &&
+    Array.isArray(encounters.variants) &&
+    encounters.variants.every(hasWildEncounterVariant) &&
+    hasWildEncounterDiagnostics(encounters.diagnostics)
+  )
 }
 
 const hasCardinalDirection = (value: unknown): boolean => {
@@ -270,9 +477,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   if (!root) {
     throw new CatalogValidationError(["catalog must be an object."], "The map catalog is invalid.")
   }
-  if (root.schemaVersion !== 3) {
+  if (root.schemaVersion !== 4) {
     details.push(
-      "schemaVersion must be 3. Regenerate the catalog with pnpm run cartographer:catalog.",
+      "schemaVersion must be 4. Regenerate the catalog with pnpm run cartographer:catalog.",
     )
   }
   if (!Array.isArray(root.maps)) {
@@ -312,6 +519,21 @@ export const validateCatalog = (value: unknown): MapCatalog => {
     }
     if (!regions.has(map.region)) {
       details.push(`${map.name} refers to undeclared region ${JSON.stringify(map.region)}.`)
+    }
+    if (!hasWildEncounters(map.wildEncounters)) {
+      details.push(`${map.name} wildEncounters must contain valid source encounter data.`)
+    } else {
+      for (const [setIndex, set] of map.wildEncounters.sets.entries()) {
+        if (!hasWildEncounterSet(set)) {
+          details.push(
+            `${map.name} wildEncounters[${setIndex}] has an invalid source encounter set.`,
+          )
+          continue
+        }
+        if (set.mapId !== map.id || set.mapName !== map.name) {
+          details.push(`${map.name} wildEncounters[${setIndex}] belongs to a different map.`)
+        }
+      }
     }
     if (map.image.widthPixels !== map.layout.widthMetatiles * catalog.pixelsPerMetatile) {
       details.push(`${map.name} has an inconsistent image width.`)
