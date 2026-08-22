@@ -1,0 +1,33 @@
+{
+  "name": "pokemonhns-devtooling",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm run cartographer:catalog && pnpm run metatiles:catalog && turbo run build",
+    "check": "turbo run check",
+    "clean": "turbo run clean",
+    "dev": "turbo run dev --parallel",
+    "e2e": "pnpm run cartographer:catalog && pnpm run metatiles:catalog && turbo run e2e",
+    "format": "turbo run format",
+    "lint": "turbo run lint",
+    "cartographer:ui": "pnpm run cartographer:catalog && pnpm run metatiles:catalog && pnpm --filter @wayfarer/ui run dev",
+    "cartographer:catalog": "pnpm --filter @wayfarer/cartographer run build && pnpm exec wcartographer --catalog --output build/cartographer/map-catalog",
+    "cartographer": "pnpm --filter @wayfarer/cartographer run render",
+    "metatiles:catalog": "pnpm --filter @wayfarer/metatiles run build && pnpm exec wmetatiles --output build/cartographer/map-catalog/metatiles",
+    "metatiles": "pnpm --filter @wayfarer/metatiles run catalog",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@wayfarer/cartographer": "workspace:*",
+    "@wayfarer/metatiles": "workspace:*",
+    "@types/node": "24.10.1",
+    "turbo": "2.10.11",
+    "typescript": "7.0.2",
+    "webanvil": "^0.0.17"
+  },
+  "engines": {
+    "node": ">=24.11.0 <25"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

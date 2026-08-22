@@ -1,0 +1,64 @@
+# HnS developer tooling
+
+This is an isolated Node 24 workspace for tools that support the Pokemon HnS
+fork. It does not participate in the ROM's Makefile build.
+
+The workspace uses pnpm workspaces, Turborepo, WebAnvil, TypeScript 7, and Ark
+UI in the Svelte app. WebAnvil owns builds, formatting, linting, test commands,
+browser tests, and declaration generation.
+
+## Layout
+
+```text
+tools/      CLI packages
+ui/         Svelte cartographer
+```
+
+`tools/cartographer` is the source-driven map-render CLI. `tools/metatiles`
+generates source-driven metatile metadata and palette-correct preview atlases.
+Add further CLI tools under `tools/`. `ui` is the only browser package; add a
+separate UI package only when it has a real independent consumer.
+
+`ui` is the Svelte cartographer. It consumes the static catalog and terrain images
+created by `tools/cartographer`; it does not read the ROM or source
+tree in the browser.
+
+`ui/src/modules/cartographer/ui-toolkit` owns styled local UI primitives. It wraps Ark
+UI for stateful controls so cartographer components can stay focused on map behavior.
+
+## Commands
+
+Run these from `devtooling/` after `pnpm install`:
+
+```sh
+pnpm run build
+pnpm run check
+pnpm run dev
+pnpm run format
+pnpm run lint
+pnpm run test
+pnpm run e2e
+pnpm run cartographer Route29
+pnpm run cartographer:catalog
+pnpm run metatiles:catalog
+pnpm run cartographer:ui
+```
+
+`pnpm run check` runs formatting, linting, and TypeScript checks across the
+workspace. Build output, dependency installs, Turborepo cache, and WebAnvil
+metadata are ignored by Git.
+
+`pnpm run e2e` regenerates the cartographer catalog, then runs the UI package's WebAnvil
+browser test.
+
+`pnpm run cartographer:catalog` renders every exterior map, writes its catalog to
+`build/cartographer/map-catalog/`, and prepares the cartographer assets. `pnpm run cartographer:ui`
+then starts the Svelte cartographer.
+
+`pnpm run metatiles:catalog` writes its manifest and palette-correct context atlases
+under `build/cartographer/map-catalog/metatiles/`. A context is a real primary and
+secondary tileset pairing, because metatile palette slots are resolved by the pairing.
+
+Build before running `pnpm run cartographer`; it runs Cartographer's compiled
+`main` entry. You can also invoke its linked binary directly with
+`pnpm exec wcartographer`.
