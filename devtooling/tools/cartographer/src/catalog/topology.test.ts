@@ -91,7 +91,7 @@ describe("topologyConflicts", () => {
     ])
   })
 
-  it("groups a reciprocal Route32, Ruins, Violet, and Route36 loop as one unresolved cycle", () => {
+  it("does not diagnose a mutually consistent shortcut cycle", () => {
     const diagnostics = topologyConflicts([
       map("Route32", [
         { direction: "up", destinationMap: "VioletCity", offsetMetatiles: 4 },
@@ -111,93 +111,6 @@ describe("topologyConflicts", () => {
       ]),
     ])
 
-    expect(diagnostics).toHaveLength(1)
-    const cycle = diagnostics[0]
-    if (cycle?.code !== "cycle_closure_mismatch") throw new Error("expected cycle diagnostic")
-    expect(cycle.maps).toEqual([
-      { map: "Route32", mapId: "MAP_ROUTE32" },
-      { map: "Route36", mapId: "MAP_ROUTE36" },
-      { map: "RuinsOfAlph_Outside", mapId: "MAP_RUINSOFALPH_OUTSIDE" },
-      { map: "VioletCity", mapId: "MAP_VIOLETCITY" },
-    ])
-    expect(cycle.connections).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          connection: expect.objectContaining({
-            source: expect.objectContaining({
-              header: {
-                path: "data/maps/Route32/map.json",
-                pointer: "/connections/0",
-                map: "Route32",
-              },
-            }),
-          }),
-          reverseConnection: expect.objectContaining({
-            source: expect.objectContaining({
-              header: {
-                path: "data/maps/VioletCity/map.json",
-                pointer: "/connections/0",
-                map: "VioletCity",
-              },
-            }),
-          }),
-        }),
-      ]),
-    )
-    expect(cycle.candidates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          map: "RuinsOfAlph_Outside",
-          confidence: "none",
-          residualResolved: true,
-        }),
-      ]),
-    )
-    expect(cycle.candidates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ map: "RuinsOfAlph_Outside", remainingComponentSize: 3 }),
-      ]),
-    )
-    expect(cycle.residualMetatiles).not.toEqual({ x: 0, y: 0 })
-    expect(cycle.connections).toHaveLength(4)
-    expect(cycle.explanation).toContain("do not identify")
-  })
-
-  it("keeps the path that produces a closure residual when a shorter chord is consistent", () => {
-    const diagnostics = topologyConflicts([
-      map("Alpha", [
-        { direction: "right", destinationMap: "Charlie", offsetMetatiles: 0 },
-        { direction: "down", destinationMap: "Bravo", offsetMetatiles: 0 },
-      ]),
-      map("Bravo", [
-        { direction: "up", destinationMap: "Alpha", offsetMetatiles: 0 },
-        { direction: "right", destinationMap: "Delta", offsetMetatiles: 0 },
-        { direction: "up", destinationMap: "Echo", offsetMetatiles: 0 },
-      ]),
-      map("Charlie", [
-        { direction: "left", destinationMap: "Alpha", offsetMetatiles: 0 },
-        { direction: "right", destinationMap: "Delta", offsetMetatiles: 0 },
-      ]),
-      map("Delta", [
-        { direction: "left", destinationMap: "Charlie", offsetMetatiles: 0 },
-        { direction: "left", destinationMap: "Bravo", offsetMetatiles: 0 },
-        { direction: "up", destinationMap: "Echo", offsetMetatiles: -10 },
-      ]),
-      map("Echo", [
-        { direction: "down", destinationMap: "Bravo", offsetMetatiles: 0 },
-        { direction: "down", destinationMap: "Delta", offsetMetatiles: 10 },
-      ]),
-    ])
-
-    const cycle = diagnostics.find(
-      (diagnostic) =>
-        diagnostic.code === "cycle_closure_mismatch" &&
-        diagnostic.maps.some((map) => map.map === "Bravo") &&
-        diagnostic.maps.some((map) => map.map === "Charlie"),
-    )
-    if (cycle?.code !== "cycle_closure_mismatch") throw new Error("expected chorded cycle")
-    expect(cycle.maps.map((map) => map.map)).toEqual(["Alpha", "Bravo", "Charlie", "Delta"])
-    expect(cycle.residualMetatiles).toEqual({ x: -10, y: 10 })
-    expect(cycle.maps.map((map) => map.map)).not.toContain("Echo")
+    expect(diagnostics).toEqual([])
   })
 })

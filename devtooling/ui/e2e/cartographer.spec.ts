@@ -32,14 +32,5 @@ test("shows the cartographer", async ({ page }) => {
 
   await mapSearch.fill("Route32")
   await page.getByRole("option", { name: /Route32/ }).click()
-  const topology = page.getByRole("checkbox", { name: /Topology diagnostics/ })
-  await page
-    .getByLabel("Interactive cartographer")
-    .getByText(/Topology diagnostics/)
-    .click()
-  await expect(topology).toBeChecked()
-  const details = page.getByLabel("Topology diagnostic details")
-  await expect(details).toBeVisible()
-  await expect(details.getByText(/^Cycle closure mismatch/).first()).toBeVisible()
-  await expect(details.getByText(/Advisory ranking.*confidence: none/).first()).toBeVisible()
+  await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
 })

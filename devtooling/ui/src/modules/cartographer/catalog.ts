@@ -34,11 +34,6 @@ export type CatalogTopologyConnection = {
   offsetMetatiles: number
 }
 
-export type CatalogTopologyConnectionPair = {
-  connection: CatalogTopologyConnection
-  reverseConnection: CatalogTopologyConnection
-}
-
 export type CatalogDirectTopologyMismatch = {
   code: "direct_connection_mismatch"
   explanation: string
@@ -62,34 +57,9 @@ export type CatalogMissingReverseConnection = {
   }
 }
 
-export type CatalogCycleTopologyMismatch = {
-  code: "cycle_closure_mismatch"
-  explanation: string
-  maps: Array<{
-    map: string
-    mapId: string
-  }>
-  connections: CatalogTopologyConnectionPair[]
-  residualMetatiles: {
-    x: number
-    y: number
-  }
-  candidates: Array<{
-    map: string
-    mapId: string
-    rank: number
-    confidence: "none" | "low"
-    independentConnectionCount: number
-    remainingComponentSize: number
-    residualResolved: boolean
-    rationale: string
-  }>
-}
-
 export type CatalogTopologyDiagnostic =
   | CatalogDirectTopologyMismatch
   | CatalogMissingReverseConnection
-  | CatalogCycleTopologyMismatch
 
 export type CatalogWarp = {
   warpId: string
@@ -270,21 +240,6 @@ const hasExpectedReverse = (value: unknown): boolean => {
   )
 }
 
-const hasCycleCandidate = (value: unknown): boolean => {
-  const candidate = asRecord(value)
-  return (
-    !!candidate &&
-    hasString(candidate.map) &&
-    hasString(candidate.mapId) &&
-    hasNumber(candidate.rank) &&
-    (candidate.confidence === "none" || candidate.confidence === "low") &&
-    hasNumber(candidate.independentConnectionCount) &&
-    hasNumber(candidate.remainingComponentSize) &&
-    typeof candidate.residualResolved === "boolean" &&
-    hasString(candidate.rationale)
-  )
-}
-
 const topologyDiagnosticIssue = (value: unknown): string | null => {
   const diagnostic = asRecord(value)
   if (!diagnostic || !hasString(diagnostic.code) || !hasString(diagnostic.explanation)) {
@@ -305,38 +260,7 @@ const topologyDiagnosticIssue = (value: unknown): string | null => {
       ? null
       : "has an invalid missing reverse connection payload."
   }
-  if (diagnostic.code !== "cycle_closure_mismatch") {
-    return `uses unsupported code ${JSON.stringify(diagnostic.code)}.`
-  }
-  const residual = asRecord(diagnostic.residualMetatiles)
-  const maps = diagnostic.maps
-  const connections = diagnostic.connections
-  const candidates = diagnostic.candidates
-  const mapsValid =
-    Array.isArray(maps) &&
-    maps.every((map) => {
-      const entry = asRecord(map)
-      return !!entry && hasString(entry.map) && hasString(entry.mapId)
-    })
-  const connectionsValid =
-    Array.isArray(connections) &&
-    connections.every((pair) => {
-      const entry = asRecord(pair)
-      return (
-        !!entry &&
-        hasTopologyConnection(entry.connection) &&
-        hasTopologyConnection(entry.reverseConnection)
-      )
-    })
-  return mapsValid &&
-    connectionsValid &&
-    Array.isArray(candidates) &&
-    candidates.every(hasCycleCandidate) &&
-    !!residual &&
-    hasNumber(residual.x) &&
-    hasNumber(residual.y)
-    ? null
-    : "has an invalid cycle closure payload."
+  return `uses unsupported code ${JSON.stringify(diagnostic.code)}.`
 }
 
 /** Check the catalog fields the cartographer relies upon before rendering any map data. */
@@ -346,9 +270,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   if (!root) {
     throw new CatalogValidationError(["catalog must be an object."], "The map catalog is invalid.")
   }
-  if (root.schemaVersion !== 2) {
+  if (root.schemaVersion !== 3) {
     details.push(
-      "schemaVersion must be 2. Regenerate the catalog with pnpm run cartographer:catalog.",
+      "schemaVersion must be 3. Regenerate the catalog with pnpm run cartographer:catalog.",
     )
   }
   if (!Array.isArray(root.maps)) {

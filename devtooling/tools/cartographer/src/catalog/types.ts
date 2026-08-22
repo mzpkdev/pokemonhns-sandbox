@@ -97,11 +97,6 @@ export type TopologyConnectionRecord = {
   offsetMetatiles: number
 }
 
-export type TopologyConnectionPair = {
-  connection: TopologyConnectionRecord
-  reverseConnection: TopologyConnectionRecord
-}
-
 export type TopologyDirectConnectionMismatch = {
   code: "direct_connection_mismatch"
   explanation: string
@@ -125,36 +120,7 @@ export type TopologyMissingReverseConnection = {
   }
 }
 
-export type TopologyCycleCandidate = {
-  map: string
-  mapId: string
-  rank: number
-  confidence: "none" | "low"
-  independentConnectionCount: number
-  remainingComponentSize: number
-  residualResolved: boolean
-  rationale: string
-}
-
-export type TopologyCycleClosureMismatch = {
-  code: "cycle_closure_mismatch"
-  explanation: string
-  maps: Array<{
-    map: string
-    mapId: string
-  }>
-  connections: TopologyConnectionPair[]
-  residualMetatiles: {
-    x: number
-    y: number
-  }
-  candidates: TopologyCycleCandidate[]
-}
-
-export type TopologyDiagnostic =
-  | TopologyDirectConnectionMismatch
-  | TopologyMissingReverseConnection
-  | TopologyCycleClosureMismatch
+export type TopologyDiagnostic = TopologyDirectConnectionMismatch | TopologyMissingReverseConnection
 
 export type CatalogMap = {
   name: string
@@ -239,7 +205,7 @@ export type CatalogMap = {
 
 export type MapCatalog = {
   $schema: "catalog.schema.json"
-  schemaVersion: 2
+  schemaVersion: 3
   format: "pokemonhns-exterior-map-catalog"
   pixelsPerMetatile: 16
   source: {

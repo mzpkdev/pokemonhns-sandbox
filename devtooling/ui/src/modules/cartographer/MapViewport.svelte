@@ -25,7 +25,6 @@
     CatalogMap,
     CatalogObject,
     CatalogPlacement,
-    CatalogCycleTopologyMismatch,
     CatalogDirectTopologyMismatch,
     CatalogMissingReverseConnection,
     CatalogTopologyDiagnostic,
@@ -154,39 +153,6 @@
     stroke: new Stroke({ color: cartographerColor("diagnostic-line"), width: 2, lineDash: [5, 5] }),
     zIndex: 1,
   })
-  const cycleTraceStyle = new Style({
-    stroke: new Stroke({ color: cartographerColor("diagnostic"), width: 3, lineDash: [4, 7] }),
-    zIndex: 1,
-  })
-  const cycleCandidateStyles = new Map<number, Style>()
-  const cycleCandidateStyleFor = (rank: number): Style => {
-    const existing = cycleCandidateStyles.get(rank)
-    if (existing) return existing
-    const style = new Style({
-      image: new RegularShape({
-        points: 3,
-        radius: 8,
-        rotation: Math.PI,
-        fill: new Fill({ color: cartographerColor("diagnostic") }),
-        stroke: new Stroke({ color: cartographerColor("diagnostic-panel"), width: 2 }),
-      }),
-      text: new Text({
-        text: `Review ${rank}`,
-        font: "600 11px 'IBM Plex Mono', monospace",
-        fill: new Fill({ color: cartographerColor("diagnostic-ink") }),
-        backgroundFill: new Fill({ color: cartographerColorWithAlpha("diagnostic-panel", 0.94) }),
-        padding: [3, 5, 3, 5],
-        textAlign: "left",
-        textBaseline: "bottom",
-        offsetX: 8,
-        offsetY: 10,
-        overflow: true,
-      }),
-      zIndex: 2,
-    })
-    cycleCandidateStyles.set(rank, style)
-    return style
-  }
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
     stateful: new Style({
       image: new RegularShape({
@@ -275,25 +241,16 @@
     )
   }
 
-  const isCycleMismatch = (
-    diagnostic: CatalogTopologyDiagnostic,
-  ): diagnostic is CatalogCycleTopologyMismatch => {
-    return diagnostic.code === "cycle_closure_mismatch"
-  }
-
   let topologyDiagnostics = $derived(
     catalog.topology.conflicts.filter((diagnostic) => {
-      if (isDirectDiagnostic(diagnostic)) {
-        return (
-          geography.placements[diagnostic.connection.source.map] &&
-          geography.placements[diagnostic.connection.destination.map]
-        )
-      }
-      return diagnostic.maps.some((map) => geography.placements[map.map])
+      return (
+        isDirectDiagnostic(diagnostic) &&
+        geography.placements[diagnostic.connection.source.map] &&
+        geography.placements[diagnostic.connection.destination.map]
+      )
     }),
   )
   let directTopologyMismatches = $derived(topologyDiagnostics.filter(isDirectMismatch))
-  let cycleTopologyMismatches = $derived(topologyDiagnostics.filter(isCycleMismatch))
 
   const visualDirectMismatchFor = (
     diagnostic: CatalogDirectTopologyMismatch,
@@ -320,16 +277,6 @@
       left.y < right.y + right.height &&
       left.y + left.height > right.y
     )
-  }
-
-  const placementCenter = (
-    placement: CatalogPlacement,
-    pixelsPerMetatile: number,
-  ): [number, number] => {
-    return [
-      (placement.x + placement.width / 2) * pixelsPerMetatile,
-      -(placement.y + placement.height / 2) * pixelsPerMetatile,
-    ]
   }
 
   const updateExitVisibility = (): void => {
@@ -488,32 +435,6 @@
         )
       }
     }
-    for (const diagnostic of cycleTopologyMismatches) {
-      for (const pair of diagnostic.connections) {
-        const source = geography.placements[pair.connection.source.map]
-        const destination = geography.placements[pair.connection.destination.map]
-        if (!source || !destination) continue
-        conflictSource.addFeature(
-          new Feature({
-            geometry: new LineString([
-              placementCenter(source, catalog.pixelsPerMetatile),
-              placementCenter(destination, catalog.pixelsPerMetatile),
-            ]),
-            kind: "cycle-trace",
-          }),
-        )
-      }
-      const candidate = diagnostic.candidates[0]
-      const placement = candidate && geography.placements[candidate.map]
-      if (!candidate || !placement) continue
-      conflictSource.addFeature(
-        new Feature({
-          geometry: new Point(placementCenter(placement, catalog.pixelsPerMetatile)),
-          kind: "cycle-candidate",
-          rank: candidate.rank,
-        }),
-      )
-    }
     const hitLayer = new VectorLayer({
       source: hitSource,
       style: (feature) => {
@@ -549,9 +470,6 @@
     const conflicts = new VectorLayer({
       source: conflictSource,
       style: (feature) => {
-        if (feature.get("kind") === "cycle-trace") return cycleTraceStyle
-        if (feature.get("kind") === "cycle-candidate")
-          return cycleCandidateStyleFor(feature.get("rank") as number)
         if (feature.get("kind") !== "forward") return mismatchLineStyle
         return directMismatchStyleFor(feature.get("expectedMapName") as string)
       },

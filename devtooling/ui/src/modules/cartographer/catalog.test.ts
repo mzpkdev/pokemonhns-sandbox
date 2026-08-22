@@ -4,7 +4,7 @@ import { CatalogValidationError, validateCatalog } from "./catalog.js"
 
 const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     pixelsPerMetatile: 16,
     regions: [],
     maps: [],
@@ -16,7 +16,7 @@ const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknow
 describe("validateCatalog", () => {
   it("rejects stale catalog schemas before the viewport can interpret their topology", () => {
     expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow(CatalogValidationError)
-    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 2")
+    expect(() => validateCatalog(catalog({ schemaVersion: 1 }))).toThrow("schemaVersion must be 3")
   })
 
   it("rejects unsupported topology diagnostic codes", () => {
@@ -32,6 +32,6 @@ describe("validateCatalog", () => {
   })
 
   it("accepts the current empty diagnostic contract", () => {
-    expect(validateCatalog(catalog()).schemaVersion).toBe(2)
+    expect(validateCatalog(catalog()).schemaVersion).toBe(3)
   })
 })

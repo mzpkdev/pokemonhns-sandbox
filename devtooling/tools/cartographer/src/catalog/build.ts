@@ -146,7 +146,7 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
 
   const catalog: MapCatalog = {
     $schema: "catalog.schema.json",
-    schemaVersion: 2,
+    schemaVersion: 3,
     format: "pokemonhns-exterior-map-catalog",
     pixelsPerMetatile: 16,
     source: sourceState(root),
