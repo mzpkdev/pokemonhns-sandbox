@@ -213,9 +213,16 @@ test("shows the cartographer", async ({ page }) => {
   const battleDomeContext = page.getByRole("button", {
     name: /gTileset_Building_Dome \+ gTileset_BattleDome/,
   })
+  const renderContextCard = metatileBrowser.locator(":scope > div").first()
+  const renderContextCardHeight = await renderContextCard.evaluate(
+    (card) => card.getBoundingClientRect().height,
+  )
   await battleDomeContext.click()
   await expect(battleDomeContext).toHaveAttribute("aria-current", "true")
   await expect(battleDomeContext).toHaveAttribute("aria-busy", "true")
+  await expect
+    .poll(() => renderContextCard.evaluate((card) => card.getBoundingClientRect().height))
+    .toBe(renderContextCardHeight)
   await expect(metatileBrowser.getByText("gTileset_General + gTileset_Cave")).toBeVisible()
   await expect(metatileBrowser.getByText(/0 shown · 0 used/)).toBeVisible()
   await expect(

@@ -301,6 +301,7 @@
       <main class="min-w-0" aria-label="Metatile browser">
         <div
           class="mb-3 flex flex-col gap-3 border border-cartographer-border bg-cartographer-panel p-3 sm:flex-row sm:items-center sm:justify-between"
+          aria-busy={contextLoadState.kind === "loading"}
         >
           <div class="min-w-0">
             <p
@@ -312,9 +313,7 @@
               {contextLabel(renderedContextEntry)}
             </p>
             {#if contextLoadState.kind === "loading"}
-              <p class="mb-0 mt-1 text-xs text-cartographer-muted">
-                Loading {contextLabel(activeContextEntry)}…
-              </p>
+              <span class="sr-only" role="status">Loading {contextLabel(activeContextEntry)}…</span>
             {/if}
           </div>
           <nav class="flex shrink-0 gap-1" aria-label="Tileset layer">
