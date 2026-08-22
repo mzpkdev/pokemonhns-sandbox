@@ -2,6 +2,7 @@
   import { onMount } from "svelte"
   import Feature from "ol/Feature"
   import Point from "ol/geom/Point"
+  import LineString from "ol/geom/LineString"
   import { fromExtent as polygonFromExtent } from "ol/geom/Polygon"
   import ImageLayer from "ol/layer/Image"
   import VectorLayer from "ol/layer/Vector"
@@ -18,6 +19,7 @@
   import "ol/ol.css"
 
   import MapToolbar from "./MapToolbar.svelte"
+  import TopologyConflictPanel from "./TopologyConflictPanel.svelte"
   import type { CatalogMap, CatalogObject, MapCatalog } from "./catalog.js"
   import {
     cartographerExtent,
@@ -113,6 +115,13 @@
       stroke: new Stroke({ color: "#303942", width: 1 }),
     }),
   })
+  const expectedConflictStyle = new Style({
+    fill: new Fill({ color: "rgba(168, 103, 114, 0.10)" }),
+    stroke: new Stroke({ color: "#d28591", width: 2, lineDash: [8, 6] }),
+  })
+  const conflictLineStyle = new Style({
+    stroke: new Stroke({ color: "#d28591", width: 2, lineDash: [5, 5] }),
+  })
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
     stateful: new Style({
       image: new RegularShape({
@@ -174,12 +183,14 @@
         view: View
         exits: VectorLayer<VectorSource>
         objects: VectorLayer<VectorSource>
+        conflicts: VectorLayer<VectorSource>
         geography: ReturnType<typeof solveGeography>
         extent: [number, number, number, number]
       }
     | undefined
   >(undefined)
   let hoveredMap = $state<string | null>(null)
+  let showTopologyConflicts = $state(false)
 
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
@@ -197,6 +208,11 @@
     instance.objects.setVisible(
       showObjects || (instance.view.getResolution() ?? Number.POSITIVE_INFINITY) <= 10,
     )
+  }
+
+  const updateTopologyConflictVisibility = (): void => {
+    if (!instance) return
+    instance.conflicts.setVisible(showTopologyConflicts)
   }
 
   const objectStyleFor = (object: CatalogObject): Style => {
@@ -235,6 +251,7 @@
     if (!instance) return
     updateExitVisibility()
     updateObjectVisibility()
+    updateTopologyConflictVisibility()
     instance.map.render()
   })
 
@@ -274,6 +291,7 @@
     const hitSource = new VectorSource()
     const exitSource = new VectorSource()
     const objectSource = new VectorSource()
+    const conflictSource = new VectorSource()
     for (const map of surfaceMaps) {
       const placement = geography.placements[map.name]!
       hitSource.addFeature(
@@ -308,6 +326,25 @@
         )
       }
     }
+    for (const conflict of geography.conflicts) {
+      const expectedExtent = toOpenLayersExtent(conflict.expected, catalog.pixelsPerMetatile)
+      const actualExtent = toOpenLayersExtent(conflict.actual, catalog.pixelsPerMetatile)
+      conflictSource.addFeature(
+        new Feature({ geometry: polygonFromExtent(expectedExtent), kind: "expected" }),
+      )
+      conflictSource.addFeature(
+        new Feature({
+          geometry: new LineString([
+            [
+              (expectedExtent[0] + expectedExtent[2]) / 2,
+              (expectedExtent[1] + expectedExtent[3]) / 2,
+            ],
+            [(actualExtent[0] + actualExtent[2]) / 2, (actualExtent[1] + actualExtent[3]) / 2],
+          ]),
+          kind: "connection",
+        }),
+      )
+    }
     const hitLayer = new VectorLayer({
       source: hitSource,
       style: (feature) => {
@@ -340,6 +377,12 @@
         return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(objectStyle, resolution)]
       },
     })
+    const conflicts = new VectorLayer({
+      source: conflictSource,
+      style: (feature) =>
+        feature.get("kind") === "expected" ? expectedConflictStyle : conflictLineStyle,
+      visible: showTopologyConflicts,
+    })
     const view = new View({
       projection,
       center: [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2],
@@ -348,7 +391,7 @@
     const map = new OpenLayersMap({
       target: mapHost,
       controls: [],
-      layers: [...imageRecords.map((record) => record.layer), hitLayer, exits, objects],
+      layers: [...imageRecords.map((record) => record.layer), hitLayer, exits, objects, conflicts],
       view,
     })
     let showingNative = false
@@ -412,7 +455,7 @@
       if (chosen.value.objectId)
         onSelectObject?.({ sourceMapName: chosen.value.mapName, objectId: chosen.value.objectId })
     })
-    instance = { map, view, exits, objects, geography, extent }
+    instance = { map, view, exits, objects, conflicts, geography, extent }
     view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })
     if (initialView) {
       view.setCenter(initialView.center)
@@ -435,10 +478,12 @@
       surfaceMapCount={surfaceMaps.length}
       componentCount={geography.components.length}
       residualCount={geography.residualCount}
+      {showTopologyConflicts}
       {showExits}
       {showObjects}
       {onToggleExits}
       {onToggleObjects}
+      onToggleTopologyConflicts={(value) => (showTopologyConflicts = value)}
       onZoomOut={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}
       onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
@@ -448,6 +493,7 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
+    <TopologyConflictPanel conflicts={geography.conflicts} visible={showTopologyConflicts} />
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >

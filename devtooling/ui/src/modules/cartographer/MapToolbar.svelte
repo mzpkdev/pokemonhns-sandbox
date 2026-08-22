@@ -6,10 +6,12 @@
     surfaceMapCount: number
     componentCount: number
     residualCount: number
+    showTopologyConflicts: boolean
     showExits: boolean
     showObjects: boolean
     onToggleExits?: (value: boolean) => void
     onToggleObjects?: (value: boolean) => void
+    onToggleTopologyConflicts?: (value: boolean) => void
     onZoomOut?: () => void
     onZoomIn?: () => void
     onFit?: () => void
@@ -19,10 +21,12 @@
     surfaceMapCount,
     componentCount,
     residualCount,
+    showTopologyConflicts,
     showExits,
     showObjects,
     onToggleExits,
     onToggleObjects,
+    onToggleTopologyConflicts,
     onZoomOut,
     onZoomIn,
     onFit,
@@ -34,8 +38,8 @@
 >
   <span class="text-xs">{surfaceMapCount} surfaces · {componentCount} groups</span>
   {#if residualCount > 0}
-    <span class="text-xs font-semibold text-cartographer-amber"
-      >{residualCount} topology conflicts</span
+    <Checkbox checked={showTopologyConflicts} onCheckedChange={onToggleTopologyConflicts}
+      >Conflicts ({residualCount})</Checkbox
     >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>

@@ -12,7 +12,17 @@ export type Placement = {
 export type Geography = {
   placements: Record<string, Placement>
   components: Array<{ id: string; maps: string[]; bounds: Placement }>
+  conflicts: TopologyConflict[]
   residualCount: number
+}
+
+export type TopologyConflict = {
+  sourceMap: string
+  destinationMap: string
+  direction: CardinalDirection
+  offsetMetatiles: number
+  expected: Placement
+  actual: Placement
 }
 
 const cardinalDirections = new Set<CardinalDirection>(["up", "down", "left", "right"])
@@ -90,7 +100,13 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
   const byName = new Map(ordered.map((map) => [map.name, map]))
   const placements: Record<string, Placement> = {}
   const components: Array<{ id: string; maps: string[]; bounds: Placement }> = []
-  let residualCount = 0
+  const residuals: Array<{
+    sourceMap: string
+    destinationMap: string
+    direction: CardinalDirection
+    offsetMetatiles: number
+    forward: boolean
+  }> = []
 
   const connections = new Map<
     string,
@@ -148,7 +164,13 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
           placements[neighbor.name] = expected
           queue.push(neighbor.name)
         } else if (!placementEqual(actual, expected)) {
-          residualCount += 1
+          residuals.push({
+            sourceMap: name,
+            destinationMap: neighbor.name,
+            direction: neighbor.direction,
+            offsetMetatiles: neighbor.offset,
+            forward: neighbor.forward,
+          })
         }
       }
     }
@@ -192,7 +214,20 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
     x += component.bounds.width + componentGap
     shelfHeight = Math.max(shelfHeight, component.bounds.height)
   }
-  return { placements, components: packed, residualCount }
+  const conflicts = residuals
+    .filter((residual) => residual.forward)
+    .map(({ forward: _forward, ...residual }) => {
+      const source = placements[residual.sourceMap]!
+      const actual = placements[residual.destinationMap]!
+      const expected = placeConnection(
+        source,
+        dimensions(byName.get(residual.destinationMap)!),
+        residual.direction,
+        residual.offsetMetatiles,
+      )
+      return { ...residual, expected, actual }
+    })
+  return { placements, components: packed, conflicts, residualCount: conflicts.length }
 }
 
 export const toOpenLayersExtent = (
