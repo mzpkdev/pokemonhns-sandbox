@@ -159,7 +159,7 @@ test("shows the cartographer", async ({ page }) => {
     .poll(() => encounterSprite.evaluate((image) => image.naturalWidth))
     .toBeGreaterThan(0)
 
-  await cartographerViews.getByRole("button", { name: "Map", exact: true }).click()
+  await cartographerViews.getByRole("button", { name: "World", exact: true }).click()
   const atlasOverlaps = page.getByRole("checkbox", { name: /Overlaps/ })
   await expect(atlasOverlaps).toBeVisible()
   await page
@@ -210,4 +210,8 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByText("Include unused source metatiles", { exact: true }).click()
   await expect(unusedMetatiles).toBeChecked()
   await expect(metatileBrowser.getByText(/128 shown · 0 used/)).toBeVisible()
+  await metatileBrowser.getByRole("button", { name: "Secondary", exact: true }).click()
+  await expect(
+    metatileBrowser.locator('button[aria-label*="gTileset_BattleDome:"]').first(),
+  ).toHaveAttribute("aria-label", "gTileset_BattleDome:0x140")
 })

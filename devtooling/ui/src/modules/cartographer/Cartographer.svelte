@@ -186,7 +186,7 @@
             aria-controls="cartographer-map"
             aria-pressed={activeTab === "map"}
             type="button"
-            onclick={() => (activeTab = "map")}>Map</button
+            onclick={() => (activeTab = "map")}>World</button
           >
           <button
             class="border border-cartographer-border px-3 py-2 text-sm font-medium transition-colors hover:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cartographer-signal"

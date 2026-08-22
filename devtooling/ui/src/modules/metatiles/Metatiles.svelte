@@ -56,6 +56,17 @@
     })
   }
 
+  const usageCount = (metatile: CatalogMetatile): number => {
+    return metatile.usedBy.reduce((total, usage) => total + usage.count, 0)
+  }
+
+  const sortMetatilesByUsage = (metatiles: readonly CatalogMetatile[]): CatalogMetatile[] => {
+    return [...metatiles].toSorted((left, right) => {
+      const difference = usageCount(right) - usageCount(left)
+      return difference || left.id - right.id
+    })
+  }
+
   const requestContext = (entry: MetatileCatalogContext): void => {
     contextController?.abort()
     const controller = new AbortController()
@@ -125,7 +136,7 @@
     (activeTileset?.metatiles ?? []).filter((metatile) => metatile.usedBy.length > 0),
   )
   let browsableMetatiles = $derived(
-    includeUnused ? (activeTileset?.metatiles ?? []) : usedMetatiles,
+    sortMetatilesByUsage(includeUnused ? (activeTileset?.metatiles ?? []) : usedMetatiles),
   )
   let filteredMetatiles = $derived(filterMetatiles(browsableMetatiles, query))
   let selectedMetatile = $derived(
