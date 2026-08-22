@@ -6,7 +6,7 @@ export default defineConfig({
   ...codeStyle,
   build: {
     mode: "node",
-    entries: { ".": "src/index.ts", "./renderer": "src/renderer/index.ts" },
+    entries: { ".": "src/index.ts" },
     outDir: "dist",
     bundle: true,
   },

@@ -1,3 +1,5 @@
 export { discoverExteriorMaps, exteriorMapTypes, renderMap } from "./maps"
 export { encounterHabitat } from "./habitats"
-export { writeNearestNeighborOverview } from "./png"
+export { readIndexedPng, writeNearestNeighborOverview, writeRgbPng } from "./png"
+export { loadRenderAssets, readLayoutFormatCounts, resolveTilesetAssets } from "./tilesets"
+export type { IndexedPng, Layout, RenderAssets, Rgb, TilesetAssets } from "./types"

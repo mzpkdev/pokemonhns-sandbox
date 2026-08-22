@@ -54,7 +54,6 @@ export const renderMap = (
 
   const drawTile = (
     tileWord: number,
-    secondarySource: boolean,
     destinationX: number,
     destinationY: number,
     transparent: boolean,
@@ -64,7 +63,7 @@ export const renderMap = (
     const verticalFlip = Boolean(tileWord & 0x800)
     const palette = assets.palettes[(tileWord >> 12) & 0xf] ?? assets.palettes[0]!
     const tile =
-      secondarySource && tileId >= primaryTileCount
+      tileId >= primaryTileCount
         ? (assets.secondaryTiles[tileId - primaryTileCount] ?? new Uint8Array(64))
         : (assets.primaryTiles[tileId] ?? new Uint8Array(64))
     for (let pixelY = 0; pixelY < 8; pixelY += 1) {
@@ -96,7 +95,6 @@ export const renderMap = (
             start + layer * 8 + quadrant * 2 + 2 <= metatileBytes.length
               ? metatileBytes.readUInt16LE(start + layer * 8 + quadrant * 2)
               : 0,
-            secondarySource,
             mapX * 16 + (quadrant % 2) * 8,
             mapY * 16 + Math.floor(quadrant / 2) * 8,
             layer === 1,

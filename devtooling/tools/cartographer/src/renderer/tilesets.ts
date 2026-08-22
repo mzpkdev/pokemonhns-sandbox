@@ -8,12 +8,18 @@ import type { IndexedPng, Layout, RenderAssets, Rgb, TilesetAssets } from "./typ
 const renderAssets = new Map<string, RenderAssets>()
 
 const readPalette = (filePath: string): Rgb[] => {
-  const colors = fs
-    .readFileSync(filePath, "utf8")
-    .split(/\r?\n/)
-    .slice(3, 19)
+  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/)
+  const colorCount = Number(lines[2])
+  const colors = lines
+    .slice(3, 3 + colorCount)
     .map((line) => line.split(/\s+/).map(Number) as [number, number, number])
-  if (colors.length !== 16 || colors.some((color) => color.some(Number.isNaN))) {
+  if (
+    !Number.isInteger(colorCount) ||
+    colorCount < 1 ||
+    colorCount > 16 ||
+    colors.length !== colorCount ||
+    colors.some((color) => color.some(Number.isNaN))
+  ) {
     throw new Error(`invalid palette: ${filePath}`)
   }
   return colors
@@ -62,7 +68,7 @@ const resolveTilesetDirectory = (root: string, symbol: string): string => {
   throw new Error(`cannot resolve ${symbol}`)
 }
 
-const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
+export const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
   const headers = fs.readFileSync(path.join(root, "src/data/tilesets/headers.h"), "utf8")
   const graphics = tilesetGraphics(root)
   const metatiles = fs.readFileSync(path.join(root, "src/data/tilesets/metatiles.h"), "utf8")
@@ -78,7 +84,7 @@ const resolveTilesetAssets = (root: string, symbol: string): TilesetAssets => {
     const files = new Map<string, string>()
     const patterns: Record<string, [string, RegExp]> = {
       tiles: [graphics, /\[\].*?"([^"]+\/tiles(?:\.png|\.4bpp(?:\.lz)?))"/s],
-      palettes: [graphics, /.*?\{.*?"([^"]+\/palettes\/\d+\.pal)"/s],
+      palettes: [graphics, /.*?\{.*?"([^"]+\/palettes\/\d+\.(?:pal|gbapal))"/s],
       metatiles: [metatiles, /\[\].*?"([^"]+\/metatiles\.bin)"/s],
       metatileAttributes: [metatiles, /\[\].*?"([^"]+\/metatile_attributes\.bin)"/s],
     }
@@ -151,7 +157,7 @@ const choosePalettePath = (primary: string, secondary: string, index: number): s
 
 export const loadRenderAssets = (
   root: string,
-  layout: Layout,
+  layout: Pick<Layout, "primary_tileset" | "secondary_tileset">,
   primaryTileCount: number,
   primaryPaletteCount: number,
   paletteCount: number,

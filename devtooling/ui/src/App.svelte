@@ -1,9 +1,30 @@
 <script lang="ts">
+  import { onMount } from "svelte"
+
   import Cartographer from "./modules/cartographer/Cartographer.svelte"
+  import Metatiles from "./modules/metatiles/Metatiles.svelte"
+
+  type ModuleId = "cartographer" | "metatiles"
+
+  const moduleFromHash = (): ModuleId => {
+    return window.location.hash === "#metatiles" ? "metatiles" : "cartographer"
+  }
+
+  let activeModule = $state<ModuleId>("cartographer")
+
+  onMount(() => {
+    const handleHashChange = (): void => {
+      activeModule = moduleFromHash()
+    }
+
+    handleHashChange()
+    window.addEventListener("hashchange", handleHashChange)
+    return () => window.removeEventListener("hashchange", handleHashChange)
+  })
 </script>
 
 <svelte:head>
-  <title>Cartographer · Wayfarer</title>
+  <title>{activeModule === "cartographer" ? "Cartographer" : "Metatiles"} · Wayfarer</title>
   <meta
     name="description"
     content="An interactive terrain index for the Pokémon HnS world source."
@@ -20,14 +41,29 @@
       <span aria-hidden="true" class="h-3.5 w-px bg-cartographer-border"></span>
       <a
         class="relative inline-flex items-center text-sm font-semibold text-cartographer-signal no-underline after:absolute after:-bottom-3 after:left-0 after:h-px after:w-full after:bg-cartographer-signal"
-        href="/"
-        aria-current="page"
+        class:text-cartographer-muted={activeModule !== "cartographer"}
+        class:after:hidden={activeModule !== "cartographer"}
+        href="#cartographer"
+        aria-current={activeModule === "cartographer" ? "page" : undefined}
       >
         Cartographer
+      </a>
+      <a
+        class="relative inline-flex items-center text-sm font-semibold text-cartographer-signal no-underline after:absolute after:-bottom-3 after:left-0 after:h-px after:w-full after:bg-cartographer-signal"
+        class:text-cartographer-muted={activeModule !== "metatiles"}
+        class:after:hidden={activeModule !== "metatiles"}
+        href="#metatiles"
+        aria-current={activeModule === "metatiles" ? "page" : undefined}
+      >
+        Metatiles
       </a>
     </div>
     <span class="hidden items-center text-xs text-cartographer-muted sm:flex">Local source</span>
   </nav>
 
-  <Cartographer />
+  {#if activeModule === "cartographer"}
+    <Cartographer />
+  {:else}
+    <Metatiles />
+  {/if}
 </main>

@@ -14,9 +14,10 @@ tools/      CLI packages
 ui/         Svelte cartographer
 ```
 
-`tools/cartographer` is the source-driven map-render CLI. Add further CLI tools
-under `tools/`. `ui` is the only browser package; add a separate UI package only
-when it has a real independent consumer.
+`tools/cartographer` is the source-driven map-render CLI. `tools/metatiles`
+generates source-driven metatile metadata and palette-correct preview atlases.
+Add further CLI tools under `tools/`. `ui` is the only browser package; add a
+separate UI package only when it has a real independent consumer.
 
 `ui` is the Svelte cartographer. It consumes the static catalog and terrain images
 created by `tools/cartographer`; it does not read the ROM or source
@@ -39,6 +40,7 @@ pnpm run test
 pnpm run e2e
 pnpm run cartographer Route29
 pnpm run cartographer:catalog
+pnpm run metatiles:catalog
 pnpm run cartographer:ui
 ```
 
@@ -52,6 +54,10 @@ browser test.
 `pnpm run cartographer:catalog` renders every exterior map, writes its catalog to
 `build/cartographer/map-catalog/`, and prepares the cartographer assets. `pnpm run cartographer:ui`
 then starts the Svelte cartographer.
+
+`pnpm run metatiles:catalog` writes its manifest and palette-correct context atlases
+under `build/cartographer/map-catalog/metatiles/`. A context is a real primary and
+secondary tileset pairing, because metatile palette slots are resolved by the pairing.
 
 Build before running `pnpm run cartographer`; it runs Cartographer's compiled
 `main` entry. You can also invoke its linked binary directly with

@@ -168,4 +168,34 @@ test("shows the cartographer", async ({ page }) => {
     .click()
   await expect(atlasOverlaps).toBeChecked()
   await expect(page.getByLabel("Overlap details")).toBeVisible()
+
+  await page.getByRole("link", { name: "Metatiles" }).click()
+  await expect(page.getByRole("heading", { name: "Metatiles", exact: true })).toBeVisible()
+  await expect(
+    page.getByText("colors are not assumed to be universal", { exact: false }),
+  ).toBeVisible()
+
+  const metatileBrowser = page.getByLabel("Metatile browser")
+  const firstMetatile = metatileBrowser.locator('button[aria-label*=":0x"]').first()
+  await expect(firstMetatile).toBeVisible()
+  const metatileSourceId = await firstMetatile.getAttribute("aria-label")
+  if (!metatileSourceId) throw new Error("A metatile needs a scoped source ID")
+  await firstMetatile.click()
+
+  const metatileInspector = page.getByLabel("Metatile inspector")
+  await expect(metatileInspector.getByText(metatileSourceId, { exact: true })).toBeVisible()
+  await expect(metatileInspector.getByText("Source tiles", { exact: true })).toBeVisible()
+  await metatileInspector.locator('details[aria-label="Used by maps"] > summary').click()
+  await expect
+    .poll(() =>
+      metatileInspector.evaluate((inspector) => inspector.scrollWidth <= inspector.clientWidth),
+    )
+    .toBe(true)
+  await expect
+    .poll(() => page.evaluate(() => document.body.scrollWidth === document.body.clientWidth))
+    .toBe(true)
+
+  const metatileSearch = page.getByRole("searchbox", { name: "Scoped or local ID" })
+  await metatileSearch.fill("0x000")
+  await expect(metatileBrowser.locator('button[aria-label*=":0x"]').first()).toBeVisible()
 })
