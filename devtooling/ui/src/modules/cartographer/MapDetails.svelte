@@ -109,7 +109,9 @@
             >
               {inspectedObject.kind.label}
             </h4>
-            <p class="mb-0 mt-1 font-cartographer-mono text-[0.68rem] text-cartographer-muted">
+            <p
+              class="mb-0 mt-1 break-all font-cartographer-mono text-[0.68rem] leading-5 text-cartographer-muted"
+            >
               {inspectedObject.graphicsId} · ({inspectedObject.xMetatiles}, {inspectedObject.yMetatiles})
             </p>
           </div>
