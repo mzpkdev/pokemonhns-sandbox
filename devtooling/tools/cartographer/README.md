@@ -1,22 +1,22 @@
-# HnS map renderer
+# HnS cartographer
 
-`hns-map-render` renders static terrain PNGs directly from the HnS source tree.
+`wcartographer` renders static terrain PNGs directly from the HnS source tree.
 It does not build or run the ROM.
 
 Build the renderer once, then run it from `devtooling/`:
 
 ```sh
 pnpm run build
-pnpm run map-render Route29 NewBarkTown --output build/map-renders
-pnpm run map-render --all-exteriors --output build/all-exterior-maps
-pnpm run map-render --catalog --output build/map-atlas/map-catalog
+pnpm run cartographer Route29 NewBarkTown --output build/map-renders
+pnpm run cartographer --all-exteriors --output build/all-exterior-maps
+pnpm run cartographer --catalog --output build/map-atlas/map-catalog
 ```
 
-The workspace command runs this package's `main` entry. Its `hns-map-render`
+The workspace command runs this package's `main` entry. Its `wcartographer`
 binary is also available directly after the build:
 
 ```sh
-pnpm --filter @pokemonhns/devtooling-map-render exec hns-map-render Route29
+pnpm exec wcartographer Route29
 ```
 
 Map names are directory names under `data/maps/`. `--all-exteriors` selects

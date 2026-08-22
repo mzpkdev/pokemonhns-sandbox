@@ -1,9 +1,9 @@
 {
-  "name": "@pokemonhns/devtooling-map-render",
+  "name": "@wayfarer/cartographer",
   "version": "0.0.0",
   "private": true,
   "bin": {
-    "hns-map-render": "./dist/index.js"
+    "wcartographer": "./dist/index.js"
   },
   "type": "module",
   "main": "./dist/index.js",

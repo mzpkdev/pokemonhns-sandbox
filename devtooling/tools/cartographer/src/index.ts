@@ -6,7 +6,7 @@ import renderCommand from "./commands/render"
 
 await execute(renderCommand, {
   metadata: {
-    name: "hns-map-render",
+    name: "wcartographer",
     version: "0.0.0",
     description: "Render Pokemon HnS exterior map terrain",
   },

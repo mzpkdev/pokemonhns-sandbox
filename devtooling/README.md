@@ -14,12 +14,12 @@ tools/      CLI packages
 ui/         Svelte map atlas
 ```
 
-`tools/map-render` is the source-driven map-render CLI. Add further CLI tools
+`tools/cartographer` is the source-driven map-render CLI. Add further CLI tools
 under `tools/`. `ui` is the only browser package; add a separate UI package only
 when it has a real independent consumer.
 
 `ui` is the Svelte map atlas. It consumes the static catalog and terrain images
-created by `tools/map-render`; it does not read the ROM or source
+created by `tools/cartographer`; it does not read the ROM or source
 tree in the browser.
 
 `ui/src/ui-toolkit` owns styled local UI primitives. It wraps Ark UI for stateful
@@ -37,7 +37,7 @@ pnpm run format
 pnpm run lint
 pnpm run test
 pnpm run e2e
-pnpm run map-render Route29
+pnpm run cartographer Route29
 pnpm run map-atlas:catalog
 pnpm run map-atlas
 ```
@@ -53,6 +53,6 @@ browser test.
 `build/map-atlas/map-catalog/`, and prepares the atlas assets. `pnpm run map-atlas`
 then starts the Svelte map atlas.
 
-Build before running `pnpm run map-render`; it runs the map renderer package's
-compiled `main` entry. You can also invoke its linked binary directly with
-`pnpm --filter @pokemonhns/devtooling-map-render exec hns-map-render`.
+Build before running `pnpm run cartographer`; it runs Cartographer's compiled
+`main` entry. You can also invoke its linked binary directly with
+`pnpm exec wcartographer`.

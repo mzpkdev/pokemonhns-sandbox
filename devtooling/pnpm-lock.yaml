@@ -11,6 +11,9 @@ importers:
       '@types/node':
         specifier: 24.10.1
         version: 24.10.1
+      '@wayfarer/cartographer':
+        specifier: workspace:*
+        version: link:tools/cartographer
       turbo:
         specifier: 2.10.11
         version: 2.10.11
@@ -21,7 +24,7 @@ importers:
         specifier: ^0.0.17
         version: 0.0.17(@sveltejs/vite-plugin-svelte@7.3.0(svelte@5.56.10)(vite@8.1.5(@types/node@24.10.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)))(@vitest/runner@4.1.11)(@volar/typescript@2.4.28)(esbuild@0.28.2)(jiti@2.7.0)(lit@3.3.3)(magicast@0.5.4)(oxc-resolver@11.24.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(svelte@5.56.10)(vue@3.5.41(typescript@7.0.2))
 
-  tools/map-render:
+  tools/cartographer:
     dependencies:
       cmdore:
         specifier: 0.4.1

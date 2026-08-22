@@ -11,12 +11,13 @@
     "format": "turbo run format",
     "lint": "turbo run lint",
     "map-atlas": "pnpm run map-atlas:catalog && pnpm --filter @pokemonhns/devtooling-ui run dev",
-    "map-atlas:catalog": "pnpm run build && pnpm --filter @pokemonhns/devtooling-map-render exec hns-map-render --catalog --output build/map-atlas/map-catalog",
-    "map-render": "pnpm --filter @pokemonhns/devtooling-map-render run render",
+    "map-atlas:catalog": "pnpm run build && pnpm --filter @wayfarer/cartographer exec wcartographer --catalog --output build/map-atlas/map-catalog",
+    "cartographer": "pnpm --filter @wayfarer/cartographer run render",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
+    "@wayfarer/cartographer": "workspace:*",
     "@types/node": "24.10.1",
     "turbo": "2.10.11",
     "typescript": "7.0.2",
