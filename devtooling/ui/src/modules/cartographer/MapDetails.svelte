@@ -51,7 +51,7 @@
 </script>
 
 <aside
-  class="border border-cartographer-border bg-cartographer-panel p-4 shadow-cartographer-panel xl:min-h-[34rem]"
+  class="min-w-0 border border-cartographer-border bg-cartographer-panel p-4 shadow-cartographer-panel xl:min-h-[34rem]"
   aria-live="polite"
 >
   {#if !selectedMap}
@@ -233,10 +233,10 @@
       {#if selectedMap.warps.length === 0}
         <p>This map has no catalogued warp exits.</p>
       {:else}
-        <ul class="m-0 grid list-none gap-1.5 p-0">
+        <ul class="m-0 grid min-w-0 list-none gap-1.5 p-0">
           {#each selectedMap.warps as warp (warp.warpId)}
             {@const destination = destinationFor(warp)}
-            <li>
+            <li class="min-w-0">
               <Button
                 class={cn(
                   "flex min-w-0 w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
@@ -246,11 +246,11 @@
                 )}
                 onclick={() => onSelectWarp?.(warp)}
               >
-                <span class="min-w-0 shrink break-words"
+                <span class="shrink-0"
                   >Warp {warp.warpId} · ({warp.xMetatiles}, {warp.yMetatiles})</span
                 >
                 <small
-                  class="min-w-0 max-w-[60%] shrink break-words text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
+                  class="min-w-0 flex-1 break-words text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >{destination?.name ?? warp.destinationMap ?? warp.destinationMapId}</small
                 >
               </Button>

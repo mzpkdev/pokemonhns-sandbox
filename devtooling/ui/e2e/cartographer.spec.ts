@@ -50,12 +50,30 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByRole("option", { name: /Route32/ }).click()
   await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
 
-  await mapSearch.fill("Route36")
-  await page.getByRole("option", { name: /Route36/ }).click()
-  const exitCard = page.getByRole("button", { name: /Warp 0/ })
-  await expect(exitCard).toBeVisible()
+  await mapSearch.fill("RuinsOfAlph_Outside")
+  await page.getByRole("option", { name: /RuinsOfAlph_Outside/ }).click()
+  const inspector = page.getByRole("complementary").last()
+  const exitCards = inspector.getByRole("button", { name: /Warp \d/ })
+  await expect(exitCards).toHaveCount(10)
   await expect
-    .poll(() => exitCard.evaluate((element) => element.scrollWidth <= element.clientWidth))
+    .poll(async () => {
+      const inspectorBounds = await inspector.evaluate((element) => {
+        const bounds = element.getBoundingClientRect()
+        return { left: bounds.left, right: bounds.right }
+      })
+      const exitBounds = await exitCards.evaluateAll(
+        (elements, bounds) =>
+          elements.map((element) => {
+            const cardBounds = element.getBoundingClientRect()
+            return {
+              contained: cardBounds.left >= bounds.left && cardBounds.right <= bounds.right,
+              fits: element.scrollWidth <= element.clientWidth,
+            }
+          }),
+        inspectorBounds,
+      )
+      return exitBounds.every((bounds) => bounds.contained && bounds.fits)
+    })
     .toBe(true)
 
   await mapSearch.fill("Route32")
