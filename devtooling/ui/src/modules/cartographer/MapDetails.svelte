@@ -39,6 +39,15 @@
     if (selection?.sourceMapName !== map.name) return null
     return map.objects.find((object) => object.objectId === selection.objectId) ?? null
   }
+
+  const evidenceLabel = (evidence: CatalogObject["kind"]["evidence"]): string => {
+    return {
+      "trainer-type": "trainer type",
+      graphics: "graphics",
+      script: "script",
+      fallback: "fallback",
+    }[evidence]
+  }
 </script>
 
 <aside
@@ -98,14 +107,26 @@
             <h4
               class="m-0 break-words font-cartographer-mono text-sm font-semibold text-cartographer-signal-soft"
             >
-              {inspectedObject.graphicsId}
+              {inspectedObject.kind.label}
             </h4>
             <p class="mb-0 mt-1 font-cartographer-mono text-[0.68rem] text-cartographer-muted">
-              {inspectedObject.objectId} · ({inspectedObject.xMetatiles}, {inspectedObject.yMetatiles})
+              {inspectedObject.graphicsId} · ({inspectedObject.xMetatiles}, {inspectedObject.yMetatiles})
             </p>
           </div>
         </div>
         <dl class="m-0 mt-3 grid gap-2 border-t border-cartographer-border pt-3 text-xs">
+          <div class="flex justify-between gap-3">
+            <dt class="text-cartographer-muted">Kind</dt>
+            <dd class="m-0 text-right">
+              {inspectedObject.kind.label} · {evidenceLabel(inspectedObject.kind.evidence)}
+            </dd>
+          </div>
+          {#if inspectedObject.kind.action}
+            <div class="flex justify-between gap-3">
+              <dt class="text-cartographer-muted">Action</dt>
+              <dd class="m-0 break-all text-right">{inspectedObject.kind.action}</dd>
+            </div>
+          {/if}
           <div class="flex justify-between gap-3">
             <dt class="text-cartographer-muted">Script</dt>
             <dd class="m-0 break-all text-right">{inspectedObject.script}</dd>
@@ -263,7 +284,12 @@
                 )}
                 onclick={() => onSelectObject?.(object)}
               >
-                <span>{object.graphicsId} · ({object.xMetatiles}, {object.yMetatiles})</span>
+                <span>
+                  <span class="block"
+                    >{object.kind.label} · ({object.xMetatiles}, {object.yMetatiles})</span
+                  >
+                  <small class="block text-cartographer-muted">{object.graphicsId}</small>
+                </span>
                 <small
                   class="text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >{selected

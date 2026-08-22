@@ -10,6 +10,7 @@ import {
 import { catalogRegions, categoryFor, mapOutputPaths, regionFor } from "./classify"
 import { catalogObjects, objectSourceTables } from "./objects"
 import type { ObjectSourceTables } from "./objects"
+import { mapScriptBodies } from "./scripts"
 import {
   posixRelative,
   sha256,
@@ -45,6 +46,7 @@ const createCatalogMap = (
     output,
     Array.isArray(source.object_events) ? source.object_events : [],
     objectTables,
+    mapScriptBodies(root, name),
   )
   return {
     name,

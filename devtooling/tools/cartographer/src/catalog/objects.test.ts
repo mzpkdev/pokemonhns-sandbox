@@ -6,12 +6,13 @@ import { afterAll, describe, expect, it } from "vitest"
 
 import { cropSpriteFrame } from "../renderer/png"
 import { catalogObjects, objectSourceTables } from "./objects"
+import { mapScriptBodies } from "./scripts"
 import type { ObjectEvent } from "./types"
 
 const sourceRoot = path.resolve(import.meta.dirname, "../../../../..")
 const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cartographer-objects-"))
 
-const event = (graphicsId: string): ObjectEvent => ({
+const event = (graphicsId: string, overrides: Partial<ObjectEvent> = {}): ObjectEvent => ({
   graphics_id: graphicsId,
   x: 4,
   y: 9,
@@ -23,6 +24,7 @@ const event = (graphicsId: string): ObjectEvent => ({
   trainer_sight_or_berry_tree_id: "0",
   script: "EventScript_None",
   flag: "FLAG_NONE",
+  ...overrides,
 })
 
 const tables = objectSourceTables(sourceRoot)
@@ -47,6 +49,13 @@ describe("source-backed object graphics", () => {
     )
 
     expect(objects.map((object) => object.diagnostic)).toEqual([null, null, null, null, null])
+    expect(objects.map((object) => object.kind.id)).toEqual([
+      "npc",
+      "item",
+      "pokemon",
+      "obstacle",
+      "light",
+    ])
     expect(objects.map((object) => object.sprite?.widthPixels)).toEqual([16, 16, 32, 16, 32])
     expect(objects.map((object) => object.sprite?.heightPixels)).toEqual([32, 32, 32, 16, 32])
     expect(objects[0]?.sprite?.source).toMatch(
@@ -67,6 +76,38 @@ describe("source-backed object graphics", () => {
       expect(object.sprite).not.toBeNull()
       expect(fs.existsSync(path.join(outputRoot, object.sprite!.path))).toBe(true)
     }
+  })
+
+  it("classifies event roles and recognizes map-local item and battle scripts", () => {
+    const scripts = mapScriptBodies(sourceRoot, "Route15")
+    const objects = catalogObjects(
+      sourceRoot,
+      outputRoot,
+      [
+        event("OBJ_EVENT_GFX_ITEM_BALL", { script: "Route15_EventScript_PPup" }),
+        event("OBJ_EVENT_GFX_LITTLE_BOY", {
+          script: "Route15_EventScript_Tommy",
+          trainer_type: "TRAINER_TYPE_NORMAL",
+        }),
+      ],
+      tables,
+      scripts,
+    )
+
+    expect(objects.map((object) => object.kind)).toEqual([
+      {
+        id: "item",
+        label: "Item",
+        evidence: "graphics",
+        action: "Gives PP Up",
+      },
+      {
+        id: "trainer",
+        label: "Trainer",
+        evidence: "trainer-type",
+        action: "Battles Tommy",
+      },
+    ])
   })
 
   it("crops indexed source PNGs to RGBA while retaining index-zero transparency", () => {

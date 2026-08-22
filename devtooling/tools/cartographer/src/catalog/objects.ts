@@ -3,6 +3,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 
 import { cropSpriteFrame, writeRgbaPng } from "../renderer/png"
+import { classifyObject, type ObjectKind } from "./object-kind"
 import { posixRelative, sha256 } from "./source"
 import type { ObjectEvent } from "./types"
 
@@ -21,6 +22,7 @@ export type ObjectDiagnostic = {
 
 export type CatalogObject = {
   objectId: string
+  kind: ObjectKind
   graphicsId: string
   xMetatiles: number
   yMetatiles: number
@@ -279,6 +281,7 @@ export const catalogObjects = (
   output: string,
   events: ObjectEvent[],
   tables = objectSourceTables(root),
+  scripts = new Map<string, string>(),
 ): CatalogObject[] => {
   return events.map((event, index) => {
     const objectId = String(index)
@@ -305,6 +308,7 @@ export const catalogObjects = (
     }
     return {
       objectId,
+      kind: classifyObject(event, sprite?.source ?? null, scripts.get(event.script)),
       graphicsId: event.graphics_id,
       xMetatiles: event.x,
       yMetatiles: event.y,

@@ -31,6 +31,12 @@ export type CatalogObjectSprite = {
 
 export type CatalogObject = {
   objectId: string
+  kind: {
+    id: string
+    label: string
+    evidence: "trainer-type" | "graphics" | "script" | "fallback"
+    action: string | null
+  }
   graphicsId: string
   xMetatiles: number
   yMetatiles: number

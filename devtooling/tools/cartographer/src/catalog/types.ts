@@ -26,6 +26,13 @@ export type ObjectEvent = {
   flag: string
 }
 
+export type CatalogObjectKind = {
+  id: string
+  label: string
+  evidence: "trainer-type" | "graphics" | "script" | "fallback"
+  action: string | null
+}
+
 export type SourceMap = {
   id: string
   layout: string
@@ -121,6 +128,7 @@ export type CatalogMap = {
   }>
   objects: Array<{
     objectId: string
+    kind: CatalogObjectKind
     graphicsId: string
     xMetatiles: number
     yMetatiles: number
