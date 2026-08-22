@@ -20,7 +20,7 @@
 
   import MapToolbar from "./MapToolbar.svelte"
   import TopologyConflictPanel from "./TopologyConflictPanel.svelte"
-  import type { CatalogMap, CatalogObject, MapCatalog } from "./catalog.js"
+  import type { CatalogMap, CatalogObject, CatalogTopologyConflict, MapCatalog } from "./catalog.js"
   import {
     cartographerExtent,
     solveGeography,
@@ -195,6 +195,26 @@
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
   let extent = $derived(cartographerExtent(geography.placements, catalog.pixelsPerMetatile))
+  let topologyConflicts = $derived(
+    catalog.topology.conflicts.filter(
+      (conflict) =>
+        geography.placements[conflict.source.map] && geography.placements[conflict.destination.map],
+    ),
+  )
+
+  const visualConflictFor = (
+    conflict: CatalogTopologyConflict,
+  ): { expected: typeof conflict.expected; actual: typeof conflict.actual } => {
+    const actual = geography.placements[conflict.destination.map]!
+    return {
+      expected: {
+        ...conflict.expected,
+        x: actual.x - (conflict.actual.x - conflict.expected.x),
+        y: actual.y - (conflict.actual.y - conflict.expected.y),
+      },
+      actual,
+    }
+  }
 
   const updateExitVisibility = (): void => {
     if (!instance) return
@@ -326,9 +346,10 @@
         )
       }
     }
-    for (const conflict of geography.conflicts) {
-      const expectedExtent = toOpenLayersExtent(conflict.expected, catalog.pixelsPerMetatile)
-      const actualExtent = toOpenLayersExtent(conflict.actual, catalog.pixelsPerMetatile)
+    for (const conflict of topologyConflicts) {
+      const visual = visualConflictFor(conflict)
+      const expectedExtent = toOpenLayersExtent(visual.expected, catalog.pixelsPerMetatile)
+      const actualExtent = toOpenLayersExtent(visual.actual, catalog.pixelsPerMetatile)
       conflictSource.addFeature(
         new Feature({ geometry: polygonFromExtent(expectedExtent), kind: "expected" }),
       )
@@ -477,7 +498,7 @@
     <MapToolbar
       surfaceMapCount={surfaceMaps.length}
       componentCount={geography.components.length}
-      residualCount={geography.residualCount}
+      residualCount={topologyConflicts.length}
       {showTopologyConflicts}
       {showExits}
       {showObjects}
@@ -493,7 +514,7 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <TopologyConflictPanel conflicts={geography.conflicts} visible={showTopologyConflicts} />
+    <TopologyConflictPanel conflicts={topologyConflicts} visible={showTopologyConflicts} />
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >

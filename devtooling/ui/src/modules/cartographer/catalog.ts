@@ -7,6 +7,41 @@ export type CatalogConnection = {
   destinationMap: string | null
 }
 
+export type CatalogPlacement = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type CatalogTopologyHeader = {
+  map: string
+  path: string
+  pointer: string
+}
+
+export type CatalogTopologyConflict = {
+  code: "connection_placement_mismatch"
+  explanation: string
+  source: {
+    map: string
+    mapId: string
+    header: CatalogTopologyHeader
+  }
+  destination: {
+    map: string
+    mapId: string
+  }
+  direction: "up" | "down" | "left" | "right"
+  offsetMetatiles: number
+  expected: CatalogPlacement
+  actual: CatalogPlacement
+  establishedPlacement: {
+    source: CatalogTopologyHeader[]
+    destination: CatalogTopologyHeader[]
+  }
+}
+
 export type CatalogWarp = {
   warpId: string
   xMetatiles: number
@@ -106,6 +141,9 @@ export type MapCatalog = {
     revision: string
     workingTreeDirty: boolean
   }
+  topology: {
+    conflicts: CatalogTopologyConflict[]
+  }
   regions: Array<{
     id: string
     label: string
@@ -146,6 +184,9 @@ export const validateCatalog = (value: unknown): MapCatalog => {
   }
   if (!Array.isArray(root.regions)) {
     details.push("regions must be an array.")
+  }
+  if (!asRecord(root.topology) || !Array.isArray(asRecord(root.topology)?.conflicts)) {
+    details.push("topology.conflicts must be an array.")
   }
   if (typeof root.pixelsPerMetatile !== "number" || root.pixelsPerMetatile < 1) {
     details.push("pixelsPerMetatile must be a positive number.")

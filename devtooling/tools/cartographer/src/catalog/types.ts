@@ -70,6 +70,41 @@ export type CatalogRegion = {
   label: string
 }
 
+export type CatalogPlacement = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type TopologySourceHeader = {
+  map: string
+  path: string
+  pointer: string
+}
+
+export type TopologyConflict = {
+  code: "connection_placement_mismatch"
+  explanation: string
+  source: {
+    map: string
+    mapId: string
+    header: TopologySourceHeader
+  }
+  destination: {
+    map: string
+    mapId: string
+  }
+  direction: "up" | "down" | "left" | "right"
+  offsetMetatiles: number
+  expected: CatalogPlacement
+  actual: CatalogPlacement
+  establishedPlacement: {
+    source: TopologySourceHeader[]
+    destination: TopologySourceHeader[]
+  }
+}
+
 export type CatalogMap = {
   name: string
   id: string
@@ -167,6 +202,9 @@ export type MapCatalog = {
     code: string
     message: string
   }>
+  topology: {
+    conflicts: TopologyConflict[]
+  }
   regions: Array<CatalogRegion & { mapCount: number; maps: string[] }>
   maps: CatalogMap[]
 }

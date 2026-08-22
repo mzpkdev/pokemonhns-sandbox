@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { TopologyConflict } from "./geography.js"
+  import type { CatalogTopologyConflict } from "./catalog.js"
 
   type Props = {
-    conflicts: readonly TopologyConflict[]
+    conflicts: readonly CatalogTopologyConflict[]
     visible: boolean
   }
 
@@ -21,15 +21,26 @@
       Dashed outlines mark an expected map position. The line points to the map's actual position.
     </p>
     <ul class="m-0 grid max-h-36 list-none gap-1.5 overflow-y-auto p-0">
-      {#each conflicts as conflict (`${conflict.sourceMap}:${conflict.destinationMap}:${conflict.direction}:${conflict.offsetMetatiles}`)}
+      {#each conflicts as conflict (`${conflict.source.map}:${conflict.destination.map}:${conflict.direction}:${conflict.offsetMetatiles}`)}
         <li class="border border-cartographer-border bg-cartographer-panel px-3 py-2 text-xs">
           <p class="m-0 font-cartographer-mono text-cartographer-signal-soft">
-            {conflict.sourceMap} → {conflict.destinationMap}
+            {conflict.source.map} → {conflict.destination.map}
           </p>
           <p class="mb-0 mt-1 text-cartographer-muted">
             {conflict.direction} · offset {conflict.offsetMetatiles} · expected ({conflict.expected
               .x}, {conflict.expected.y}), actual ({conflict.actual.x}, {conflict.actual.y})
           </p>
+          <p class="mb-0 mt-1 text-cartographer-muted">{conflict.explanation}</p>
+          <p class="mb-0 mt-1 font-cartographer-mono text-[0.65rem] text-cartographer-muted">
+            Inspect {conflict.source.header.path}{conflict.source.header.pointer}
+          </p>
+          {#if conflict.establishedPlacement.destination.length > 0}
+            <p class="mb-0 mt-1 font-cartographer-mono text-[0.65rem] text-cartographer-muted">
+              Actual placement: {conflict.establishedPlacement.destination
+                .map((header) => `${header.map}${header.pointer}`)
+                .join(" → ")}
+            </p>
+          {/if}
         </li>
       {/each}
     </ul>

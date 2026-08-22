@@ -19,22 +19,17 @@ const map = (
 }
 
 describe("solveGeography", () => {
-  it("keeps conflicting connection evidence after packing map components", () => {
+  it("keeps the established placement when source connections disagree", () => {
     const geography = solveGeography([
       map("Alpha", [{ direction: "right", destinationMap: "Bravo" }]),
       map("Bravo", [{ direction: "down", destinationMap: "Charlie" }]),
       map("Charlie", [{ direction: "left", destinationMap: "Alpha" }]),
     ])
 
-    expect(geography.residualCount).toBe(1)
-    expect(geography.conflicts).toMatchObject([
-      {
-        sourceMap: "Bravo",
-        destinationMap: "Charlie",
-        direction: "down",
-        expected: { x: 10, y: 10 },
-        actual: { x: 10, y: 0 },
-      },
-    ])
+    expect(geography.placements).toMatchObject({
+      Alpha: { x: 0, y: 0 },
+      Bravo: { x: 10, y: 0 },
+      Charlie: { x: 10, y: 0 },
+    })
   })
 })

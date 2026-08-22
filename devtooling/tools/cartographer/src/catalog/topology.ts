@@ -1,32 +1,46 @@
-import type { CatalogMap } from "./catalog.js"
+import type { CatalogMap, CatalogPlacement, TopologyConflict, TopologySourceHeader } from "./types"
 
-export type CardinalDirection = "up" | "down" | "left" | "right"
+type CardinalDirection = "up" | "down" | "left" | "right"
 
-export type Placement = {
-  x: number
-  y: number
-  width: number
-  height: number
+type Neighbor = {
+  name: string
+  direction: CardinalDirection
+  offsetMetatiles: number
+  forward: boolean
+  sourceMap: string
+  sourceConnectionIndex: number
 }
 
-export type Geography = {
-  placements: Record<string, Placement>
-  components: Array<{ id: string; maps: string[]; bounds: Placement }>
+type PendingConflict = {
+  sourceMap: string
+  destinationMap: string
+  direction: CardinalDirection
+  offsetMetatiles: number
+  header: TopologySourceHeader
 }
 
 const cardinalDirections = new Set<CardinalDirection>(["up", "down", "left", "right"])
 const componentGap = 8
 
-const dimensions = (map: CatalogMap): Pick<Placement, "width" | "height"> => {
+const dimensions = (map: CatalogMap): Pick<CatalogPlacement, "width" | "height"> => {
   return { width: map.layout.widthMetatiles, height: map.layout.heightMetatiles }
 }
 
+const placementEqual = (left: CatalogPlacement, right: CatalogPlacement): boolean => {
+  return (
+    left.x === right.x &&
+    left.y === right.y &&
+    left.width === right.width &&
+    left.height === right.height
+  )
+}
+
 const placeConnection = (
-  source: Placement,
-  destination: Pick<Placement, "width" | "height">,
+  source: CatalogPlacement,
+  destination: Pick<CatalogPlacement, "width" | "height">,
   direction: CardinalDirection,
   offset: number,
-): Placement => {
+): CatalogPlacement => {
   if (direction === "right")
     return { x: source.x + source.width, y: source.y + offset, ...destination }
   if (direction === "left")
@@ -37,11 +51,11 @@ const placeConnection = (
 }
 
 const placeSourceFromDestination = (
-  destination: Placement,
-  source: Pick<Placement, "width" | "height">,
+  destination: CatalogPlacement,
+  source: Pick<CatalogPlacement, "width" | "height">,
   direction: CardinalDirection,
   offset: number,
-): Placement => {
+): CatalogPlacement => {
   if (direction === "right")
     return { x: destination.x - source.width, y: destination.y - offset, ...source }
   if (direction === "left")
@@ -51,7 +65,10 @@ const placeSourceFromDestination = (
   return { x: destination.x - offset, y: destination.y + destination.height, ...source }
 }
 
-const boundsFor = (names: readonly string[], placements: Record<string, Placement>): Placement => {
+const boundsFor = (
+  names: readonly string[],
+  placements: Record<string, CatalogPlacement>,
+): CatalogPlacement => {
   const firstName = names[0]
   if (!firstName) throw new Error("a map component cannot be empty")
   const first = placements[firstName]!
@@ -69,24 +86,26 @@ const boundsFor = (names: readonly string[], placements: Record<string, Placemen
   return { x: left, y: top, width: right - left, height: bottom - top }
 }
 
-/** The default cartographer only places surface maps that the catalog exposes by default. */
-export const visibleSurfaceMaps = (maps: readonly CatalogMap[]): CatalogMap[] => {
-  return maps.filter((map) => map.world.layer === "surface" && map.world.defaultVisible)
+const headerFor = (map: string, connectionIndex: number): TopologySourceHeader => {
+  return {
+    map,
+    path: `data/maps/${map}/map.json`,
+    pointer: `/connections/${connectionIndex}`,
+  }
 }
 
-/** Resolve cardinal source connections into a deterministic packed map layout. */
-export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
+/** Diagnose contradictory cardinal map connections while retaining their source records. */
+export const topologyConflicts = (maps: readonly CatalogMap[]): TopologyConflict[] => {
   const ordered = [...maps].sort((left, right) => left.name.localeCompare(right.name, "en"))
   const byName = new Map(ordered.map((map) => [map.name, map]))
-  const placements: Record<string, Placement> = {}
-  const components: Array<{ id: string; maps: string[]; bounds: Placement }> = []
+  const placements: Record<string, CatalogPlacement> = {}
+  const placementPaths: Record<string, TopologySourceHeader[]> = {}
+  const components: Array<{ id: string; maps: string[]; bounds: CatalogPlacement }> = []
+  const pending: PendingConflict[] = []
+  const connections = new Map<string, Neighbor[]>()
 
-  const connections = new Map<
-    string,
-    Array<{ name: string; direction: CardinalDirection; offset: number; forward: boolean }>
-  >()
   for (const map of ordered) {
-    for (const connection of map.connections) {
+    for (const [connectionIndex, connection] of map.connections.entries()) {
       if (
         !connection.destinationMap ||
         !cardinalDirections.has(connection.direction as CardinalDirection)
@@ -97,16 +116,20 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
       forward.push({
         name: connection.destinationMap,
         direction,
-        offset: connection.offsetMetatiles,
+        offsetMetatiles: connection.offsetMetatiles,
         forward: true,
+        sourceMap: map.name,
+        sourceConnectionIndex: connectionIndex,
       })
       connections.set(map.name, forward)
       const reverse = connections.get(connection.destinationMap) ?? []
       reverse.push({
         name: map.name,
         direction,
-        offset: connection.offsetMetatiles,
+        offsetMetatiles: connection.offsetMetatiles,
         forward: false,
+        sourceMap: map.name,
+        sourceConnectionIndex: connectionIndex,
       })
       connections.set(connection.destinationMap, reverse)
     }
@@ -115,6 +138,7 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
   for (const root of ordered) {
     if (placements[root.name]) continue
     placements[root.name] = { x: 0, y: 0, ...dimensions(root) }
+    placementPaths[root.name] = []
     const queue = [root.name]
     const names: string[] = []
     for (let index = 0; index < queue.length; index += 1) {
@@ -125,17 +149,32 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
         const neighborMap = byName.get(neighbor.name)
         if (!neighborMap) continue
         const expected = neighbor.forward
-          ? placeConnection(current, dimensions(neighborMap), neighbor.direction, neighbor.offset)
+          ? placeConnection(
+              current,
+              dimensions(neighborMap),
+              neighbor.direction,
+              neighbor.offsetMetatiles,
+            )
           : placeSourceFromDestination(
               current,
               dimensions(neighborMap),
               neighbor.direction,
-              neighbor.offset,
+              neighbor.offsetMetatiles,
             )
         const actual = placements[neighbor.name]
+        const header = headerFor(neighbor.sourceMap, neighbor.sourceConnectionIndex)
         if (!actual) {
           placements[neighbor.name] = expected
+          placementPaths[neighbor.name] = [...placementPaths[name]!, header]
           queue.push(neighbor.name)
+        } else if (neighbor.forward && !placementEqual(actual, expected)) {
+          pending.push({
+            sourceMap: name,
+            destinationMap: neighbor.name,
+            direction: neighbor.direction,
+            offsetMetatiles: neighbor.offsetMetatiles,
+            header,
+          })
         }
       }
     }
@@ -179,34 +218,36 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
     x += component.bounds.width + componentGap
     shelfHeight = Math.max(shelfHeight, component.bounds.height)
   }
-  return { placements, components: packed }
-}
 
-export const toOpenLayersExtent = (
-  placement: Placement,
-  pixelsPerMetatile: number,
-): [number, number, number, number] => {
-  const x = placement.x * pixelsPerMetatile
-  const y = placement.y * pixelsPerMetatile
-  const width = placement.width * pixelsPerMetatile
-  const height = placement.height * pixelsPerMetatile
-  return [x, -(y + height), x + width, -y]
-}
-
-export const cartographerExtent = (
-  placements: Record<string, Placement>,
-  pixelsPerMetatile: number,
-): [number, number, number, number] | null => {
-  const values = Object.values(placements)
-  if (values.length === 0) return null
-  const first = toOpenLayersExtent(values[0]!, pixelsPerMetatile)
-  let [minX, minY, maxX, maxY] = first
-  for (const placement of values.slice(1)) {
-    const [left, bottom, right, top] = toOpenLayersExtent(placement, pixelsPerMetatile)
-    minX = Math.min(minX, left)
-    minY = Math.min(minY, bottom)
-    maxX = Math.max(maxX, right)
-    maxY = Math.max(maxY, top)
-  }
-  return [minX, minY, maxX, maxY]
+  return pending.map((conflict) => {
+    const source = placements[conflict.sourceMap]!
+    const destination = placements[conflict.destinationMap]!
+    const expected = placeConnection(
+      source,
+      dimensions(byName.get(conflict.destinationMap)!),
+      conflict.direction,
+      conflict.offsetMetatiles,
+    )
+    return {
+      code: "connection_placement_mismatch",
+      explanation: `${conflict.sourceMap} declares ${conflict.destinationMap} ${conflict.direction} at offset ${conflict.offsetMetatiles}, but the earlier connection records place it at (${destination.x}, ${destination.y}) instead of (${expected.x}, ${expected.y}).`,
+      source: {
+        map: conflict.sourceMap,
+        mapId: byName.get(conflict.sourceMap)!.id,
+        header: conflict.header,
+      },
+      destination: {
+        map: conflict.destinationMap,
+        mapId: byName.get(conflict.destinationMap)!.id,
+      },
+      direction: conflict.direction,
+      offsetMetatiles: conflict.offsetMetatiles,
+      expected,
+      actual: destination,
+      establishedPlacement: {
+        source: placementPaths[conflict.sourceMap]!,
+        destination: placementPaths[conflict.destinationMap]!,
+      },
+    }
+  })
 }

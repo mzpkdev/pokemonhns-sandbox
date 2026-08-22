@@ -11,6 +11,7 @@ import { catalogRegions, categoryFor, mapOutputPaths, regionFor } from "./classi
 import { catalogObjects, objectSourceTables } from "./objects"
 import type { ObjectSourceTables } from "./objects"
 import { mapScriptBodies } from "./scripts"
+import { topologyConflicts } from "./topology"
 import {
   posixRelative,
   sha256,
@@ -163,6 +164,9 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
           : [],
       ),
     ),
+    topology: {
+      conflicts: topologyConflicts(maps),
+    },
     regions: catalogRegions.map((region) => {
       const names = maps.filter((map) => map.region === region.id).map((map) => map.name)
       return { ...region, mapCount: names.length, maps: names }
