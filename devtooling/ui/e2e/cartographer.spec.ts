@@ -43,6 +43,8 @@ test("shows the cartographer", async ({ page }) => {
 
   const cartographerViews = page.getByRole("navigation", { name: "Cartographer views" })
   await cartographerViews.getByRole("button", { name: "Encounters", exact: true }).click()
+  await expect(page.getByLabel("Interactive cartographer")).toBeVisible()
+  await expect(page.getByText("encounter maps", { exact: false })).toBeVisible()
   const runtimeVariants = page.getByLabel("Runtime encounter variants")
   await expect(runtimeVariants).toBeVisible()
   await expect(runtimeVariants.getByText("Normal night", { exact: true })).toBeVisible()

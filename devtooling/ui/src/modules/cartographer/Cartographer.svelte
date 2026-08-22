@@ -259,9 +259,23 @@
           onFocusMap={(name) => selectMap(name, true)}
         />
       {:else}
-        <div id="cartographer-encounters" class="min-w-0 xl:col-span-2">
-          <EncounterPanel {selectedMap} />
+        <div id="cartographer-encounters" class="min-w-0">
+          {#key activeRegion.id}
+            <MapViewport
+              {catalog}
+              {maps}
+              selectedMapName={selectedMap?.name}
+              {initialView}
+              focusRequest={focusToken > 0 && selectedMap
+                ? { mapName: selectedMap.name, token: focusToken }
+                : null}
+              encounterMode
+              onSelectMap={selectMap}
+              onCameraChange={handleCameraChange}
+            />
+          {/key}
         </div>
+        <EncounterPanel {selectedMap} />
       {/if}
     </div>
   </section>

@@ -53,6 +53,7 @@
     focusRequest?: FocusRequest | null
     showExits?: boolean
     showObjects?: boolean
+    encounterMode?: boolean
     onSelectMap?: (name: string) => void
     onSelectWarp?: (selection: WarpSelection) => void
     onSelectObject?: (selection: ObjectSelection) => void
@@ -71,6 +72,7 @@
     focusRequest = null,
     showExits = false,
     showObjects = false,
+    encounterMode = false,
     onSelectMap,
     onSelectWarp,
     onSelectObject,
@@ -87,6 +89,29 @@
     fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.2) }),
     stroke: new Stroke({ color: cartographerColor("signal"), width: 3 }),
   })
+  const encounterStyles = new Map<string, { frame: Style; label: Style }>()
+  const encounterStyleFor = (methods: string, labelled: boolean): Style => {
+    const existing = encounterStyles.get(methods)
+    if (existing) return labelled ? existing.label : existing.frame
+    const frame = new Style({
+      fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.12) }),
+      stroke: new Stroke({ color: cartographerColorWithAlpha("signal", 0.78), width: 2 }),
+    })
+    const label = new Style({
+      fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.12) }),
+      stroke: new Stroke({ color: cartographerColorWithAlpha("signal", 0.78), width: 2 }),
+      text: new Text({
+        text: methods,
+        font: "600 10px 'IBM Plex Mono', monospace",
+        fill: new Fill({ color: cartographerColor("signal-strong") }),
+        backgroundFill: new Fill({ color: cartographerColorWithAlpha("field", 0.84) }),
+        padding: [3, 4, 3, 4],
+        overflow: true,
+      }),
+    })
+    encounterStyles.set(methods, { frame, label })
+    return labelled ? label : frame
+  }
   const hoverStyle = new Style({
     fill: new Fill({ color: cartographerColorWithAlpha("amber", 0.18) }),
     stroke: new Stroke({ color: cartographerColor("amber"), width: 2 }),
@@ -234,6 +259,27 @@
   let showAtlasOverlaps = $state(false)
 
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
+  let encounterMethodsByMap = $derived.by(() => {
+    const methodCodes = {
+      land_mons: "L",
+      water_mons: "W",
+      rock_smash_mons: "R",
+      fishing_mons: "F",
+    } as const
+    return new Map(
+      surfaceMaps.flatMap((map) => {
+        const methods = new Set(
+          map.wildEncounters.sets.flatMap((set) => set.methods.map((method) => method.type)),
+        )
+        const codes = Object.entries(methodCodes)
+          .filter(([method]) => methods.has(method as keyof typeof methodCodes))
+          .map(([, code]) => code)
+          .join(" ")
+        return codes ? [[map.name, codes] as const] : []
+      }),
+    )
+  })
+  let encounterMapCount = $derived(encounterMethodsByMap.size)
   let geography = $derived(solveGeography(surfaceMaps))
   let extent = $derived(cartographerExtent(geography.placements, catalog.pixelsPerMetatile))
   const isDirectMismatch = (
@@ -493,9 +539,12 @@
     }
     const hitLayer = new VectorLayer({
       source: hitSource,
-      style: (feature) => {
+      style: (feature, resolution) => {
         const name = feature.get("mapName") as string | undefined
         if (name === selectedMapName) return selectedStyle
+        const encounterMethods = name ? encounterMethodsByMap.get(name) : undefined
+        if (encounterMode && encounterMethods)
+          return encounterStyleFor(encounterMethods, resolution <= 24)
         return name === hoveredMap ? hoverStyle : baseStyle
       },
     })
@@ -654,6 +703,8 @@
       {showAtlasOverlaps}
       {showExits}
       {showObjects}
+      {encounterMode}
+      {encounterMapCount}
       {onToggleExits}
       {onToggleObjects}
       onToggleTopologyConflicts={(value) => (showTopologyConflicts = value)}
@@ -662,7 +713,7 @@
       onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
     />
-    {#if showObjects}
+    {#if showObjects && !encounterMode}
       <ObjectFilterPanel kinds={objectKinds} onToggle={toggleObjectKind} />
     {/if}
     <div
@@ -670,13 +721,16 @@
       bind:this={host}
       aria-label="Interactive regional map"
     ></div>
-    <TopologyConflictPanel diagnostics={topologyDiagnostics} visible={showTopologyConflicts} />
-    <AtlasOverlapPanel overlaps={atlasOverlaps} visible={showAtlasOverlaps} />
+    {#if !encounterMode}
+      <TopologyConflictPanel diagnostics={topologyDiagnostics} visible={showTopologyConflicts} />
+      <AtlasOverlapPanel overlaps={atlasOverlaps} visible={showAtlasOverlaps} />
+    {/if}
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
-      Pan, scroll, or pinch to inspect. Select a map for source details. Toggle exits and object
-      kinds when you need them.
+      {encounterMode
+        ? "Blue frames mark maps with source encounter sets. L, W, R, and F mean land, water, Rock Smash, and fishing. Select a map to inspect its sets."
+        : "Pan, scroll, or pinch to inspect. Select a map for source details. Toggle exits and object kinds when you need them."}
     </p>
   </section>
 {:else}
