@@ -18,7 +18,8 @@
       Topology conflicts
     </p>
     <p class="mb-3 mt-1 text-xs leading-5 text-cartographer-muted">
-      Dashed outlines mark an expected map position. The line points to the map's actual position.
+      Tinted outlines mark an expected map position. A line appears only when it does not overlap
+      the map's actual position.
     </p>
     <ul class="m-0 grid max-h-36 list-none gap-1.5 overflow-y-auto p-0">
       {#each conflicts as conflict (`${conflict.source.map}:${conflict.destination.map}:${conflict.direction}:${conflict.offsetMetatiles}`)}

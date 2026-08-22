@@ -20,7 +20,13 @@
 
   import MapToolbar from "./MapToolbar.svelte"
   import TopologyConflictPanel from "./TopologyConflictPanel.svelte"
-  import type { CatalogMap, CatalogObject, CatalogTopologyConflict, MapCatalog } from "./catalog.js"
+  import type {
+    CatalogMap,
+    CatalogObject,
+    CatalogPlacement,
+    CatalogTopologyConflict,
+    MapCatalog,
+  } from "./catalog.js"
   import {
     cartographerExtent,
     solveGeography,
@@ -116,11 +122,13 @@
     }),
   })
   const expectedConflictStyle = new Style({
-    fill: new Fill({ color: "rgba(168, 103, 114, 0.10)" }),
-    stroke: new Stroke({ color: "#d28591", width: 2, lineDash: [8, 6] }),
+    fill: new Fill({ color: "rgba(210, 133, 145, 0.28)" }),
+    stroke: new Stroke({ color: "#f1a6b2", width: 3 }),
+    zIndex: 2,
   })
   const conflictLineStyle = new Style({
-    stroke: new Stroke({ color: "#d28591", width: 2, lineDash: [5, 5] }),
+    stroke: new Stroke({ color: "#b86f7c", width: 2, lineDash: [5, 5] }),
+    zIndex: 1,
   })
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
     stateful: new Style({
@@ -214,6 +222,15 @@
       },
       actual,
     }
+  }
+
+  const placementsOverlap = (left: CatalogPlacement, right: CatalogPlacement): boolean => {
+    return (
+      left.x < right.x + right.width &&
+      left.x + left.width > right.x &&
+      left.y < right.y + right.height &&
+      left.y + left.height > right.y
+    )
   }
 
   const updateExitVisibility = (): void => {
@@ -353,18 +370,20 @@
       conflictSource.addFeature(
         new Feature({ geometry: polygonFromExtent(expectedExtent), kind: "expected" }),
       )
-      conflictSource.addFeature(
-        new Feature({
-          geometry: new LineString([
-            [
-              (expectedExtent[0] + expectedExtent[2]) / 2,
-              (expectedExtent[1] + expectedExtent[3]) / 2,
-            ],
-            [(actualExtent[0] + actualExtent[2]) / 2, (actualExtent[1] + actualExtent[3]) / 2],
-          ]),
-          kind: "connection",
-        }),
-      )
+      if (!placementsOverlap(visual.expected, visual.actual)) {
+        conflictSource.addFeature(
+          new Feature({
+            geometry: new LineString([
+              [
+                (expectedExtent[0] + expectedExtent[2]) / 2,
+                (expectedExtent[1] + expectedExtent[3]) / 2,
+              ],
+              [(actualExtent[0] + actualExtent[2]) / 2, (actualExtent[1] + actualExtent[3]) / 2],
+            ]),
+            kind: "connection",
+          }),
+        )
+      }
     }
     const hitLayer = new VectorLayer({
       source: hitSource,
