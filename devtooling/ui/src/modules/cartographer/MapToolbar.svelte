@@ -50,7 +50,7 @@
   {/if}
   {#if atlasOverlapCount > 0}
     <Checkbox checked={showAtlasOverlaps} onCheckedChange={onToggleAtlasOverlaps}
-      >Atlas overlaps ({atlasOverlapCount})</Checkbox
+      >Overlaps ({atlasOverlapCount})</Checkbox
     >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>

@@ -34,12 +34,12 @@ test("shows the cartographer", async ({ page }) => {
   await page.getByRole("option", { name: /Route32/ }).click()
   await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
 
-  const atlasOverlaps = page.getByRole("checkbox", { name: /Atlas overlaps/ })
+  const atlasOverlaps = page.getByRole("checkbox", { name: /Overlaps/ })
   await expect(atlasOverlaps).toBeVisible()
   await page
     .getByLabel("Interactive cartographer")
-    .getByText(/Atlas overlaps/)
+    .getByText(/Overlaps/)
     .click()
   await expect(atlasOverlaps).toBeChecked()
-  await expect(page.getByLabel("Atlas layout overlap details")).toBeVisible()
+  await expect(page.getByLabel("Overlap details")).toBeVisible()
 })

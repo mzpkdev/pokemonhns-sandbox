@@ -12,12 +12,12 @@
 {#if visible && overlaps.length > 0}
   <section
     class="border-t border-cartographer-border bg-cartographer-panel-raised px-4 py-3"
-    aria-label="Atlas layout overlap details"
+    aria-label="Overlap details"
   >
     <p
       class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.12em] text-cartographer-layout-overlap"
     >
-      Atlas layout overlaps
+      Overlaps
     </p>
     <p class="mb-3 mt-1 text-xs leading-5 text-cartographer-muted">
       These rectangles overlap in the current atlas layout. They do not identify a source-data
