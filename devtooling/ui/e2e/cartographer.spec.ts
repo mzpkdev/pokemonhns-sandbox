@@ -59,6 +59,11 @@ test("shows the cartographer", async ({ page }) => {
   await expect(route32Set.getByLabel("Old Rod fishing")).toBeVisible()
   await expect(route32Set.getByLabel("Good Rod fishing")).toBeVisible()
   await expect(route32Set.getByText("MAGIKARP", { exact: true }).first()).toBeVisible()
+  const encounterSprite = route32Set.locator('img[src*="pokemon-icons/"]').first()
+  await expect(encounterSprite).toBeVisible()
+  await expect
+    .poll(() => encounterSprite.evaluate((image) => image.naturalWidth))
+    .toBeGreaterThan(0)
 
   await cartographerViews.getByRole("button", { name: "Map", exact: true }).click()
   const atlasOverlaps = page.getByRole("checkbox", { name: /Overlaps/ })

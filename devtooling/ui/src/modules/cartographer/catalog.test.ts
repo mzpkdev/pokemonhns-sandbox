@@ -59,6 +59,7 @@ const wildEncounters = (): Record<string, unknown> => {
                 maxLevel: 3,
                 speciesId: "SPECIES_ESPEON",
                 speciesLabel: "Espeon",
+                sprite: null,
                 source: {
                   path: "src/data/wild_encounters.json",
                   pointer: "/wild_encounter_groups/0/encounters/0/land_mons/mons/0",

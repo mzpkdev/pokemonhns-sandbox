@@ -19,6 +19,7 @@ const fishing: CatalogWildEncounterMethod = {
       maxLevel: 5,
       speciesId: "SPECIES_MAGIKARP",
       speciesLabel: "Magikarp",
+      sprite: null,
       source,
     },
     {
@@ -30,6 +31,7 @@ const fishing: CatalogWildEncounterMethod = {
       maxLevel: 10,
       speciesId: "SPECIES_NONE",
       speciesLabel: "None",
+      sprite: null,
       source,
     },
     {
@@ -41,6 +43,7 @@ const fishing: CatalogWildEncounterMethod = {
       maxLevel: 20,
       speciesId: "SPECIES_GOLDEEN",
       speciesLabel: "Goldeen",
+      sprite: null,
       source,
     },
   ],

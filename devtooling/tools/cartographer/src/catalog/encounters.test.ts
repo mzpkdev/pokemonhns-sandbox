@@ -2,6 +2,7 @@ import * as path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { catalogEncounterSprites } from "./encounter-sprites"
 import { catalogWildEncounters, sourceWildEncounters } from "./encounters"
 
 const sourceRoot = path.resolve(import.meta.dirname, "../../../../..")
@@ -44,6 +45,12 @@ const encounterDocument = (
 }
 
 describe("source wild encounters", () => {
+  it("leaves a source-derived placeholder for encounter species without an icon", () => {
+    const spriteForSpecies = catalogEncounterSprites(sourceRoot, "/tmp/cartographer-icons")
+
+    expect(spriteForSpecies("SPECIES_NOT_A_POKEMON")).toBeNull()
+  })
+
   it("preserves Route102's raw sets, method slots, rates, species, and provenance", () => {
     const encounters = sourceWildEncounters(sourceRoot, mapNamesById).get("Route102")
 

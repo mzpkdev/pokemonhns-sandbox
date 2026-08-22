@@ -2,6 +2,7 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 
 import type {
+  CatalogEncounterSprite,
   CatalogEncounterSet,
   CatalogEncounterVariant,
   CatalogSourcePointer,
@@ -208,6 +209,7 @@ export const catalogWildEncounters = (
   mapNamesById: ReadonlyMap<string, string>,
   speciesLabelsById: ReadonlyMap<string, string>,
   selectorMapIds: ReadonlySet<string> = new Set(),
+  spriteForSpecies: (speciesId: string) => CatalogEncounterSprite | null = () => null,
 ): Map<string, CatalogWildEncounters> => {
   const groupFields = fieldsFor(document)
   const groups = (document as SourceEncounterDocument).wild_encounter_groups
@@ -290,6 +292,7 @@ export const catalogWildEncounters = (
                 maxLevel: slot.max_level,
                 speciesId: slot.species,
                 speciesLabel,
+                sprite: spriteForSpecies(slot.species),
                 source,
               },
             ]
@@ -337,6 +340,7 @@ export const catalogWildEncounters = (
 export const sourceWildEncounters = (
   root: string,
   mapNamesById: ReadonlyMap<string, string>,
+  spriteForSpecies?: (speciesId: string) => CatalogEncounterSprite | null,
 ): Map<string, CatalogWildEncounters> => {
   const filePath = path.join(root, wildEncounterPath)
   return catalogWildEncounters(
@@ -344,6 +348,7 @@ export const sourceWildEncounters = (
     mapNamesById,
     sourceSpeciesLabels(root),
     runtimeSelectorMapIds(root),
+    spriteForSpecies,
   )
 }
 

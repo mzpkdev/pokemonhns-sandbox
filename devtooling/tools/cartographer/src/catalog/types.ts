@@ -50,7 +50,16 @@ export type CatalogEncounterSlot = {
   maxLevel: number
   speciesId: string
   speciesLabel: string
+  sprite: CatalogEncounterSprite | null
   source: CatalogSourcePointer
+}
+
+export type CatalogEncounterSprite = {
+  path: string
+  sha256: string
+  widthPixels: number
+  heightPixels: number
+  source: string
 }
 
 export type CatalogEncounterMethod = {

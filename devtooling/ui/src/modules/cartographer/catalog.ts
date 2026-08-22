@@ -122,7 +122,16 @@ export type CatalogWildEncounterSlot = {
   maxLevel: number
   speciesId: string
   speciesLabel?: string
+  sprite: CatalogEncounterSprite | null
   source: CatalogSourcePointer
+}
+
+export type CatalogEncounterSprite = {
+  path: string
+  sha256: string
+  widthPixels: number
+  heightPixels: number
+  source: string
 }
 
 export type CatalogWildEncounterMethod = {
@@ -308,7 +317,20 @@ const hasWildEncounterSlot = (value: unknown): value is CatalogWildEncounterSlot
     slot.minLevel <= slot.maxLevel &&
     hasString(slot.speciesId) &&
     (slot.speciesLabel === undefined || hasString(slot.speciesLabel)) &&
+    (slot.sprite === null || hasEncounterSprite(slot.sprite)) &&
     hasSourcePointer(slot.source)
+  )
+}
+
+const hasEncounterSprite = (value: unknown): value is CatalogEncounterSprite => {
+  const sprite = asRecord(value)
+  return (
+    !!sprite &&
+    hasString(sprite.path) &&
+    hasString(sprite.sha256) &&
+    hasInteger(sprite.widthPixels) &&
+    hasInteger(sprite.heightPixels) &&
+    hasString(sprite.source)
   )
 }
 

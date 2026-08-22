@@ -9,6 +9,7 @@ import {
 } from "../renderer"
 import { catalogRegions, categoryFor, mapOutputPaths, regionFor } from "./classify"
 import { catalogObjects, objectSourceTables } from "./objects"
+import { catalogEncounterSprites } from "./encounter-sprites"
 import type { ObjectSourceTables } from "./objects"
 import { mapScriptBodies } from "./scripts"
 import { sourceWildEncounters } from "./encounters"
@@ -129,7 +130,11 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
   const mapsByName = sourceMaps(root, exteriorMaps)
   const namesById = new Map([...mapsByName].map(([name, map]) => [map.id, name]))
   const objectTables = objectSourceTables(root)
-  const wildEncountersByMap = sourceWildEncounters(root, namesById)
+  const wildEncountersByMap = sourceWildEncounters(
+    root,
+    namesById,
+    catalogEncounterSprites(root, output),
+  )
   const maps: CatalogMap[] = []
 
   for (const name of exteriorMaps) {
