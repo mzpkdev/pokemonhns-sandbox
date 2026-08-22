@@ -12,7 +12,7 @@
 
 <main class="min-h-screen">
   <nav
-    class="flex items-stretch justify-between border-b border-cartographer-border/80 bg-[#14171ae8] px-[clamp(1rem,3vw,2.5rem)] backdrop-blur"
+    class="flex items-stretch justify-between border-b border-cartographer-border/80 bg-cartographer-field/90 px-[clamp(1rem,3vw,2.5rem)] backdrop-blur"
     aria-label="Modules"
   >
     <div class="flex items-center gap-3 py-3">

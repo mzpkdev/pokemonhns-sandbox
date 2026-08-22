@@ -38,10 +38,12 @@
 
 {#if visible && diagnostics.length > 0}
   <section
-    class="border-t border-[#9f5d68] bg-[#241a20] px-4 py-3"
+    class="border-t border-cartographer-diagnostic-border bg-cartographer-diagnostic-panel px-4 py-3"
     aria-label="Topology diagnostic details"
   >
-    <p class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.12em] text-[#e7a1a9]">
+    <p
+      class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.12em] text-cartographer-garnet-400"
+    >
       Topology diagnostics
     </p>
     <p class="mb-3 mt-1 text-xs leading-5 text-cartographer-muted">

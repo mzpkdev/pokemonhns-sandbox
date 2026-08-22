@@ -51,7 +51,7 @@
 </script>
 
 <aside
-  class="border border-cartographer-border bg-cartographer-panel p-4 shadow-[0_1.5rem_4rem_#02061166] xl:min-h-[34rem]"
+  class="border border-cartographer-border bg-cartographer-panel p-4 shadow-cartographer-panel xl:min-h-[34rem]"
   aria-live="polite"
 >
   {#if !selectedMap}
@@ -170,7 +170,7 @@
                   {inspectedPlaceholder.label}
                 </p>
               {/if}
-              <p class="mb-0 mt-1 text-[#e7a1a9]">
+              <p class="mb-0 mt-1 text-cartographer-garnet-400">
                 {inspectedObject.diagnostic?.message ??
                   "No source sprite resolved for this object. The map uses the fallback marker."}
               </p>
@@ -315,30 +315,30 @@
   .object-placeholder[data-kind="stateful"] > span {
     width: 12px;
     height: 12px;
-    background: #7f9875;
-    border: 2px solid #14171a;
+    background: var(--color-cartographer-object-stateful);
+    border: 2px solid var(--color-cartographer-field);
   }
 
   .object-placeholder[data-kind="variable"] > span,
   .object-placeholder[data-kind="unresolved"] > span {
     width: 12px;
     height: 12px;
-    border: 2px solid #14171a;
+    border: 2px solid var(--color-cartographer-field);
   }
 
   .object-placeholder[data-kind="variable"] > span {
-    background: #8295a7;
+    background: var(--color-cartographer-object-variable);
   }
 
   .object-placeholder[data-kind="expression"] > span {
     width: 0;
     height: 0;
-    border-bottom: 13px solid #b19a6a;
+    border-bottom: 13px solid var(--color-cartographer-object-expression);
     border-left: 7px solid transparent;
     border-right: 7px solid transparent;
   }
 
   .object-placeholder[data-kind="unresolved"] > span {
-    background: #a86772;
+    background: var(--color-cartographer-object-unresolved);
   }
 </style>

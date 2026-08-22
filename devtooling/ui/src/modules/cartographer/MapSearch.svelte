@@ -39,7 +39,7 @@
 </script>
 
 <section
-  class="border border-cartographer-border bg-cartographer-panel p-3 shadow-[0_1.5rem_4rem_#02061166]"
+  class="border border-cartographer-border bg-cartographer-panel p-3 shadow-cartographer-panel"
   aria-label="Map search"
 >
   <h2

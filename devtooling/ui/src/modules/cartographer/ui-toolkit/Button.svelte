@@ -22,7 +22,7 @@
     outline:
       "border border-cartographer-border bg-cartographer-panel-raised text-cartographer-ink hover:border-cartographer-signal hover:bg-cartographer-signal/10 hover:text-cartographer-signal-soft focus-visible:outline-cartographer-signal",
     solid:
-      "border border-cartographer-signal bg-cartographer-signal text-[#07101d] hover:bg-cartographer-signal-soft focus-visible:outline-cartographer-signal",
+      "border border-cartographer-signal bg-cartographer-signal text-cartographer-canvas hover:bg-cartographer-signal-soft focus-visible:outline-cartographer-signal",
     selected:
       "border border-cartographer-signal bg-cartographer-signal/15 text-cartographer-signal hover:bg-cartographer-signal/25 focus-visible:outline-cartographer-signal",
     subtle:

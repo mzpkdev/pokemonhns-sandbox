@@ -40,6 +40,7 @@
   import type { FocusRequest, ObjectSelection, WarpSelection } from "./types.js"
   import { mapImageUrl, type CartographerViewState } from "./urls.js"
   import { objectPlaceholderFor, type ObjectPlaceholderKind } from "./object-placeholders.js"
+  import { cartographerColor, cartographerColorWithAlpha } from "./palette.js"
 
   type Props = {
     catalog: MapCatalog
@@ -82,20 +83,20 @@
     stroke: new Stroke({ color: "rgba(0, 0, 0, 0)", width: 1 }),
   })
   const selectedStyle = new Style({
-    fill: new Fill({ color: "rgba(143, 167, 189, 0.20)" }),
-    stroke: new Stroke({ color: "#8fa7bd", width: 3 }),
+    fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.2) }),
+    stroke: new Stroke({ color: cartographerColor("signal"), width: 3 }),
   })
   const hoverStyle = new Style({
-    fill: new Fill({ color: "rgba(192, 167, 120, 0.18)" }),
-    stroke: new Stroke({ color: "#c0a778", width: 2 }),
+    fill: new Fill({ color: cartographerColorWithAlpha("amber", 0.18) }),
+    stroke: new Stroke({ color: cartographerColor("amber"), width: 2 }),
   })
   const exitStyle = new Style({
     image: new RegularShape({
       points: 4,
       radius: 6,
       angle: Math.PI / 4,
-      fill: new Fill({ color: "rgba(20, 23, 26, 0.72)" }),
-      stroke: new Stroke({ color: "#9aa9b5", width: 1.5 }),
+      fill: new Fill({ color: cartographerColorWithAlpha("field", 0.72) }),
+      stroke: new Stroke({ color: cartographerColor("muted-soft"), width: 1.5 }),
     }),
   })
   const selectedExitStyle = new Style({
@@ -103,8 +104,8 @@
       points: 4,
       radius: 8,
       angle: Math.PI / 4,
-      fill: new Fill({ color: "rgba(143, 167, 189, 0.32)" }),
-      stroke: new Stroke({ color: "#d7e0e7", width: 2 }),
+      fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.32) }),
+      stroke: new Stroke({ color: cartographerColor("signal-strong"), width: 2 }),
     }),
   })
   const selectedObjectStyle = new Style({
@@ -112,8 +113,8 @@
       points: 4,
       radius: 9,
       angle: Math.PI / 4,
-      fill: new Fill({ color: "rgba(143, 167, 189, 0.24)" }),
-      stroke: new Stroke({ color: "#e5e7eb", width: 2 }),
+      fill: new Fill({ color: cartographerColorWithAlpha("signal", 0.24) }),
+      stroke: new Stroke({ color: cartographerColor("ink"), width: 2 }),
     }),
   })
   const lightSourceStyle = new Style({
@@ -121,8 +122,8 @@
       points: 4,
       radius: 5,
       angle: Math.PI / 4,
-      fill: new Fill({ color: "#bac4cb" }),
-      stroke: new Stroke({ color: "#303942", width: 1 }),
+      fill: new Fill({ color: cartographerColor("signal-soft") }),
+      stroke: new Stroke({ color: cartographerColor("border-strong"), width: 1 }),
     }),
   })
   const directMismatchStyles = new Map<string, Style>()
@@ -130,13 +131,13 @@
     const existing = directMismatchStyles.get(mapName)
     if (existing) return existing
     const style = new Style({
-      fill: new Fill({ color: "rgba(210, 133, 145, 0.10)" }),
-      stroke: new Stroke({ color: "#f1a6b2", width: 3 }),
+      fill: new Fill({ color: cartographerColorWithAlpha("diagnostic", 0.1) }),
+      stroke: new Stroke({ color: cartographerColor("diagnostic-ink"), width: 3 }),
       text: new Text({
         text: `Forward ${mapName}`,
         font: "600 11px 'IBM Plex Mono', monospace",
-        fill: new Fill({ color: "#f5c7ce" }),
-        backgroundFill: new Fill({ color: "rgba(36, 26, 32, 0.86)" }),
+        fill: new Fill({ color: cartographerColor("diagnostic-ink") }),
+        backgroundFill: new Fill({ color: cartographerColorWithAlpha("diagnostic-panel", 0.86) }),
         padding: [3, 5, 3, 5],
         textAlign: "left",
         textBaseline: "top",
@@ -150,11 +151,11 @@
     return style
   }
   const mismatchLineStyle = new Style({
-    stroke: new Stroke({ color: "#b86f7c", width: 2, lineDash: [5, 5] }),
+    stroke: new Stroke({ color: cartographerColor("diagnostic-line"), width: 2, lineDash: [5, 5] }),
     zIndex: 1,
   })
   const cycleTraceStyle = new Style({
-    stroke: new Stroke({ color: "#d23b52", width: 3, lineDash: [4, 7] }),
+    stroke: new Stroke({ color: cartographerColor("diagnostic"), width: 3, lineDash: [4, 7] }),
     zIndex: 1,
   })
   const cycleCandidateStyles = new Map<number, Style>()
@@ -166,14 +167,14 @@
         points: 3,
         radius: 8,
         rotation: Math.PI,
-        fill: new Fill({ color: "#d23b52" }),
-        stroke: new Stroke({ color: "#501722", width: 2 }),
+        fill: new Fill({ color: cartographerColor("diagnostic") }),
+        stroke: new Stroke({ color: cartographerColor("diagnostic-panel"), width: 2 }),
       }),
       text: new Text({
         text: `Review ${rank}`,
         font: "600 11px 'IBM Plex Mono', monospace",
-        fill: new Fill({ color: "#f4b4be" }),
-        backgroundFill: new Fill({ color: "rgba(78, 18, 29, 0.94)" }),
+        fill: new Fill({ color: cartographerColor("diagnostic-ink") }),
+        backgroundFill: new Fill({ color: cartographerColorWithAlpha("diagnostic-panel", 0.94) }),
         padding: [3, 5, 3, 5],
         textAlign: "left",
         textBaseline: "bottom",
@@ -192,8 +193,8 @@
         points: 4,
         radius: 6,
         angle: Math.PI / 4,
-        fill: new Fill({ color: "#7f9875" }),
-        stroke: new Stroke({ color: "#14171a", width: 2 }),
+        fill: new Fill({ color: cartographerColor("object-stateful") }),
+        stroke: new Stroke({ color: cartographerColor("field"), width: 2 }),
       }),
     }),
     variable: new Style({
@@ -201,16 +202,16 @@
         points: 4,
         radius: 6,
         angle: Math.PI / 4,
-        fill: new Fill({ color: "#8295a7" }),
-        stroke: new Stroke({ color: "#14171a", width: 2 }),
+        fill: new Fill({ color: cartographerColor("object-variable") }),
+        stroke: new Stroke({ color: cartographerColor("field"), width: 2 }),
       }),
     }),
     expression: new Style({
       image: new RegularShape({
         points: 3,
         radius: 7,
-        fill: new Fill({ color: "#b19a6a" }),
-        stroke: new Stroke({ color: "#14171a", width: 2 }),
+        fill: new Fill({ color: cartographerColor("object-expression") }),
+        stroke: new Stroke({ color: cartographerColor("field"), width: 2 }),
       }),
     }),
     unresolved: new Style({
@@ -218,8 +219,8 @@
         points: 4,
         radius: 6,
         angle: Math.PI / 4,
-        fill: new Fill({ color: "#a86772" }),
-        stroke: new Stroke({ color: "#14171a", width: 2 }),
+        fill: new Fill({ color: cartographerColor("object-unresolved") }),
+        stroke: new Stroke({ color: cartographerColor("field"), width: 2 }),
       }),
     }),
   }
@@ -644,7 +645,7 @@
 
 {#if extent}
   <section
-    class="overflow-hidden border border-cartographer-border bg-cartographer-panel shadow-[0_1.5rem_4rem_#02061199]"
+    class="overflow-hidden border border-cartographer-border bg-cartographer-panel shadow-cartographer-panel"
     aria-label="Interactive cartographer"
   >
     <MapToolbar
@@ -680,11 +681,22 @@
 
 <style>
   .cartographer-map-field {
-    background-color: #14171a;
+    background-color: var(--color-cartographer-field);
     background-image:
-      linear-gradient(#ffffff08 1px, transparent 1px),
-      linear-gradient(90deg, #ffffff08 1px, transparent 1px),
-      radial-gradient(circle at center, #292f36 0, #14171a 75%);
+      linear-gradient(
+        color-mix(in srgb, var(--color-cartographer-ink) 3%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-cartographer-ink) 3%, transparent) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at center,
+        var(--color-cartographer-slate-700) 0,
+        var(--color-cartographer-field) 75%
+      );
     background-size:
       32px 32px,
       32px 32px,

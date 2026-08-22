@@ -40,7 +40,7 @@
   >
   <Combobox.Control>
     <Combobox.Input
-      class="w-full border border-cartographer-border bg-[#14171a] px-2.5 py-2 text-sm text-cartographer-ink placeholder:text-[#747b84] focus-visible:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
+      class="w-full border border-cartographer-border bg-cartographer-field px-2.5 py-2 text-sm text-cartographer-ink placeholder:text-cartographer-muted-soft focus-visible:border-cartographer-signal focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cartographer-signal"
       {placeholder}
       type="search"
     />
@@ -48,7 +48,7 @@
   {#if query.trim()}
     <Combobox.Positioner class="z-10 w-full">
       <Combobox.Content
-        class="mt-1 max-h-72 overflow-auto border border-cartographer-border bg-cartographer-panel p-1.5 shadow-[0_1.5rem_3rem_#090a0bcc]"
+        class="mt-1 max-h-72 overflow-auto border border-cartographer-border bg-cartographer-panel p-1.5 shadow-cartographer-float"
       >
         {#if options.length > 0}
           <Combobox.List class="grid list-none gap-1 p-0">

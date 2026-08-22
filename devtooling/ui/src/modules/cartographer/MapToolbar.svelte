@@ -34,7 +34,7 @@
 </script>
 
 <div
-  class="flex flex-wrap items-center gap-x-4 gap-y-2 bg-[#14171a] px-4 py-3 text-sm text-cartographer-muted"
+  class="flex flex-wrap items-center gap-x-4 gap-y-2 bg-cartographer-field px-4 py-3 text-sm text-cartographer-muted"
 >
   <span class="text-xs">{surfaceMapCount} surfaces · {componentCount} groups</span>
   {#if topologyDiagnosticCount > 0}

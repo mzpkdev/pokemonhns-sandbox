@@ -12,7 +12,7 @@
 </script>
 
 <nav
-  class="flex flex-wrap items-center gap-1.5 border border-cartographer-border bg-cartographer-panel p-3 shadow-[0_1.5rem_4rem_#02061166] md:grid md:gap-1.5"
+  class="flex flex-wrap items-center gap-1.5 border border-cartographer-border bg-cartographer-panel p-3 shadow-cartographer-panel md:grid md:gap-1.5"
   aria-label="Regions"
 >
   <div

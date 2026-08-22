@@ -145,9 +145,9 @@
   </section>
 {:else if loadState.kind === "error"}
   <section
-    class="mx-auto mt-[12vh] max-w-2xl border border-[#8f5560] bg-[#251824] p-7 shadow-[0_0_0_1px_#8f556033]"
+    class="mx-auto mt-[12vh] max-w-2xl border border-cartographer-diagnostic-border bg-cartographer-diagnostic-panel p-7 shadow-cartographer-error"
   >
-    <p class="m-0 text-sm font-semibold text-[#f29aaa]">Catalog unavailable</p>
+    <p class="m-0 text-sm font-semibold text-cartographer-rose-400">Catalog unavailable</p>
     <h1 class="mb-3 mt-3 text-2xl font-semibold">Cartographer unavailable</h1>
     <p class="text-cartographer-muted">{loadState.message}</p>
     {#if loadState.details.length > 0}
