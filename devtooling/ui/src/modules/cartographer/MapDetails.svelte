@@ -4,6 +4,7 @@
   import { mapImageUrl } from "./urls.js"
   import { objectPlaceholderFor } from "./object-placeholders.js"
   import Button from "./ui-toolkit/Button.svelte"
+  import CollapsibleSection from "./ui-toolkit/CollapsibleSection.svelte"
   import { cn } from "./lib/cn.js"
 
   type Props = {
@@ -223,17 +224,13 @@
         </dd>
       </div>
     </dl>
-    <section class="mt-4">
-      <div class="mb-2 flex items-center justify-between gap-3">
-        <h4 class="m-0 text-base font-semibold">Exits</h4>
-        <span class="font-cartographer-mono text-xs text-cartographer-amber"
-          >{selectedMap.warps.length}</span
-        >
-      </div>
+    <CollapsibleSection title="Exits" count={selectedMap.warps.length}>
       {#if selectedMap.warps.length === 0}
-        <p>This map has no catalogued warp exits.</p>
+        <p class="m-0 p-4 text-sm text-cartographer-muted">
+          This map has no catalogued warp exits.
+        </p>
       {:else}
-        <ul class="m-0 grid min-w-0 list-none gap-1.5 p-0">
+        <ul class="m-0 grid min-w-0 list-none gap-1.5 p-4">
           {#each selectedMap.warps as warp (warp.warpId)}
             {@const destination = destinationFor(warp)}
             <li class="min-w-0">
@@ -265,16 +262,14 @@
           {/each}
         </ul>
       {/if}
-    </section>
-    <section class="mt-5 border-t border-cartographer-border pt-4">
-      <div class="mb-2 flex items-center justify-between gap-3">
-        <h4 class="m-0 text-base font-semibold">Objects</h4>
-        <span class="font-cartographer-mono text-xs text-cartographer-amber">{objects.length}</span>
-      </div>
+    </CollapsibleSection>
+    <CollapsibleSection title="Objects" count={objects.length}>
       {#if objects.length === 0}
-        <p class="m-0 leading-6 text-cartographer-muted">This map has no catalogued objects.</p>
+        <p class="m-0 p-4 text-sm leading-6 text-cartographer-muted">
+          This map has no catalogued objects.
+        </p>
       {:else}
-        <ul class="m-0 grid list-none gap-1.5 p-0">
+        <ul class="m-0 grid list-none gap-1.5 p-4">
           {#each objects as object (object.objectId)}
             {@const selected =
               selectedObject?.sourceMapName === selectedMap.name &&
@@ -307,7 +302,7 @@
           {/each}
         </ul>
       {/if}
-    </section>
+    </CollapsibleSection>
   {/if}
 </aside>
 

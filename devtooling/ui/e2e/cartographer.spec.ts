@@ -49,6 +49,11 @@ test("shows the cartographer", async ({ page }) => {
   await mapSearch.fill("Route15")
   await page.getByRole("option", { name: /Route15/ }).click()
   await expect(page.getByRole("heading", { name: "Route15" })).toBeVisible()
+  await page
+    .getByRole("complementary")
+    .last()
+    .locator('details[aria-label="Objects"] summary')
+    .click()
   await page.getByRole("button", { name: /OBJ_EVENT_GFX_ITEM_BALL/ }).click()
   await expect(page.getByText("Object inspector")).toBeVisible()
   await expect(page.getByText("Gives PP Up")).toBeVisible()
@@ -62,6 +67,7 @@ test("shows the cartographer", async ({ page }) => {
   await mapSearch.fill("RuinsOfAlph_Outside")
   await page.getByRole("option", { name: /RuinsOfAlph_Outside/ }).click()
   const inspector = page.getByRole("complementary").last()
+  await inspector.locator('details[aria-label="Exits"] summary').click()
   const exitCards = inspector.getByRole("button", { name: /Warp \d/ })
   await expect(exitCards).toHaveCount(10)
   await expect
@@ -94,7 +100,8 @@ test("shows the cartographer", async ({ page }) => {
   await expect(page.getByText("runtime-valid land and water tiles", { exact: false })).toBeVisible()
   const trainerEventsToggle = page.getByRole("checkbox", { name: "Trainer events" })
   await expect(trainerEventsToggle).toBeChecked()
-  const trainerEvents = page.getByRole("region", { name: "Trainer events" })
+  const trainerEvents = page.locator('details[aria-label="Trainer events"]')
+  await trainerEvents.locator("summary").click()
   await expect(trainerEvents.getByText("Battles Albert", { exact: true })).toBeVisible()
   await trainerEvents.getByRole("button", { name: /Battles Albert/ }).click()
   await expect(trainerEvents.getByRole("button", { name: /Battles Albert/ })).toHaveAttribute(
@@ -109,18 +116,22 @@ test("shows the cartographer", async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => document.body.scrollWidth))
     .toBe(await page.evaluate(() => document.body.clientWidth))
-  const runtimeVariants = page.getByLabel("Runtime encounter variants")
+  const runtimeVariants = page.locator('details[aria-label="Runtime encounter variants"]')
+  await runtimeVariants.locator("summary").click()
   await expect(runtimeVariants).toBeVisible()
   await expect(runtimeVariants.getByText("Normal night", { exact: true })).toBeVisible()
   await expect(runtimeVariants.getByText("gRoute32_Night", { exact: true })).toBeVisible()
   await expect(runtimeVariants.getByText("Missing contiguous header", { exact: true })).toHaveCount(
     2,
   )
-  const route32Set = page.getByLabel("Source set gRoute32", { exact: true })
+  const route32Set = page.locator('details[aria-label="Source set gRoute32"]')
+  await route32Set.locator(":scope > summary").click()
+  const fishing = route32Set.locator('details[aria-label="Fishing encounter method"]')
+  await fishing.locator(":scope > summary").click()
   await expect(route32Set.getByLabel("Old Rod fishing")).toBeVisible()
   await expect(route32Set.getByLabel("Good Rod fishing")).toBeVisible()
   await expect(route32Set.getByText("MAGIKARP", { exact: true }).first()).toBeVisible()
-  const encounterSprite = route32Set.locator('img[src*="pokemon-icons/"]').first()
+  const encounterSprite = fishing.locator('img[src*="pokemon-icons/"]').first()
   await expect(encounterSprite).toBeVisible()
   await expect
     .poll(() => encounterSprite.evaluate((image) => image.naturalWidth))

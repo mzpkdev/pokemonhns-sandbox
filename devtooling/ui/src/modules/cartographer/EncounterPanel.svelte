@@ -4,6 +4,7 @@
   import EncounterSlotsTable from "./EncounterSlotsTable.svelte"
   import TrainerEvents from "./TrainerEvents.svelte"
   import type { ObjectSelection } from "./types.js"
+  import CollapsibleSection from "./ui-toolkit/CollapsibleSection.svelte"
 
   type Props = {
     selectedMap: CatalogMap | null
@@ -77,19 +78,14 @@
     {:else}
       <div class="grid min-w-0 gap-5 p-5">
         {#if selectedMap.wildEncounters.variants.length > 0}
-          <section
-            class="min-w-0 border border-cartographer-border"
-            aria-label="Runtime encounter variants"
+          <CollapsibleSection
+            title="Runtime encounter variants"
+            count={selectedMap.wildEncounters.variants.length}
           >
-            <header
-              class="border-b border-cartographer-border bg-cartographer-panel-raised px-4 py-3"
-            >
-              <h3 class="m-0 text-sm font-semibold">Runtime encounter variants</h3>
-              <p class="mb-0 mt-1 text-sm text-cartographer-muted">
-                These entries follow the runtime's contiguous header lookup; missing headers are
-                shown without substituting another source set.
-              </p>
-            </header>
+            <p class="m-0 px-4 py-3 text-sm text-cartographer-muted">
+              These entries follow the runtime's contiguous header lookup; missing headers are shown
+              without substituting another source set.
+            </p>
             <ul class="m-0 grid list-none divide-y divide-cartographer-border p-0">
               {#each selectedMap.wildEncounters.variants as variant (variant.id)}
                 <li class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3">
@@ -112,30 +108,22 @@
                 </li>
               {/each}
             </ul>
-          </section>
+          </CollapsibleSection>
         {/if}
 
         {#each selectedMap.wildEncounters.sets as encounterSet, setIndex (`${encounterSet.baseLabel}-${setIndex}`)}
           {@const listedMethods = new Set(encounterSet.methods.map((method) => method.type))}
           {@const missingMethods = methodTypes.filter((type) => !listedMethods.has(type))}
-          <section
-            class="min-w-0 border border-cartographer-border"
-            aria-label={`Source set ${encounterSet.baseLabel}`}
+          <CollapsibleSection
+            title="Source set"
+            meta={encounterSet.baseLabel}
+            label={`Source set ${encounterSet.baseLabel}`}
           >
-            <header
-              class="border-b border-cartographer-border bg-cartographer-panel-raised px-4 py-3"
+            <p
+              class="m-0 break-all p-4 font-cartographer-mono text-[0.68rem] text-cartographer-muted"
             >
-              <p class="m-0 text-sm font-semibold">Source set</p>
-              <code
-                class="mt-1 block break-all font-cartographer-mono text-xs text-cartographer-signal-soft"
-                >{encounterSet.baseLabel}</code
-              >
-              <p
-                class="mb-0 mt-2 break-all font-cartographer-mono text-[0.68rem] text-cartographer-muted"
-              >
-                {encounterSet.source.path}{encounterSet.source.pointer}
-              </p>
-            </header>
+              {encounterSet.source.path}{encounterSet.source.pointer}
+            </p>
 
             {#if missingMethods.length > 0}
               <p
@@ -148,23 +136,18 @@
             <div class="grid divide-y divide-cartographer-border">
               {#each encounterSet.methods as method (method.type)}
                 {@const visibleSlots = visibleEncounterSlots(method)}
-                <section
-                  class="min-w-0 p-4"
-                  aria-label={`${methodLabels[method.type]} encounter method`}
+                <CollapsibleSection
+                  title={methodLabels[method.type]}
+                  meta={`Source rate ${method.encounterRate}`}
+                  label={`${methodLabels[method.type]} encounter method`}
                 >
-                  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <h3 class="m-0 text-base font-semibold">{methodLabels[method.type]}</h3>
-                    <p class="m-0 font-cartographer-mono text-xs text-cartographer-muted">
-                      Source rate {method.encounterRate}
-                    </p>
-                  </div>
                   <p
-                    class="mb-3 mt-1 font-cartographer-mono text-[0.68rem] text-cartographer-muted"
+                    class="mb-3 mt-0 px-4 pt-3 font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >
                     Slot weights are source table weights, not final player encounter probabilities.
                   </p>
                   {#if visibleSlots.length === 0}
-                    <p class="m-0 text-sm text-cartographer-muted">
+                    <p class="m-0 px-4 pb-4 text-sm text-cartographer-muted">
                       No non-zero source slots are recorded for this method.
                     </p>
                   {:else if method.type === "fishing_mons"}
@@ -172,7 +155,7 @@
                     {@const ungroupedSlots = visibleSlots.filter(
                       (slot) => slot.groups.length === 0,
                     )}
-                    <div class="grid min-w-0 gap-4">
+                    <div class="grid min-w-0 gap-4 px-4 pb-4">
                       {#each groupIds as groupId (groupId)}
                         <section
                           class="min-w-0 border border-cartographer-border"
@@ -204,12 +187,12 @@
                       {/if}
                     </div>
                   {:else}
-                    <EncounterSlotsTable slots={visibleSlots} />
+                    <div class="px-4 pb-4"><EncounterSlotsTable slots={visibleSlots} /></div>
                   {/if}
-                </section>
+                </CollapsibleSection>
               {/each}
             </div>
-          </section>
+          </CollapsibleSection>
         {/each}
       </div>
     {/if}

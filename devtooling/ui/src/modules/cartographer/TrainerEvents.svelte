@@ -3,6 +3,7 @@
   import { cn } from "./lib/cn.js"
   import type { ObjectSelection } from "./types.js"
   import Button from "./ui-toolkit/Button.svelte"
+  import CollapsibleSection from "./ui-toolkit/CollapsibleSection.svelte"
   import { mapImageUrl } from "./urls.js"
 
   type Props = {
@@ -19,25 +20,20 @@
   }
 </script>
 
-<section class="border-b border-cartographer-border p-5" aria-label="Trainer events">
-  <div class="flex items-baseline justify-between gap-3">
-    <div>
-      <h3 class="m-0 text-base font-semibold">Trainer events</h3>
-      <p class="mb-0 mt-1 text-sm leading-5 text-cartographer-muted">
-        Placed trainer events from this map’s source data.
-      </p>
-    </div>
-    <span class="shrink-0 font-cartographer-mono text-xs text-cartographer-amber"
-      >{trainers.length}</span
-    >
-  </div>
-
+<CollapsibleSection
+  title="Trainer events"
+  count={trainers.length}
+  open={trainers.some((trainer) => isSelected(trainer))}
+>
   {#if trainers.length === 0}
-    <p class="mb-0 mt-3 text-sm text-cartographer-muted">
+    <p class="m-0 p-4 text-sm text-cartographer-muted">
       No trainer events are recorded for this map.
     </p>
   {:else}
-    <ul class="m-0 mt-3 grid min-w-0 list-none gap-1.5 p-0">
+    <p class="m-0 px-4 pt-3 text-sm leading-5 text-cartographer-muted">
+      Placed trainer events from this map’s source data.
+    </p>
+    <ul class="m-0 grid min-w-0 list-none gap-1.5 p-4">
       {#each trainers as trainer (trainer.objectId)}
         <li class="min-w-0">
           <Button
@@ -79,4 +75,4 @@
       {/each}
     </ul>
   {/if}
-</section>
+</CollapsibleSection>
