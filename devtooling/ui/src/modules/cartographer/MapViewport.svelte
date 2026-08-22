@@ -92,7 +92,7 @@
   })
   const selectedEncounterStyle = new Style({
     fill: new Fill({ color: "rgba(0, 0, 0, 0)" }),
-    stroke: new Stroke({ color: cartographerColor("signal-strong"), width: 3 }),
+    stroke: new Stroke({ color: cartographerColor("signal-strong"), width: 5 }),
   })
   const encounterStyles = new Map<string, { frame: Style; label: Style }>()
   const encounterStyleFor = (methods: string, labelled: boolean): Style => {
@@ -747,8 +747,8 @@
       controls: [],
       layers: [
         ...imageRecords.map((record) => record.layer),
-        hitLayer,
         habitats,
+        hitLayer,
         encounterRosters,
         exits,
         objects,
