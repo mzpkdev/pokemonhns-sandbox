@@ -104,6 +104,15 @@
       stroke: new Stroke({ color: "#e5e7eb", width: 2 }),
     }),
   })
+  const lightSourceStyle = new Style({
+    image: new RegularShape({
+      points: 4,
+      radius: 5,
+      angle: Math.PI / 4,
+      fill: new Fill({ color: "#bac4cb" }),
+      stroke: new Stroke({ color: "#303942", width: 1 }),
+    }),
+  })
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
     stateful: new Style({
       image: new RegularShape({
@@ -176,6 +185,7 @@
   }
 
   const objectStyleFor = (object: CatalogObject): Style => {
+    if (object.graphicsId === "OBJ_EVENT_GFX_LIGHT_SPRITE") return lightSourceStyle
     const placeholder = objectPlaceholderFor(object)
     if (placeholder) return placeholderStyles[placeholder.kind]
     if (!object.sprite) return placeholderStyles.unresolved
