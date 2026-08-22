@@ -14,6 +14,15 @@ test("shows the cartographer", async ({ page }) => {
       ),
     )
     .toBe("#7f9875")
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--color-cartographer-signal-strong")
+          .trim(),
+      ),
+    )
+    .toBe("#d7e0e7")
 
   const mapSearch = page.getByRole("combobox", { name: "Name or map section" })
   await mapSearch.fill("Route29")
