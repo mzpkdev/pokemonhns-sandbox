@@ -8,6 +8,7 @@ type PaletteToken =
   | "diagnostic-panel"
   | "field"
   | "ink"
+  | "layout-overlap"
   | "muted"
   | "muted-soft"
   | "object-expression"

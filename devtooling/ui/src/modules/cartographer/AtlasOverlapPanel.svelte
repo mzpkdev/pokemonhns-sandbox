@@ -15,7 +15,7 @@
     aria-label="Atlas layout overlap details"
   >
     <p
-      class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.12em] text-cartographer-amber"
+      class="m-0 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.12em] text-cartographer-layout-overlap"
     >
       Atlas layout overlaps
     </p>

@@ -155,8 +155,8 @@
     zIndex: 1,
   })
   const atlasOverlapStyle = new Style({
-    fill: new Fill({ color: cartographerColorWithAlpha("amber", 0.24) }),
-    stroke: new Stroke({ color: cartographerColor("amber"), width: 2 }),
+    fill: new Fill({ color: cartographerColorWithAlpha("layout-overlap", 0.32) }),
+    stroke: new Stroke({ color: cartographerColor("layout-overlap"), width: 3 }),
     zIndex: 1,
   })
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
@@ -222,6 +222,7 @@
         objects: VectorLayer<VectorSource>
         topologyConflicts: VectorLayer<VectorSource>
         atlasOverlaps: VectorLayer<VectorSource>
+        imageLayers: ReadonlyMap<string, ImageLayer<ImageStatic>>
         geography: ReturnType<typeof solveGeography>
         extent: [number, number, number, number]
       }
@@ -260,6 +261,7 @@
   )
   let directTopologyMismatches = $derived(topologyDiagnostics.filter(isDirectMismatch))
   let atlasOverlaps = $derived(geography.overlaps)
+  let atlasOverlapMapNames = $derived(new Set(atlasOverlaps.flatMap((overlap) => overlap.maps)))
 
   const visualDirectMismatchFor = (
     diagnostic: CatalogDirectTopologyMismatch,
@@ -310,6 +312,9 @@
   const updateAtlasOverlapVisibility = (): void => {
     if (!instance) return
     instance.atlasOverlaps.setVisible(showAtlasOverlaps)
+    for (const [name, layer] of instance.imageLayers) {
+      layer.setOpacity(showAtlasOverlaps && atlasOverlapMapNames.has(name) ? 0.72 : 1)
+    }
   }
 
   const objectStyleFor = (object: CatalogObject): Style => {
@@ -589,6 +594,7 @@
       objects,
       topologyConflicts,
       atlasOverlaps: atlasOverlapLayer,
+      imageLayers: new Map(imageRecords.map((record) => [record.map.name, record.layer])),
       geography,
       extent,
     }
