@@ -127,6 +127,8 @@ export type MetatileContextIndex = {
   primaryTileset: string
   secondaryTileset: string
   mapCount: number
+  usedMetatileCount: number
+  placementCount: number
   path: string
 }
 

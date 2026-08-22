@@ -16,9 +16,17 @@
   }
 
   let visibleContexts = $derived(
-    contexts.filter((context) =>
-      labelFor(context).toLocaleLowerCase("en").includes(query.toLocaleLowerCase("en")),
-    ),
+    contexts
+      .filter((context) =>
+        labelFor(context).toLocaleLowerCase("en").includes(query.toLocaleLowerCase("en")),
+      )
+      .toSorted((left, right) => {
+        const usageDifference = right.usedMetatileCount - left.usedMetatileCount
+        if (usageDifference) return usageDifference
+        const placementDifference = right.placementCount - left.placementCount
+        if (placementDifference) return placementDifference
+        return labelFor(left).localeCompare(labelFor(right))
+      }),
   )
 </script>
 
@@ -46,7 +54,7 @@
     >
       <span class="break-words font-medium">{labelFor(context)}</span>
       <small class="break-words font-cartographer-mono text-[0.65rem] text-cartographer-muted"
-        >{context.mapCount} maps · {context.format}</small
+        >{context.mapCount} maps · {context.usedMetatileCount} used</small
       >
     </Button>
   {/each}

@@ -176,6 +176,7 @@ test("shows the cartographer", async ({ page }) => {
   ).toBeVisible()
   const unusedMetatiles = page.getByRole("checkbox", { name: "Include unused source metatiles" })
   await expect(unusedMetatiles).not.toBeChecked()
+  const unusedMetatilesControl = unusedMetatiles.locator("xpath=..")
 
   const metatileBrowser = page.getByLabel("Metatile browser")
   const firstMetatile = metatileBrowser.locator('button[aria-label*=":0x"]').first()
@@ -207,8 +208,20 @@ test("shows the cartographer", async ({ page }) => {
   await expect(
     metatileBrowser.getByText("This tileset has no metatiles used by maps in this render context."),
   ).toBeVisible()
+  const unusedMetatilesControlY = await unusedMetatilesControl.evaluate(
+    (control) =>
+      control.getBoundingClientRect().y - control.parentElement!.getBoundingClientRect().y,
+  )
   await page.getByText("Include unused source metatiles", { exact: true }).click()
   await expect(unusedMetatiles).toBeChecked()
+  await expect
+    .poll(() =>
+      unusedMetatilesControl.evaluate(
+        (control) =>
+          control.getBoundingClientRect().y - control.parentElement!.getBoundingClientRect().y,
+      ),
+    )
+    .toBe(unusedMetatilesControlY)
   await expect(metatileBrowser.getByText(/128 shown · 0 used/)).toBeVisible()
   await metatileBrowser.getByRole("button", { name: "Secondary", exact: true }).click()
   await expect(

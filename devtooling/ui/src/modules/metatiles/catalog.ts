@@ -73,6 +73,8 @@ export type MetatileCatalogContext = {
   primaryTileset: string
   secondaryTileset: string
   mapCount: number
+  usedMetatileCount: number
+  placementCount: number
   path: string
 }
 
@@ -280,9 +282,13 @@ const indexContextIssue = (value: unknown): string | null => {
     !hasString(context.secondaryTileset) ||
     !hasInteger(context.mapCount) ||
     context.mapCount < 0 ||
+    !hasInteger(context.usedMetatileCount) ||
+    context.usedMetatileCount < 0 ||
+    !hasInteger(context.placementCount) ||
+    context.placementCount < 0 ||
     !hasString(context.path)
   ) {
-    return "must include a format, source tilesets, map count, and context manifest path."
+    return "must include a format, source tilesets, usage counts, and context manifest path."
   }
   if (context.path.startsWith("/") || context.path.split("/").includes("..")) {
     return "uses an unsafe context manifest path."

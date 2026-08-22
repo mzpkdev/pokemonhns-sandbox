@@ -17,7 +17,7 @@
 
 <ArkCheckbox.Root
   bind:checked
-  class="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium whitespace-nowrap text-cartographer-muted"
+  class="flex cursor-pointer items-center gap-1.5 text-xs font-medium whitespace-nowrap text-cartographer-muted"
   onCheckedChange={handleCheckedChange}
 >
   <ArkCheckbox.Control

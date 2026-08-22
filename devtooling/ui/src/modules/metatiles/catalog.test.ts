@@ -77,6 +77,8 @@ const catalog = (overrides: Record<string, unknown> = {}): Record<string, unknow
         primaryTileset: "gTileset_General",
         secondaryTileset: "gTileset_Petalburg",
         mapCount: 1,
+        usedMetatileCount: 2,
+        placementCount: 2,
         path: "contexts/example/catalog.json",
       },
     ],

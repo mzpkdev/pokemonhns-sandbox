@@ -632,6 +632,14 @@ export const buildMetatileCatalog = (root: string, output: string): MetatileCata
       primaryTileset: context.primaryTileset,
       secondaryTileset: context.secondaryTileset,
       mapCount: context.maps.length,
+      usedMetatileCount: [...context.primary.metatiles, ...context.secondary.metatiles].filter(
+        (metatile) => metatile.usedBy.length > 0,
+      ).length,
+      placementCount: [...context.primary.metatiles, ...context.secondary.metatiles].reduce(
+        (total, metatile) =>
+          total + metatile.usedBy.reduce((usageTotal, usage) => usageTotal + usage.count, 0),
+        0,
+      ),
       path: posixRelative(output, path.join(directory, "catalog.json")),
     })
     metatileCount += context.primary.metatiles.length + context.secondary.metatiles.length
