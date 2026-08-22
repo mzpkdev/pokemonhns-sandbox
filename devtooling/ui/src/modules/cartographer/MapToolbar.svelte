@@ -7,7 +7,9 @@
     componentCount: number
     residualCount: number
     showExits: boolean
+    showObjects: boolean
     onToggleExits?: (value: boolean) => void
+    onToggleObjects?: (value: boolean) => void
     onZoomOut?: () => void
     onZoomIn?: () => void
     onFit?: () => void
@@ -18,7 +20,9 @@
     componentCount,
     residualCount,
     showExits,
+    showObjects,
     onToggleExits,
+    onToggleObjects,
     onZoomOut,
     onZoomIn,
     onFit,
@@ -35,6 +39,7 @@
     >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>
+  <Checkbox checked={showObjects} onCheckedChange={onToggleObjects}>Objects</Checkbox>
   <div class="ml-0 flex gap-1.5 sm:ml-auto" aria-label="Map controls">
     <Button class="px-2 py-1 text-xs" onclick={() => onZoomOut?.()}>−</Button>
     <Button class="px-2 py-1 text-xs" onclick={() => onZoomIn?.()}>+</Button>

@@ -15,4 +15,15 @@ test("shows the cartographer", async ({ page }) => {
   await expect(exits).not.toBeChecked()
   await page.getByLabel("Interactive cartographer").getByText("Exits", { exact: true }).click()
   await expect(exits).toBeChecked()
+
+  const objects = page.getByRole("checkbox", { name: "Objects" })
+  await expect(objects).not.toBeChecked()
+  await page.getByLabel("Interactive cartographer").getByText("Objects", { exact: true }).click()
+  await expect(objects).toBeChecked()
+
+  await mapSearch.fill("Route15")
+  await page.getByRole("option", { name: /Route15/ }).click()
+  await expect(page.getByRole("heading", { name: "Route15" })).toBeVisible()
+  await page.getByRole("button", { name: /OBJ_EVENT_GFX_ITEM_BALL/ }).click()
+  await expect(page.getByText("Route15_EventScript_PPup")).toBeVisible()
 })

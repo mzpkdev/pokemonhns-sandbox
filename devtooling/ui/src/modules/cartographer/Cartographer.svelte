@@ -10,10 +10,11 @@
     loadCatalog,
     type CatalogMap,
     type CatalogWarp,
+    type CatalogObject,
     type MapCatalog,
   } from "./catalog.js"
   import { visibleSurfaceMaps } from "./geography.js"
-  import type { WarpSelection } from "./types.js"
+  import type { ObjectSelection, WarpSelection } from "./types.js"
   import {
     cartographerUrlWithState,
     parseCartographerUrlState,
@@ -32,7 +33,9 @@
   let currentView = $state<CartographerViewState | null>(null)
   let searchQuery = $state("")
   let selectedWarp = $state<WarpSelection | null>(null)
+  let selectedObject = $state<ObjectSelection | null>(null)
   let showExits = $state(false)
+  let showObjects = $state(false)
   let focusToken = $state(0)
 
   onMount(() => {
@@ -97,6 +100,7 @@
     requestedRegion = map.region
     requestedMap = map.name
     selectedWarp = null
+    selectedObject = null
     if (focus && renderedMapNames.has(map.name)) focusToken += 1
     queueMicrotask(replaceUrl)
   }
@@ -105,6 +109,7 @@
     requestedRegion = region
     requestedMap = null
     selectedWarp = null
+    selectedObject = null
     currentView = null
     queueMicrotask(replaceUrl)
   }
@@ -112,7 +117,15 @@
   const selectWarp = (warp: CatalogWarp): void => {
     if (!selectedMap) return
     selectedWarp = { sourceMapName: selectedMap.name, warpId: warp.warpId }
+    selectedObject = null
     showExits = true
+  }
+
+  const selectObject = (object: CatalogObject): void => {
+    if (!selectedMap) return
+    selectedObject = { sourceMapName: selectedMap.name, objectId: object.objectId }
+    selectedWarp = null
+    showObjects = true
   }
 
   const handleCameraChange = (view: CartographerViewState): void => {
@@ -182,19 +195,29 @@
             {maps}
             selectedMapName={selectedMap?.name}
             {selectedWarp}
+            {selectedObject}
             {initialView}
             focusRequest={focusToken > 0 && selectedMap
               ? { mapName: selectedMap.name, token: focusToken }
               : null}
             {showExits}
+            {showObjects}
             onSelectMap={selectMap}
             onSelectWarp={(selection) => {
               selectMap(selection.sourceMapName)
               selectedWarp = selection
+              selectedObject = null
               showExits = true
+            }}
+            onSelectObject={(selection) => {
+              selectMap(selection.sourceMapName)
+              selectedObject = selection
+              selectedWarp = null
+              showObjects = true
             }}
             onCameraChange={handleCameraChange}
             onToggleExits={(value) => (showExits = value)}
+            onToggleObjects={(value) => (showObjects = value)}
           />
         {/key}
       </div>
@@ -202,8 +225,10 @@
         maps={catalog.maps}
         {selectedMap}
         {selectedWarp}
+        {selectedObject}
         {renderedMapNames}
         onSelectWarp={selectWarp}
+        onSelectObject={selectObject}
         onFocusMap={(name) => selectMap(name, true)}
       />
     </div>

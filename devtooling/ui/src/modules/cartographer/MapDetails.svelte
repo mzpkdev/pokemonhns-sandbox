@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { CatalogMap, CatalogWarp } from "./catalog.js"
-  import type { WarpSelection } from "./types.js"
+  import type { CatalogMap, CatalogObject, CatalogWarp } from "./catalog.js"
+  import type { ObjectSelection, WarpSelection } from "./types.js"
   import Button from "./ui-toolkit/Button.svelte"
   import { cn } from "./lib/cn.js"
 
@@ -8,13 +8,23 @@
     maps: readonly CatalogMap[]
     selectedMap: CatalogMap | null
     selectedWarp: WarpSelection | null
+    selectedObject: ObjectSelection | null
     renderedMapNames: ReadonlySet<string>
     onSelectWarp?: (warp: CatalogWarp) => void
+    onSelectObject?: (object: CatalogObject) => void
     onFocusMap?: (name: string) => void
   }
 
-  let { maps, selectedMap, selectedWarp, renderedMapNames, onSelectWarp, onFocusMap }: Props =
-    $props()
+  let {
+    maps,
+    selectedMap,
+    selectedWarp,
+    selectedObject,
+    renderedMapNames,
+    onSelectWarp,
+    onSelectObject,
+    onFocusMap,
+  }: Props = $props()
 
   const destinationFor = (warp: CatalogWarp): CatalogMap | null => {
     return (
@@ -39,6 +49,7 @@
       Select a plotted map or use the source search to inspect its layout and exits.
     </p>
   {:else}
+    {@const objects = selectedMap.objects ?? []}
     <p
       class="mb-1 font-cartographer-mono text-[0.68rem] font-bold tracking-[0.15em] text-cartographer-signal"
     >
@@ -122,6 +133,62 @@
                   variant="solid"
                   onclick={() => onFocusMap?.(destination.name)}>Focus {destination.name}</Button
                 >
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </section>
+    <section class="mt-5 border-t border-cartographer-border pt-4">
+      <div class="mb-2 flex items-center justify-between gap-3">
+        <h4 class="m-0 text-base font-semibold">Objects</h4>
+        <span class="font-cartographer-mono text-xs text-cartographer-amber">{objects.length}</span>
+      </div>
+      {#if objects.length === 0}
+        <p class="m-0 leading-6 text-cartographer-muted">This map has no catalogued objects.</p>
+      {:else}
+        <ul class="m-0 grid list-none gap-1.5 p-0">
+          {#each objects as object (object.objectId)}
+            {@const selected =
+              selectedObject?.sourceMapName === selectedMap.name &&
+              selectedObject?.objectId === object.objectId}
+            <li>
+              <Button
+                class={cn(
+                  "flex w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
+                  selected && "border-cartographer-signal bg-cartographer-signal/10",
+                )}
+                onclick={() => onSelectObject?.(object)}
+              >
+                <span>{object.graphicsId} · ({object.xMetatiles}, {object.yMetatiles})</span>
+                <small
+                  class="text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
+                  >{object.sprite ? "Sprite ready" : "No sprite"}</small
+                >
+              </Button>
+              {#if selected}
+                <dl
+                  class="m-0 grid gap-1 border-x border-b border-cartographer-border px-3 py-2 text-xs"
+                >
+                  <div class="flex justify-between gap-3">
+                    <dt class="text-cartographer-muted">Script</dt>
+                    <dd class="m-0 break-all text-right">{object.script}</dd>
+                  </div>
+                  <div class="flex justify-between gap-3">
+                    <dt class="text-cartographer-muted">Flag</dt>
+                    <dd class="m-0 break-all text-right">{object.flag}</dd>
+                  </div>
+                  <div class="flex justify-between gap-3">
+                    <dt class="text-cartographer-muted">Movement</dt>
+                    <dd class="m-0 break-all text-right">{object.movementType}</dd>
+                  </div>
+                  {#if !object.sprite}
+                    <div class="border-t border-cartographer-border pt-2 text-[#e7a1a9]">
+                      {object.diagnostic?.message ??
+                        "No source sprite resolved for this object. The map uses the fallback marker."}
+                    </div>
+                  {/if}
+                </dl>
               {/if}
             </li>
           {/each}

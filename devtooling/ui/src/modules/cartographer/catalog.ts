@@ -17,6 +17,34 @@ export type CatalogWarp = {
   destinationMap: string | null
 }
 
+export type CatalogObjectSprite = {
+  path: string
+  sha256: string
+  widthPixels: number
+  heightPixels: number
+  anchor: {
+    xPixels: number
+    yPixels: number
+  }
+  source: string
+}
+
+export type CatalogObject = {
+  objectId: string
+  graphicsId: string
+  xMetatiles: number
+  yMetatiles: number
+  elevation: number
+  movementType: string
+  movementRange: { x: number; y: number }
+  trainerType: string
+  trainerSightOrBerryTreeId: string
+  script: string
+  flag: string
+  sprite: CatalogObjectSprite | null
+  diagnostic: { code: string; message: string } | null
+}
+
 export type CatalogMap = {
   name: string
   id: string
@@ -60,6 +88,7 @@ export type CatalogMap = {
   }
   connections: CatalogConnection[]
   warps: CatalogWarp[]
+  objects: CatalogObject[]
 }
 
 export type MapCatalog = {

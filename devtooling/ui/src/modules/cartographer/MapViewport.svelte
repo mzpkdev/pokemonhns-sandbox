@@ -5,26 +5,28 @@
   import { fromExtent as polygonFromExtent } from "ol/geom/Polygon"
   import ImageLayer from "ol/layer/Image"
   import VectorLayer from "ol/layer/Vector"
-  import Map from "ol/Map"
+  import OpenLayersMap from "ol/Map"
   import Projection from "ol/proj/Projection"
   import ImageStatic from "ol/source/ImageStatic"
   import VectorSource from "ol/source/Vector"
   import Fill from "ol/style/Fill"
   import CircleStyle from "ol/style/Circle"
+  import Icon from "ol/style/Icon"
+  import RegularShape from "ol/style/RegularShape"
   import Stroke from "ol/style/Stroke"
   import Style from "ol/style/Style"
   import View from "ol/View"
   import "ol/ol.css"
 
   import MapToolbar from "./MapToolbar.svelte"
-  import type { CatalogMap, MapCatalog } from "./catalog.js"
+  import type { CatalogMap, CatalogObject, MapCatalog } from "./catalog.js"
   import {
     cartographerExtent,
     solveGeography,
     toOpenLayersExtent,
     visibleSurfaceMaps,
   } from "./geography.js"
-  import type { FocusRequest, WarpSelection } from "./types.js"
+  import type { FocusRequest, ObjectSelection, WarpSelection } from "./types.js"
   import { mapImageUrl, type CartographerViewState } from "./urls.js"
 
   type Props = {
@@ -32,13 +34,17 @@
     maps: CatalogMap[]
     selectedMapName?: string | null
     selectedWarp?: WarpSelection | null
+    selectedObject?: ObjectSelection | null
     initialView?: CartographerViewState | null
     focusRequest?: FocusRequest | null
     showExits?: boolean
+    showObjects?: boolean
     onSelectMap?: (name: string) => void
     onSelectWarp?: (selection: WarpSelection) => void
+    onSelectObject?: (selection: ObjectSelection) => void
     onCameraChange?: (view: CartographerViewState) => void
     onToggleExits?: (value: boolean) => void
+    onToggleObjects?: (value: boolean) => void
   }
 
   let {
@@ -46,13 +52,17 @@
     maps,
     selectedMapName = null,
     selectedWarp = null,
+    selectedObject = null,
     initialView = null,
     focusRequest = null,
     showExits = false,
+    showObjects = false,
     onSelectMap,
     onSelectWarp,
+    onSelectObject,
     onCameraChange,
     onToggleExits,
+    onToggleObjects,
   }: Props = $props()
 
   const baseStyle = new Style({
@@ -81,13 +91,31 @@
       stroke: new Stroke({ color: "#e5e7eb", width: 3 }),
     }),
   })
+  const selectedObjectStyle = new Style({
+    image: new CircleStyle({
+      radius: 9,
+      fill: new Fill({ color: "rgba(143, 167, 189, 0.24)" }),
+      stroke: new Stroke({ color: "#e5e7eb", width: 2 }),
+    }),
+  })
+  const unresolvedObjectStyle = new Style({
+    image: new RegularShape({
+      points: 4,
+      radius: 7,
+      angle: Math.PI / 4,
+      fill: new Fill({ color: "#9f5d68" }),
+      stroke: new Stroke({ color: "#14171a", width: 2 }),
+    }),
+  })
+  const objectStyles = new Map<string, Style>()
 
   let host = $state<HTMLDivElement | undefined>(undefined)
   let instance = $state<
     | {
-        map: Map
+        map: OpenLayersMap
         view: View
         exits: VectorLayer<VectorSource>
+        objects: VectorLayer<VectorSource>
         geography: ReturnType<typeof solveGeography>
         extent: [number, number, number, number]
       }
@@ -106,6 +134,32 @@
     )
   }
 
+  const updateObjectVisibility = (): void => {
+    if (!instance) return
+    instance.objects.setVisible(
+      showObjects || (instance.view.getResolution() ?? Number.POSITIVE_INFINITY) <= 10,
+    )
+  }
+
+  const objectStyleFor = (object: CatalogObject): Style => {
+    if (!object.sprite) return unresolvedObjectStyle
+    const existing = objectStyles.get(object.sprite.path)
+    if (existing) return existing
+    const style = new Style({
+      image: new Icon({
+        src: mapImageUrl(object.sprite.path),
+        width: object.sprite.widthPixels,
+        height: object.sprite.heightPixels,
+        anchor: [object.sprite.anchor.xPixels, object.sprite.anchor.yPixels],
+        anchorXUnits: "pixels",
+        anchorYUnits: "pixels",
+        crossOrigin: "anonymous",
+      }),
+    })
+    objectStyles.set(object.sprite.path, style)
+    return style
+  }
+
   const focusMap = (name: string): void => {
     if (!instance) return
     const placement = instance.geography.placements[name]
@@ -119,6 +173,7 @@
   $effect(() => {
     if (!instance) return
     updateExitVisibility()
+    updateObjectVisibility()
     instance.map.render()
   })
 
@@ -157,6 +212,7 @@
     })
     const hitSource = new VectorSource()
     const exitSource = new VectorSource()
+    const objectSource = new VectorSource()
     for (const map of surfaceMaps) {
       const placement = geography.placements[map.name]!
       hitSource.addFeature(
@@ -177,6 +233,19 @@
           }),
         )
       }
+      for (const object of map.objects ?? []) {
+        objectSource.addFeature(
+          new Feature({
+            geometry: new Point([
+              (placement.x + object.xMetatiles + 0.5) * catalog.pixelsPerMetatile,
+              -(placement.y + object.yMetatiles + 1) * catalog.pixelsPerMetatile,
+            ]),
+            mapName: map.name,
+            objectId: object.objectId,
+            object,
+          }),
+        )
+      }
     }
     const hitLayer = new VectorLayer({
       source: hitSource,
@@ -194,15 +263,27 @@
           ? selectedExitStyle
           : exitStyle,
     })
+    const objects = new VectorLayer({
+      source: objectSource,
+      style: (feature) => {
+        const object = feature.get("object") as CatalogObject | undefined
+        if (!object) return unresolvedObjectStyle
+        const selected =
+          selectedObject?.sourceMapName === feature.get("mapName") &&
+          selectedObject?.objectId === feature.get("objectId")
+        const objectStyle = objectStyleFor(object)
+        return selected ? [selectedObjectStyle, objectStyle] : objectStyle
+      },
+    })
     const view = new View({
       projection,
       center: [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2],
       zoom: 0,
     })
-    const map = new Map({
+    const map = new OpenLayersMap({
       target: mapHost,
       controls: [],
-      layers: [...imageRecords.map((record) => record.layer), hitLayer, exits],
+      layers: [...imageRecords.map((record) => record.layer), hitLayer, exits, objects],
       view,
     })
     let showingNative = false
@@ -214,6 +295,7 @@
         onCameraChange?.({ center: [x, y], zoom })
       }
       updateExitVisibility()
+      updateObjectVisibility()
       const shouldShowNative = (view.getResolution() ?? Number.POSITIVE_INFINITY) <= 16
       if (shouldShowNative === showingNative) return
       showingNative = shouldShowNative
@@ -236,24 +318,36 @@
       mapHost.style.cursor = name ? "pointer" : ""
     })
     map.on("singleclick", (event) => {
-      const chosen: { value: { mapName: string; warpId?: string } | null } = { value: null }
+      const chosen: {
+        value: { mapName: string; warpId?: string; objectId?: string } | null
+      } = { value: null }
       map.forEachFeatureAtPixel(
         event.pixel,
         (feature) => {
           const mapName = feature.get("mapName")
           if (typeof mapName !== "string") return undefined
           const warpId = feature.get("warpId")
-          chosen.value = { mapName, ...(typeof warpId === "string" ? { warpId } : {}) }
-          return typeof warpId === "string"
+          const objectId = feature.get("objectId")
+          chosen.value = {
+            mapName,
+            ...(typeof warpId === "string" ? { warpId } : {}),
+            ...(typeof objectId === "string" ? { objectId } : {}),
+          }
+          return typeof warpId === "string" || typeof objectId === "string"
         },
-        { hitTolerance: 12, layerFilter: (layer) => layer === hitLayer || layer === exits },
+        {
+          hitTolerance: 12,
+          layerFilter: (layer) => layer === hitLayer || layer === exits || layer === objects,
+        },
       )
       if (!chosen.value) return
       onSelectMap?.(chosen.value.mapName)
       if (chosen.value.warpId)
         onSelectWarp?.({ sourceMapName: chosen.value.mapName, warpId: chosen.value.warpId })
+      if (chosen.value.objectId)
+        onSelectObject?.({ sourceMapName: chosen.value.mapName, objectId: chosen.value.objectId })
     })
-    instance = { map, view, exits, geography, extent }
+    instance = { map, view, exits, objects, geography, extent }
     view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })
     if (initialView) {
       view.setCenter(initialView.center)
@@ -277,7 +371,9 @@
       componentCount={geography.components.length}
       residualCount={geography.residualCount}
       {showExits}
+      {showObjects}
       {onToggleExits}
+      {onToggleObjects}
       onZoomOut={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}
       onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
@@ -290,8 +386,8 @@
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
-      Pan, scroll, or pinch to inspect. Select a map for source details. Exits appear at close
-      range.
+      Pan, scroll, or pinch to inspect. Select a map for source details. Exits and objects appear at
+      close range.
     </p>
   </section>
 {:else}

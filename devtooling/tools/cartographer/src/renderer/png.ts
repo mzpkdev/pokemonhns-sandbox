@@ -41,8 +41,8 @@ export const readIndexedPng = (filePath: string): IndexedPng => {
   const { header, imageData } = readPngData(filePath)
   const width = header.readUInt32BE(0)
   const height = header.readUInt32BE(4)
-  const depth = header[8]
-  const color = header[9]
+  const depth = header[8] ?? 0
+  const color = header[9] ?? 0
   const interlace = header[12]
   if (color !== 3 || (depth !== 4 && depth !== 8) || interlace !== 0) {
     throw new Error(`unsupported PNG format in ${filePath}: depth=${depth}, color=${color}`)
@@ -138,6 +138,191 @@ export const writeRgbPng = (
   header.writeUInt32BE(height, 4)
   header[8] = 8
   header[9] = 2
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  fs.writeFileSync(
+    filePath,
+    Buffer.concat([
+      Buffer.from(pngSignature, "hex"),
+      pngChunk("IHDR", header),
+      pngChunk("IDAT", zlib.deflateSync(raw, { level: 9 })),
+      pngChunk("IEND", Buffer.alloc(0)),
+    ]),
+  )
+}
+
+type RgbaPng = {
+  width: number
+  height: number
+  pixels: Uint8Array
+}
+
+const unfilterPngRows = (
+  raw: Buffer,
+  stride: number,
+  height: number,
+  bytesPerPixel: number,
+): Uint8Array => {
+  const rows = new Uint8Array(height * stride)
+  let inputOffset = 0
+  for (let y = 0; y < height; y += 1) {
+    const filter = raw[inputOffset]!
+    inputOffset += 1
+    const outputOffset = y * stride
+    for (let x = 0; x < stride; x += 1) {
+      const source = raw[inputOffset + x]!
+      const left = x < bytesPerPixel ? 0 : rows[outputOffset + x - bytesPerPixel]!
+      const above = y === 0 ? 0 : rows[outputOffset - stride + x]!
+      const upperLeft =
+        y === 0 || x < bytesPerPixel ? 0 : rows[outputOffset - stride + x - bytesPerPixel]!
+      if (filter === 0) {
+        rows[outputOffset + x] = source
+      } else if (filter === 1) {
+        rows[outputOffset + x] = (source + left) & 0xff
+      } else if (filter === 2) {
+        rows[outputOffset + x] = (source + above) & 0xff
+      } else if (filter === 3) {
+        rows[outputOffset + x] = (source + Math.floor((left + above) / 2)) & 0xff
+      } else if (filter === 4) {
+        const estimate = left + above - upperLeft
+        const leftDistance = Math.abs(estimate - left)
+        const aboveDistance = Math.abs(estimate - above)
+        const upperLeftDistance = Math.abs(estimate - upperLeft)
+        const predictor =
+          leftDistance <= aboveDistance && leftDistance <= upperLeftDistance
+            ? left
+            : aboveDistance <= upperLeftDistance
+              ? above
+              : upperLeft
+        rows[outputOffset + x] = (source + predictor) & 0xff
+      } else {
+        throw new Error(`unsupported PNG filter ${filter}`)
+      }
+    }
+    inputOffset += stride
+  }
+  return rows
+}
+
+const readRgbaPng = (filePath: string): RgbaPng => {
+  const data = fs.readFileSync(filePath)
+  if (data.subarray(0, 8).toString("hex") !== pngSignature) {
+    throw new Error(`not a PNG: ${filePath}`)
+  }
+
+  let position = 8
+  let header: Buffer | undefined
+  let palette: Buffer | undefined
+  let transparency: Buffer | undefined
+  const imageData: Buffer[] = []
+  while (position < data.length) {
+    const size = data.readUInt32BE(position)
+    const kind = data.subarray(position + 4, position + 8).toString("ascii")
+    const payloadStart = position + 8
+    const payloadEnd = payloadStart + size
+    const payload = data.subarray(payloadStart, payloadEnd)
+    position = payloadEnd + 4
+    if (kind === "IHDR") {
+      header = payload
+    } else if (kind === "PLTE") {
+      palette = payload
+    } else if (kind === "tRNS") {
+      transparency = payload
+    } else if (kind === "IDAT") {
+      imageData.push(payload)
+    } else if (kind === "IEND") {
+      break
+    }
+  }
+  if (!header || header.length !== 13) {
+    throw new Error(`missing PNG header: ${filePath}`)
+  }
+  const width = header.readUInt32BE(0)
+  const height = header.readUInt32BE(4)
+  const depth = header[8] ?? 0
+  const color = header[9] ?? 0
+  if (
+    header[12] !== 0 ||
+    (color !== 3 && color !== 6) ||
+    (color === 3 && depth !== 4 && depth !== 8) ||
+    (color === 6 && depth !== 8)
+  ) {
+    throw new Error(`unsupported sprite PNG format in ${filePath}: depth=${depth}, color=${color}`)
+  }
+  const bytesPerPixel = color === 3 ? 1 : 4
+  const stride = color === 3 ? Math.ceil((width * depth) / 8) : width * bytesPerPixel
+  const rows = unfilterPngRows(
+    zlib.inflateSync(Buffer.concat(imageData)),
+    stride,
+    height,
+    bytesPerPixel,
+  )
+  const pixels = new Uint8Array(width * height * 4)
+  if (color === 6) {
+    pixels.set(rows)
+    return { width, height, pixels }
+  }
+  if (!palette) {
+    throw new Error(`indexed sprite PNG is missing a palette: ${filePath}`)
+  }
+  for (let index = 0; index < width * height; index += 1) {
+    const packedIndex =
+      Math.floor(((index % width) * depth) / 8) + Math.floor(index / width) * stride
+    const packed = rows[packedIndex]!
+    const paletteIndex =
+      depth === 4 && index % 2 === 0 ? packed >> 4 : depth === 4 ? packed & 0x0f : packed
+    const paletteOffset = paletteIndex * 3
+    if (paletteOffset + 2 >= palette.length) {
+      throw new Error(`sprite PNG references a missing palette entry: ${filePath}`)
+    }
+    const outputOffset = index * 4
+    pixels[outputOffset] = palette[paletteOffset]!
+    pixels[outputOffset + 1] = palette[paletteOffset + 1]!
+    pixels[outputOffset + 2] = palette[paletteOffset + 2]!
+    pixels[outputOffset + 3] = paletteIndex === 0 ? 0 : (transparency?.[paletteIndex] ?? 255)
+  }
+  return { width, height, pixels }
+}
+
+export const cropSpriteFrame = (
+  input: string,
+  frame: { index: number; width: number; height: number },
+): RgbaPng => {
+  const sprite = readRgbaPng(input)
+  const x = frame.index * frame.width
+  if (frame.index < 0 || x + frame.width > sprite.width || frame.height > sprite.height) {
+    throw new Error(
+      `${input}: frame ${frame.index} (${frame.width}x${frame.height}) is outside ${sprite.width}x${sprite.height}`,
+    )
+  }
+  const pixels = new Uint8Array(frame.width * frame.height * 4)
+  for (let y = 0; y < frame.height; y += 1) {
+    const sourceStart = (y * sprite.width + x) * 4
+    pixels.set(
+      sprite.pixels.subarray(sourceStart, sourceStart + frame.width * 4),
+      y * frame.width * 4,
+    )
+  }
+  return { width: frame.width, height: frame.height, pixels }
+}
+
+export const writeRgbaPng = (
+  filePath: string,
+  width: number,
+  height: number,
+  pixels: Uint8Array,
+): void => {
+  const stride = width * 4
+  const raw = Buffer.alloc(height * (stride + 1))
+  for (let y = 0; y < height; y += 1) {
+    const outputOffset = y * (stride + 1)
+    raw[outputOffset] = 0
+    Buffer.from(pixels).copy(raw, outputOffset + 1, y * stride, (y + 1) * stride)
+  }
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header[8] = 8
+  header[9] = 6
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(
     filePath,

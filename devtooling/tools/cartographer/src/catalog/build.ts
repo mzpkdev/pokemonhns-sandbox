@@ -8,6 +8,8 @@ import {
   writeNearestNeighborOverview,
 } from "../renderer"
 import { catalogRegions, categoryFor, mapOutputPaths, regionFor } from "./classify"
+import { catalogObjects, objectSourceTables } from "./objects"
+import type { ObjectSourceTables } from "./objects"
 import {
   posixRelative,
   sha256,
@@ -26,6 +28,7 @@ const createCatalogMap = (
   layout: Layout,
   group: string,
   namesById: Map<string, string>,
+  objectTables: ObjectSourceTables,
 ): CatalogMap => {
   const region = regionFor(name, group)
   const category = categoryFor(source.map_type)
@@ -37,6 +40,12 @@ const createCatalogMap = (
   const widthPixels = layout.width * 16
   const heightPixels = layout.height * 16
 
+  const objects = catalogObjects(
+    root,
+    output,
+    Array.isArray(source.object_events) ? source.object_events : [],
+    objectTables,
+  )
   return {
     name,
     id: source.id,
@@ -95,6 +104,7 @@ const createCatalogMap = (
       destinationMapId: warp.dest_map,
       destinationMap: namesById.get(warp.dest_map) ?? null,
     })),
+    objects,
   }
 }
 
@@ -105,6 +115,7 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
   const exteriorMaps = discoverExteriorMaps(root)
   const mapsByName = sourceMaps(root, exteriorMaps)
   const namesById = new Map([...mapsByName].map(([name, map]) => [map.id, name]))
+  const objectTables = objectSourceTables(root)
   const maps: CatalogMap[] = []
 
   for (const name of exteriorMaps) {
@@ -125,6 +136,7 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
         layout,
         groups.get(name) ?? "gMapGroup_Unassigned",
         namesById,
+        objectTables,
       ),
     )
   }
@@ -135,6 +147,20 @@ export const renderCatalog = (root: string, output: string): RenderCatalogResult
     format: "pokemonhns-exterior-map-catalog",
     pixelsPerMetatile: 16,
     source: sourceState(root),
+    diagnostics: maps.flatMap((map) =>
+      map.objects.flatMap((object) =>
+        object.diagnostic
+          ? [
+              {
+                map: map.name,
+                objectId: object.objectId,
+                graphicsId: object.graphicsId,
+                ...object.diagnostic,
+              },
+            ]
+          : [],
+      ),
+    ),
     regions: catalogRegions.map((region) => {
       const names = maps.filter((map) => map.region === region.id).map((map) => map.name)
       return { ...region, mapCount: names.length, maps: names }

@@ -12,6 +12,20 @@ export type WarpEvent = {
   dest_warp_id: string
 }
 
+export type ObjectEvent = {
+  graphics_id: string
+  x: number
+  y: number
+  elevation: number
+  movement_type: string
+  movement_range_x: number
+  movement_range_y: number
+  trainer_type: string
+  trainer_sight_or_berry_tree_id: string
+  script: string
+  flag: string
+}
+
 export type SourceMap = {
   id: string
   layout: string
@@ -23,6 +37,7 @@ export type SourceMap = {
   show_map_name?: boolean
   connections?: MapConnection[]
   warp_events?: WarpEvent[]
+  object_events?: ObjectEvent[]
 }
 
 export type Layout = {
@@ -104,6 +119,28 @@ export type CatalogMap = {
     destinationMapId: string
     destinationMap: string | null
   }>
+  objects: Array<{
+    objectId: string
+    graphicsId: string
+    xMetatiles: number
+    yMetatiles: number
+    elevation: number
+    movementType: string
+    movementRange: { x: number; y: number }
+    trainerType: string
+    trainerSightOrBerryTreeId: string
+    script: string
+    flag: string
+    sprite: {
+      path: string
+      sha256: string
+      widthPixels: number
+      heightPixels: number
+      anchor: { xPixels: number; yPixels: number }
+      source: string
+    } | null
+    diagnostic: { code: string; message: string } | null
+  }>
 }
 
 export type MapCatalog = {
@@ -115,6 +152,13 @@ export type MapCatalog = {
     revision: string
     workingTreeDirty: boolean
   }
+  diagnostics: Array<{
+    map: string
+    objectId: string
+    graphicsId: string
+    code: string
+    message: string
+  }>
   regions: Array<CatalogRegion & { mapCount: number; maps: string[] }>
   maps: CatalogMap[]
 }
