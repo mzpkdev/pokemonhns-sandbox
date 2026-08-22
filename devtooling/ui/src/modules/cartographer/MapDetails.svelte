@@ -269,28 +269,28 @@
           This map has no catalogued objects.
         </p>
       {:else}
-        <ul class="m-0 grid list-none gap-1.5 p-4">
+        <ul class="m-0 grid min-w-0 list-none gap-1.5 p-4">
           {#each objects as object (object.objectId)}
             {@const selected =
               selectedObject?.sourceMapName === selectedMap.name &&
               selectedObject?.objectId === object.objectId}
             {@const placeholder = objectPlaceholderFor(object)}
-            <li>
+            <li class="min-w-0">
               <Button
                 class={cn(
-                  "flex w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
+                  "flex min-w-0 w-full items-center justify-between gap-3 border-cartographer-border px-3 py-2 text-left font-cartographer-mono text-xs hover:border-cartographer-signal hover:bg-cartographer-signal/10 focus-visible:outline-cartographer-signal",
                   selected && "border-cartographer-signal bg-cartographer-signal/10",
                 )}
                 onclick={() => onSelectObject?.(object)}
               >
-                <span>
+                <span class="min-w-0 flex-1">
                   <span class="block"
                     >{object.kind.label} · ({object.xMetatiles}, {object.yMetatiles})</span
                   >
-                  <small class="block text-cartographer-muted">{object.graphicsId}</small>
+                  <small class="block break-all text-cartographer-muted">{object.graphicsId}</small>
                 </span>
                 <small
-                  class="text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
+                  class="shrink-0 text-right font-cartographer-mono text-[0.68rem] text-cartographer-muted"
                   >{selected
                     ? "Selected"
                     : object.sprite

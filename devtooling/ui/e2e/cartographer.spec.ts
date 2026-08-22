@@ -60,6 +60,20 @@ test("shows the cartographer", async ({ page }) => {
   await expect(page.getByText("Route15_EventScript_PPup")).toBeVisible()
   await expect(page.getByText("Sprite", { exact: true })).toBeVisible()
 
+  await mapSearch.fill("Route20")
+  await page.getByRole("option", { name: /Route20/ }).click()
+  await expect(page.getByRole("heading", { name: "Route20" })).toBeVisible()
+  const route20Inspector = page.getByRole("complementary").last()
+  await route20Inspector.locator('details[aria-label="Objects"] summary').click()
+  await expect
+    .poll(() =>
+      route20Inspector.evaluate((inspector) => inspector.scrollWidth <= inspector.clientWidth),
+    )
+    .toBe(true)
+  await expect
+    .poll(() => page.evaluate(() => document.body.scrollWidth === document.body.clientWidth))
+    .toBe(true)
+
   await mapSearch.fill("Route32")
   await page.getByRole("option", { name: /Route32/ }).click()
   await expect(page.getByRole("checkbox", { name: /Topology diagnostics/ })).toHaveCount(0)
