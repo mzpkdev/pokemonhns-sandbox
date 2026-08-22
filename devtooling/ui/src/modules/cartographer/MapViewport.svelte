@@ -10,7 +10,6 @@
   import ImageStatic from "ol/source/ImageStatic"
   import VectorSource from "ol/source/Vector"
   import Fill from "ol/style/Fill"
-  import CircleStyle from "ol/style/Circle"
   import Icon from "ol/style/Icon"
   import RegularShape from "ol/style/RegularShape"
   import Stroke from "ol/style/Stroke"
@@ -79,22 +78,28 @@
     stroke: new Stroke({ color: "#c0a778", width: 2 }),
   })
   const exitStyle = new Style({
-    image: new CircleStyle({
-      radius: 9,
-      fill: new Fill({ color: "#c0a778" }),
-      stroke: new Stroke({ color: "#14171a", width: 3 }),
+    image: new RegularShape({
+      points: 4,
+      radius: 6,
+      angle: Math.PI / 4,
+      fill: new Fill({ color: "rgba(20, 23, 26, 0.72)" }),
+      stroke: new Stroke({ color: "#9aa9b5", width: 1.5 }),
     }),
   })
   const selectedExitStyle = new Style({
-    image: new CircleStyle({
-      radius: 11,
-      fill: new Fill({ color: "#8fa7bd" }),
-      stroke: new Stroke({ color: "#e5e7eb", width: 3 }),
+    image: new RegularShape({
+      points: 4,
+      radius: 8,
+      angle: Math.PI / 4,
+      fill: new Fill({ color: "rgba(143, 167, 189, 0.32)" }),
+      stroke: new Stroke({ color: "#d7e0e7", width: 2 }),
     }),
   })
   const selectedObjectStyle = new Style({
-    image: new CircleStyle({
+    image: new RegularShape({
+      points: 4,
       radius: 9,
+      angle: Math.PI / 4,
       fill: new Fill({ color: "rgba(143, 167, 189, 0.24)" }),
       stroke: new Stroke({ color: "#e5e7eb", width: 2 }),
     }),
