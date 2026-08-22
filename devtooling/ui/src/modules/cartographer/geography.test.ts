@@ -31,5 +31,11 @@ describe("solveGeography", () => {
       Bravo: { x: 10, y: 0 },
       Charlie: { x: 10, y: 0 },
     })
+    expect(geography.overlaps).toEqual([
+      {
+        maps: ["Bravo", "Charlie"],
+        area: { x: 10, y: 0, width: 10, height: 10 },
+      },
+    ])
   })
 })

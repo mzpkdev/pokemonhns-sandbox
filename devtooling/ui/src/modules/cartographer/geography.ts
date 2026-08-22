@@ -12,6 +12,12 @@ export type Placement = {
 export type Geography = {
   placements: Record<string, Placement>
   components: Array<{ id: string; maps: string[]; bounds: Placement }>
+  overlaps: AtlasLayoutOverlap[]
+}
+
+export type AtlasLayoutOverlap = {
+  maps: [string, string]
+  area: Placement
 }
 
 const cardinalDirections = new Set<CardinalDirection>(["up", "down", "left", "right"])
@@ -67,6 +73,29 @@ const boundsFor = (names: readonly string[], placements: Record<string, Placemen
     bottom = Math.max(bottom, placement.y + placement.height)
   }
   return { x: left, y: top, width: right - left, height: bottom - top }
+}
+
+const atlasOverlapsFor = (
+  names: readonly string[],
+  placements: Record<string, Placement>,
+): AtlasLayoutOverlap[] => {
+  const overlaps: AtlasLayoutOverlap[] = []
+  for (const [index, firstName] of names.entries()) {
+    const first = placements[firstName]!
+    for (const secondName of names.slice(index + 1)) {
+      const second = placements[secondName]!
+      const left = Math.max(first.x, second.x)
+      const top = Math.max(first.y, second.y)
+      const right = Math.min(first.x + first.width, second.x + second.width)
+      const bottom = Math.min(first.y + first.height, second.y + second.height)
+      if (left >= right || top >= bottom) continue
+      overlaps.push({
+        maps: [firstName, secondName],
+        area: { x: left, y: top, width: right - left, height: bottom - top },
+      })
+    }
+  }
+  return overlaps
 }
 
 /** The default cartographer only places surface maps that the catalog exposes by default. */
@@ -179,7 +208,14 @@ export const solveGeography = (maps: readonly CatalogMap[]): Geography => {
     x += component.bounds.width + componentGap
     shelfHeight = Math.max(shelfHeight, component.bounds.height)
   }
-  return { placements, components: packed }
+  return {
+    placements,
+    components: packed,
+    overlaps: atlasOverlapsFor(
+      ordered.map((map) => map.name),
+      placements,
+    ),
+  }
 }
 
 export const toOpenLayersExtent = (

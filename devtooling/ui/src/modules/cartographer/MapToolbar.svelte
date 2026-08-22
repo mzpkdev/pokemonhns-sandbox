@@ -6,12 +6,15 @@
     surfaceMapCount: number
     componentCount: number
     topologyDiagnosticCount: number
+    atlasOverlapCount: number
     showTopologyConflicts: boolean
+    showAtlasOverlaps: boolean
     showExits: boolean
     showObjects: boolean
     onToggleExits?: (value: boolean) => void
     onToggleObjects?: (value: boolean) => void
     onToggleTopologyConflicts?: (value: boolean) => void
+    onToggleAtlasOverlaps?: (value: boolean) => void
     onZoomOut?: () => void
     onZoomIn?: () => void
     onFit?: () => void
@@ -21,12 +24,15 @@
     surfaceMapCount,
     componentCount,
     topologyDiagnosticCount,
+    atlasOverlapCount,
     showTopologyConflicts,
+    showAtlasOverlaps,
     showExits,
     showObjects,
     onToggleExits,
     onToggleObjects,
     onToggleTopologyConflicts,
+    onToggleAtlasOverlaps,
     onZoomOut,
     onZoomIn,
     onFit,
@@ -40,6 +46,11 @@
   {#if topologyDiagnosticCount > 0}
     <Checkbox checked={showTopologyConflicts} onCheckedChange={onToggleTopologyConflicts}
       >Topology diagnostics ({topologyDiagnosticCount})</Checkbox
+    >
+  {/if}
+  {#if atlasOverlapCount > 0}
+    <Checkbox checked={showAtlasOverlaps} onCheckedChange={onToggleAtlasOverlaps}
+      >Atlas overlaps ({atlasOverlapCount})</Checkbox
     >
   {/if}
   <Checkbox checked={showExits} onCheckedChange={onToggleExits}>Exits</Checkbox>

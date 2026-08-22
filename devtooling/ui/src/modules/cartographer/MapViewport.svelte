@@ -20,6 +20,7 @@
   import "ol/ol.css"
 
   import MapToolbar from "./MapToolbar.svelte"
+  import AtlasOverlapPanel from "./AtlasOverlapPanel.svelte"
   import TopologyConflictPanel from "./TopologyConflictPanel.svelte"
   import type {
     CatalogMap,
@@ -153,6 +154,11 @@
     stroke: new Stroke({ color: cartographerColor("diagnostic-line"), width: 2, lineDash: [5, 5] }),
     zIndex: 1,
   })
+  const atlasOverlapStyle = new Style({
+    fill: new Fill({ color: cartographerColorWithAlpha("amber", 0.24) }),
+    stroke: new Stroke({ color: cartographerColor("amber"), width: 2 }),
+    zIndex: 1,
+  })
   const placeholderStyles: Record<ObjectPlaceholderKind, Style> = {
     stateful: new Style({
       image: new RegularShape({
@@ -214,7 +220,8 @@
         view: View
         exits: VectorLayer<VectorSource>
         objects: VectorLayer<VectorSource>
-        conflicts: VectorLayer<VectorSource>
+        topologyConflicts: VectorLayer<VectorSource>
+        atlasOverlaps: VectorLayer<VectorSource>
         geography: ReturnType<typeof solveGeography>
         extent: [number, number, number, number]
       }
@@ -222,6 +229,7 @@
   >(undefined)
   let hoveredMap = $state<string | null>(null)
   let showTopologyConflicts = $state(false)
+  let showAtlasOverlaps = $state(false)
 
   let surfaceMaps = $derived(visibleSurfaceMaps(maps))
   let geography = $derived(solveGeography(surfaceMaps))
@@ -251,6 +259,7 @@
     }),
   )
   let directTopologyMismatches = $derived(topologyDiagnostics.filter(isDirectMismatch))
+  let atlasOverlaps = $derived(geography.overlaps)
 
   const visualDirectMismatchFor = (
     diagnostic: CatalogDirectTopologyMismatch,
@@ -295,7 +304,12 @@
 
   const updateTopologyConflictVisibility = (): void => {
     if (!instance) return
-    instance.conflicts.setVisible(showTopologyConflicts)
+    instance.topologyConflicts.setVisible(showTopologyConflicts)
+  }
+
+  const updateAtlasOverlapVisibility = (): void => {
+    if (!instance) return
+    instance.atlasOverlaps.setVisible(showAtlasOverlaps)
   }
 
   const objectStyleFor = (object: CatalogObject): Style => {
@@ -335,6 +349,7 @@
     updateExitVisibility()
     updateObjectVisibility()
     updateTopologyConflictVisibility()
+    updateAtlasOverlapVisibility()
     instance.map.render()
   })
 
@@ -375,6 +390,7 @@
     const exitSource = new VectorSource()
     const objectSource = new VectorSource()
     const conflictSource = new VectorSource()
+    const overlapSource = new VectorSource()
     for (const map of surfaceMaps) {
       const placement = geography.placements[map.name]!
       hitSource.addFeature(
@@ -435,6 +451,13 @@
         )
       }
     }
+    for (const overlap of atlasOverlaps) {
+      overlapSource.addFeature(
+        new Feature({
+          geometry: polygonFromExtent(toOpenLayersExtent(overlap.area, catalog.pixelsPerMetatile)),
+        }),
+      )
+    }
     const hitLayer = new VectorLayer({
       source: hitSource,
       style: (feature) => {
@@ -467,13 +490,18 @@
         return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(objectStyle, resolution)]
       },
     })
-    const conflicts = new VectorLayer({
+    const topologyConflicts = new VectorLayer({
       source: conflictSource,
       style: (feature) => {
         if (feature.get("kind") !== "forward") return mismatchLineStyle
         return directMismatchStyleFor(feature.get("expectedMapName") as string)
       },
       visible: showTopologyConflicts,
+    })
+    const atlasOverlapLayer = new VectorLayer({
+      source: overlapSource,
+      style: atlasOverlapStyle,
+      visible: showAtlasOverlaps,
     })
     const view = new View({
       projection,
@@ -483,7 +511,14 @@
     const map = new OpenLayersMap({
       target: mapHost,
       controls: [],
-      layers: [...imageRecords.map((record) => record.layer), hitLayer, exits, objects, conflicts],
+      layers: [
+        ...imageRecords.map((record) => record.layer),
+        hitLayer,
+        exits,
+        objects,
+        topologyConflicts,
+        atlasOverlapLayer,
+      ],
       view,
     })
     let showingNative = false
@@ -547,7 +582,16 @@
       if (chosen.value.objectId)
         onSelectObject?.({ sourceMapName: chosen.value.mapName, objectId: chosen.value.objectId })
     })
-    instance = { map, view, exits, objects, conflicts, geography, extent }
+    instance = {
+      map,
+      view,
+      exits,
+      objects,
+      topologyConflicts,
+      atlasOverlaps: atlasOverlapLayer,
+      geography,
+      extent,
+    }
     view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })
     if (initialView) {
       view.setCenter(initialView.center)
@@ -570,12 +614,15 @@
       surfaceMapCount={surfaceMaps.length}
       componentCount={geography.components.length}
       topologyDiagnosticCount={topologyDiagnostics.length}
+      atlasOverlapCount={atlasOverlaps.length}
       {showTopologyConflicts}
+      {showAtlasOverlaps}
       {showExits}
       {showObjects}
       {onToggleExits}
       {onToggleObjects}
       onToggleTopologyConflicts={(value) => (showTopologyConflicts = value)}
+      onToggleAtlasOverlaps={(value) => (showAtlasOverlaps = value)}
       onZoomOut={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}
       onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
@@ -586,6 +633,7 @@
       aria-label="Interactive regional map"
     ></div>
     <TopologyConflictPanel diagnostics={topologyDiagnostics} visible={showTopologyConflicts} />
+    <AtlasOverlapPanel overlaps={atlasOverlaps} visible={showAtlasOverlaps} />
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
