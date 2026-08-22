@@ -174,6 +174,8 @@ test("shows the cartographer", async ({ page }) => {
   await expect(
     page.getByText("colors are not assumed to be universal", { exact: false }),
   ).toBeVisible()
+  const unusedMetatiles = page.getByRole("checkbox", { name: "Include unused source metatiles" })
+  await expect(unusedMetatiles).not.toBeChecked()
 
   const metatileBrowser = page.getByLabel("Metatile browser")
   const firstMetatile = metatileBrowser.locator('button[aria-label*=":0x"]').first()
@@ -196,6 +198,16 @@ test("shows the cartographer", async ({ page }) => {
     .toBe(true)
 
   const metatileSearch = page.getByRole("searchbox", { name: "Scoped or local ID" })
-  await metatileSearch.fill("0x000")
+  await metatileSearch.fill(metatileSourceId)
   await expect(metatileBrowser.locator('button[aria-label*=":0x"]').first()).toBeVisible()
+
+  await page.getByRole("searchbox", { name: "Find a render context" }).fill("Building_Dome")
+  await page.getByRole("button", { name: /gTileset_Building_Dome \+ gTileset_BattleDome/ }).click()
+  await expect(metatileBrowser.getByText(/0 shown · 0 used/)).toBeVisible()
+  await expect(
+    metatileBrowser.getByText("This tileset has no metatiles used by maps in this render context."),
+  ).toBeVisible()
+  await page.getByText("Include unused source metatiles", { exact: true }).click()
+  await expect(unusedMetatiles).toBeChecked()
+  await expect(metatileBrowser.getByText(/128 shown · 0 used/)).toBeVisible()
 })

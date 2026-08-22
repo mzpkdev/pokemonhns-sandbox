@@ -6,13 +6,16 @@
   import MetatilePreview from "./MetatilePreview.svelte"
 
   type Props = {
+    includeUnused: boolean
     metatiles: readonly CatalogMetatile[]
     selectedId: number | null
     tileset: MetatileTileset
+    usedMetatileCount: number
     onSelect?: (metatile: CatalogMetatile) => void
   }
 
-  let { metatiles, selectedId, tileset, onSelect }: Props = $props()
+  let { includeUnused, metatiles, selectedId, tileset, usedMetatileCount, onSelect }: Props =
+    $props()
 </script>
 
 <section
@@ -28,7 +31,7 @@
       <p
         class="mb-0 mt-1 font-cartographer-mono text-[0.65rem] tracking-[0.04em] text-cartographer-muted"
       >
-        {tileset.kind} · {metatiles.length} metatiles
+        {tileset.kind} · {metatiles.length} shown · {usedMetatileCount} used
       </p>
       {#if tileset.atlas.unresolvedTileReferences > 0}
         <p class="mb-0 mt-1 text-xs text-cartographer-rose-400">
@@ -41,7 +44,11 @@
     >
   </div>
   {#if metatiles.length === 0}
-    <p class="m-0 p-5 text-sm text-cartographer-muted">This source tileset has no metatiles.</p>
+    <p class="m-0 p-5 text-sm text-cartographer-muted">
+      {includeUnused
+        ? "No source metatiles match the current filter."
+        : "This tileset has no metatiles used by maps in this render context."}
+    </p>
   {:else}
     <div
       class="grid grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-px bg-cartographer-border p-px"

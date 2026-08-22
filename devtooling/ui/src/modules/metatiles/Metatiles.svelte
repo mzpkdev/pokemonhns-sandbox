@@ -15,6 +15,7 @@
   import MetatileContextPicker from "./MetatileContextPicker.svelte"
   import MetatileInspector from "./MetatileInspector.svelte"
   import Button from "../cartographer/ui-toolkit/Button.svelte"
+  import Checkbox from "../cartographer/ui-toolkit/Checkbox.svelte"
 
   type LoadState =
     | { kind: "loading" }
@@ -33,6 +34,7 @@
   let activeContextId = $state<string | null>(null)
   let activeTilesetKind = $state<TilesetKind>("primary")
   let query = $state("")
+  let includeUnused = $state(false)
   let selectedSourceId = $state<string | null>(null)
   let contextLoadState = $state<ContextLoadState>({ kind: "idle" })
   let contextController: AbortController | null = null
@@ -119,7 +121,13 @@
   let activeTileset = $derived<MetatileTileset | null>(
     activeContext ? activeContext[activeTilesetKind] : null,
   )
-  let filteredMetatiles = $derived(filterMetatiles(activeTileset?.metatiles ?? [], query))
+  let usedMetatiles = $derived(
+    (activeTileset?.metatiles ?? []).filter((metatile) => metatile.usedBy.length > 0),
+  )
+  let browsableMetatiles = $derived(
+    includeUnused ? (activeTileset?.metatiles ?? []) : usedMetatiles,
+  )
+  let filteredMetatiles = $derived(filterMetatiles(browsableMetatiles, query))
   let selectedMetatile = $derived(
     activeTileset?.metatiles.find((metatile) => metatile.sourceId === selectedSourceId) ?? null,
   )
@@ -148,6 +156,11 @@
   const selectTileset = (kind: TilesetKind): void => {
     activeTilesetKind = kind
     selectedSourceId = null
+  }
+
+  const setIncludeUnused = (value: boolean): void => {
+    includeUnused = value
+    if (!value && selectedMetatile?.usedBy.length === 0) selectedSourceId = null
   }
 </script>
 
@@ -260,8 +273,16 @@
           <p
             class="mb-0 mt-2 font-cartographer-mono text-[0.65rem] leading-5 text-cartographer-muted"
           >
-            {filteredMetatiles.length} of {activeTileset.metatiles.length} in this tileset
+            {filteredMetatiles.length} shown · {usedMetatiles.length} used in this context
           </p>
+          <div class="mt-3 border-t border-cartographer-border pt-3">
+            <Checkbox checked={includeUnused} onCheckedChange={setIncludeUnused}
+              >Include unused source metatiles</Checkbox
+            >
+            <p class="mb-0 mt-1 text-xs leading-5 text-cartographer-muted">
+              Shows declared rows that no map in this render context places.
+            </p>
+          </div>
         </section>
       </aside>
       <main class="min-w-0" aria-label="Metatile browser">
@@ -292,9 +313,11 @@
           </nav>
         </div>
         <MetatileCatalogGrid
+          {includeUnused}
           metatiles={filteredMetatiles}
           selectedId={selectedMetatile?.id ?? null}
           tileset={activeTileset}
+          usedMetatileCount={usedMetatiles.length}
           onSelect={(metatile) => (selectedSourceId = metatile.sourceId)}
         />
       </main>
