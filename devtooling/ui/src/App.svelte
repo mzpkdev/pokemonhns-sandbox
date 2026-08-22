@@ -1,10 +1,14 @@
 <script lang="ts">
+  import { cubicOut } from "svelte/easing"
+  import { fade } from "svelte/transition"
   import { onMount } from "svelte"
 
   import Cartographer from "./modules/cartographer/Cartographer.svelte"
   import Metatiles from "./modules/metatiles/Metatiles.svelte"
 
   type ModuleId = "cartographer" | "metatiles"
+
+  const fadeIn = { delay: 75, duration: 125, easing: cubicOut }
 
   const moduleFromHash = (): ModuleId => {
     return window.location.hash === "#metatiles" ? "metatiles" : "cartographer"
@@ -61,9 +65,13 @@
     <span class="hidden items-center text-xs text-cartographer-muted sm:flex">Local source</span>
   </nav>
 
-  {#if activeModule === "cartographer"}
-    <Cartographer />
-  {:else}
-    <Metatiles />
-  {/if}
+  {#key activeModule}
+    <div in:fade={fadeIn}>
+      {#if activeModule === "cartographer"}
+        <Cartographer />
+      {:else}
+        <Metatiles />
+      {/if}
+    </div>
+  {/key}
 </main>

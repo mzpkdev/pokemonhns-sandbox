@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { cubicOut } from "svelte/easing"
+  import { fade } from "svelte/transition"
   import { onMount } from "svelte"
 
   import EncounterPanel from "./EncounterPanel.svelte"
@@ -28,6 +30,8 @@
     | { kind: "error"; message: string; details: string[] }
 
   type CartographerTab = "map" | "encounters"
+
+  const fadeIn = { delay: 75, duration: 125, easing: cubicOut }
 
   let loadState = $state<LoadState>({ kind: "loading" })
   let requestedRegion = $state<string | null>(null)
@@ -216,7 +220,7 @@
         <MapSearch maps={catalog.maps} bind:query={searchQuery} onSelectMap={selectMap} />
       </aside>
       {#if activeTab === "map"}
-        <div id="cartographer-map" class="min-w-0">
+        <div id="cartographer-map" class="min-w-0" in:fade={fadeIn}>
           {#key activeRegion.id}
             <MapViewport
               {catalog}
@@ -251,18 +255,20 @@
             />
           {/key}
         </div>
-        <MapDetails
-          maps={catalog.maps}
-          {selectedMap}
-          {selectedWarp}
-          {selectedObject}
-          {renderedMapNames}
-          onSelectWarp={selectWarp}
-          onSelectObject={selectObject}
-          onFocusMap={(name) => selectMap(name, true)}
-        />
+        <div class="min-w-0" in:fade={fadeIn}>
+          <MapDetails
+            maps={catalog.maps}
+            {selectedMap}
+            {selectedWarp}
+            {selectedObject}
+            {renderedMapNames}
+            onSelectWarp={selectWarp}
+            onSelectObject={selectObject}
+            onFocusMap={(name) => selectMap(name, true)}
+          />
+        </div>
       {:else}
-        <div id="cartographer-encounters" class="min-w-0">
+        <div id="cartographer-encounters" class="min-w-0" in:fade={fadeIn}>
           {#key activeRegion.id}
             <MapViewport
               {catalog}
@@ -284,7 +290,7 @@
             />
           {/key}
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0" in:fade={fadeIn}>
           <EncounterPanel
             {selectedMap}
             {selectedObject}
