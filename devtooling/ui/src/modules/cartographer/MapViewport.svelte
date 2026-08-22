@@ -21,6 +21,7 @@
 
   import MapToolbar from "./MapToolbar.svelte"
   import AtlasOverlapPanel from "./AtlasOverlapPanel.svelte"
+  import ObjectFilterPanel from "./ObjectFilterPanel.svelte"
   import TopologyConflictPanel from "./TopologyConflictPanel.svelte"
   import type {
     CatalogMap,
@@ -262,6 +263,21 @@
   let directTopologyMismatches = $derived(topologyDiagnostics.filter(isDirectMismatch))
   let atlasOverlaps = $derived(geography.overlaps)
   let atlasOverlapMapNames = $derived(new Set(atlasOverlaps.flatMap((overlap) => overlap.maps)))
+  let hiddenObjectKinds = $state<Set<string>>(new Set())
+  let objectKinds = $derived.by(() => {
+    const counts = new Map<string, number>()
+    for (const map of surfaceMaps) {
+      for (const object of map.objects ?? []) {
+        counts.set(object.kind.label, (counts.get(object.kind.label) ?? 0) + 1)
+      }
+    }
+    return [...counts]
+      .sort(([left], [right]) => left.localeCompare(right, "en"))
+      .map(([label, count]) => ({ label, count, visible: !hiddenObjectKinds.has(label) }))
+  })
+  let visibleObjectKinds = $derived(
+    new Set(objectKinds.filter((kind) => kind.visible).map((kind) => kind.label)),
+  )
 
   const visualDirectMismatchFor = (
     diagnostic: CatalogDirectTopologyMismatch,
@@ -297,10 +313,23 @@
 
   const updateObjectVisibility = (): void => {
     if (!instance) return
-    instance.objects.setVisible(
-      showObjects || (instance.view.getResolution() ?? Number.POSITIVE_INFINITY) <= 10,
-    )
+    instance.objects.setVisible(showObjects && visibleObjectKinds.size > 0)
   }
+
+  const toggleObjectKind = (label: string, visible: boolean): void => {
+    const next = new Set(hiddenObjectKinds)
+    if (visible) next.delete(label)
+    else next.add(label)
+    hiddenObjectKinds = next
+  }
+
+  $effect(() => {
+    if (!selectedObject) return
+    const map = maps.find((candidate) => candidate.name === selectedObject.sourceMapName)
+    const object = map?.objects.find((candidate) => candidate.objectId === selectedObject.objectId)
+    if (object && hiddenObjectKinds.has(object.kind.label))
+      toggleObjectKind(object.kind.label, true)
+  })
 
   const updateTopologyConflictVisibility = (): void => {
     if (!instance) return
@@ -485,6 +514,7 @@
       style: (feature, resolution) => {
         const object = feature.get("object") as CatalogObject | undefined
         if (!object) return scaledStyle(placeholderStyles.unresolved, resolution)
+        if (!visibleObjectKinds.has(object.kind.label)) return undefined
         const selected =
           selectedObject?.sourceMapName === feature.get("mapName") &&
           selectedObject?.objectId === feature.get("objectId")
@@ -631,6 +661,9 @@
       onZoomIn={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) + 1)}
       onFit={() => instance?.view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 })}
     />
+    {#if showObjects}
+      <ObjectFilterPanel kinds={objectKinds} onToggle={toggleObjectKind} />
+    {/if}
     <div
       class="cartographer-map-field h-[58vh] min-h-88 border-t border-cartographer-border md:h-[min(70vh,48rem)] md:min-h-112"
       bind:this={host}
@@ -641,8 +674,8 @@
     <p
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
-      Pan, scroll, or pinch to inspect. Select a map for source details. Exits and objects appear at
-      close range.
+      Pan, scroll, or pinch to inspect. Select a map for source details. Toggle exits and object
+      kinds when you need them.
     </p>
   </section>
 {:else}

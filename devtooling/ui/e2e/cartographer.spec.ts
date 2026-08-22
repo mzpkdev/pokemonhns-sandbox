@@ -20,6 +20,13 @@ test("shows the cartographer", async ({ page }) => {
   await expect(objects).not.toBeChecked()
   await page.getByLabel("Interactive cartographer").getByText("Objects", { exact: true }).click()
   await expect(objects).toBeChecked()
+  const trainers = page.getByRole("checkbox", { name: /Trainer/ })
+  await expect(trainers).toBeChecked()
+  await page
+    .getByLabel("Object filters")
+    .getByText(/Trainer/)
+    .click()
+  await expect(trainers).not.toBeChecked()
 
   await mapSearch.fill("Route15")
   await page.getByRole("option", { name: /Route15/ }).click()
