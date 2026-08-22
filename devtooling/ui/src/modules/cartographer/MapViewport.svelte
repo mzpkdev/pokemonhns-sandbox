@@ -154,7 +154,7 @@
     zIndex: 1,
   })
   const cycleTraceStyle = new Style({
-    stroke: new Stroke({ color: "#ff1744", width: 3, lineDash: [4, 7] }),
+    stroke: new Stroke({ color: "#d23b52", width: 3, lineDash: [4, 7] }),
     zIndex: 1,
   })
   const cycleCandidateStyles = new Map<number, Style>()
@@ -166,14 +166,14 @@
         points: 3,
         radius: 8,
         rotation: Math.PI,
-        fill: new Fill({ color: "#ff1744" }),
-        stroke: new Stroke({ color: "#ffe4e9", width: 2 }),
+        fill: new Fill({ color: "#d23b52" }),
+        stroke: new Stroke({ color: "#501722", width: 2 }),
       }),
       text: new Text({
         text: `Review ${rank}`,
         font: "600 11px 'IBM Plex Mono', monospace",
-        fill: new Fill({ color: "#fff4f6" }),
-        backgroundFill: new Fill({ color: "rgba(118, 0, 18, 0.92)" }),
+        fill: new Fill({ color: "#f4b4be" }),
+        backgroundFill: new Fill({ color: "rgba(78, 18, 29, 0.94)" }),
         padding: [3, 5, 3, 5],
         textAlign: "left",
         textBaseline: "bottom",
