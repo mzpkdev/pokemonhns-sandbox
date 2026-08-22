@@ -92,6 +92,20 @@ test("shows the cartographer", async ({ page }) => {
   await expect(page.getByLabel("Interactive cartographer")).toBeVisible()
   await expect(page.getByText("encounter maps", { exact: false })).toBeVisible()
   await expect(page.getByText("runtime-valid land and water tiles", { exact: false })).toBeVisible()
+  const trainerEventsToggle = page.getByRole("checkbox", { name: "Trainer events" })
+  await expect(trainerEventsToggle).toBeChecked()
+  const trainerEvents = page.getByRole("region", { name: "Trainer events" })
+  await expect(trainerEvents.getByText("Battles Albert", { exact: true })).toBeVisible()
+  await trainerEvents.getByRole("button", { name: /Battles Albert/ }).click()
+  await expect(trainerEvents.getByRole("button", { name: /Battles Albert/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  )
+  await page
+    .getByLabel("Interactive cartographer")
+    .getByText("Trainer events", { exact: true })
+    .click()
+  await expect(trainerEventsToggle).not.toBeChecked()
   await expect
     .poll(() => page.evaluate(() => document.body.scrollWidth))
     .toBe(await page.evaluate(() => document.body.clientWidth))

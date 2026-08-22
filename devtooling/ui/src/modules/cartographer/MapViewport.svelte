@@ -54,6 +54,7 @@
     focusRequest?: FocusRequest | null
     showExits?: boolean
     showObjects?: boolean
+    showEncounterTrainers?: boolean
     encounterMode?: boolean
     onSelectMap?: (name: string) => void
     onSelectWarp?: (selection: WarpSelection) => void
@@ -61,6 +62,7 @@
     onCameraChange?: (view: CartographerViewState) => void
     onToggleExits?: (value: boolean) => void
     onToggleObjects?: (value: boolean) => void
+    onToggleEncounterTrainers?: (value: boolean) => void
   }
 
   let {
@@ -73,6 +75,7 @@
     focusRequest = null,
     showExits = false,
     showObjects = false,
+    showEncounterTrainers = true,
     encounterMode = false,
     onSelectMap,
     onSelectWarp,
@@ -80,6 +83,7 @@
     onCameraChange,
     onToggleExits,
     onToggleObjects,
+    onToggleEncounterTrainers,
   }: Props = $props()
 
   const baseStyle = new Style({
@@ -270,6 +274,7 @@
         view: View
         exits: VectorLayer<VectorSource>
         objects: VectorLayer<VectorSource>
+        trainers: VectorLayer<VectorSource>
         habitats: VectorLayer<VectorSource>
         encounterRosters: VectorLayer<VectorSource>
         topologyConflicts: VectorLayer<VectorSource>
@@ -443,6 +448,7 @@
     if (!instance) return
     instance.habitats.setVisible(encounterMode)
     instance.encounterRosters.setVisible(encounterMode)
+    instance.trainers.setVisible(encounterMode && showEncounterTrainers)
     instance.habitats.changed()
     instance.encounterRosters.changed()
   }
@@ -555,6 +561,7 @@
     const hitSource = new VectorSource()
     const exitSource = new VectorSource()
     const objectSource = new VectorSource()
+    const trainerSource = new VectorSource()
     const habitatSource = new VectorSource()
     const encounterRosterSource = new VectorSource()
     const conflictSource = new VectorSource()
@@ -580,17 +587,17 @@
         )
       }
       for (const object of map.objects ?? []) {
-        objectSource.addFeature(
-          new Feature({
-            geometry: new Point([
-              (placement.x + object.xMetatiles + 0.5) * catalog.pixelsPerMetatile,
-              -(placement.y + object.yMetatiles + 1) * catalog.pixelsPerMetatile,
-            ]),
-            mapName: map.name,
-            objectId: object.objectId,
-            object,
-          }),
-        )
+        const properties = {
+          geometry: new Point([
+            (placement.x + object.xMetatiles + 0.5) * catalog.pixelsPerMetatile,
+            -(placement.y + object.yMetatiles + 1) * catalog.pixelsPerMetatile,
+          ]),
+          mapName: map.name,
+          objectId: object.objectId,
+          object,
+        }
+        objectSource.addFeature(new Feature(properties))
+        if (object.kind.id === "trainer") trainerSource.addFeature(new Feature(properties))
       }
       for (const [kind, method] of [
         ["land", "land_mons"],
@@ -710,6 +717,21 @@
         return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(objectStyle, resolution)]
       },
     })
+    const trainers = new VectorLayer({
+      source: trainerSource,
+      style: (feature, resolution) => {
+        const object = feature.get("object") as CatalogObject | undefined
+        if (!object || !encounterMode || !showEncounterTrainers) return undefined
+        const selected =
+          selectedObject?.sourceMapName === feature.get("mapName") &&
+          selectedObject?.objectId === feature.get("objectId")
+        const trainerStyle = objectStyleFor(object)
+        if (!selected) return scaledStyle(trainerStyle, resolution)
+        return [scaledStyle(selectedObjectStyle, resolution), scaledStyle(trainerStyle, resolution)]
+      },
+      visible: encounterMode && showEncounterTrainers,
+      declutter: true,
+    })
     const habitats = new VectorLayer({
       source: habitatSource,
       style: (feature) => {
@@ -758,6 +780,7 @@
         habitats,
         hitLayer,
         encounterRosters,
+        trainers,
         exits,
         objects,
         topologyConflicts,
@@ -817,7 +840,8 @@
         },
         {
           hitTolerance: 12,
-          layerFilter: (layer) => layer === hitLayer || layer === exits || layer === objects,
+          layerFilter: (layer) =>
+            layer === hitLayer || layer === exits || layer === objects || layer === trainers,
         },
       )
       if (!chosen.value) return
@@ -832,6 +856,7 @@
       view,
       exits,
       objects,
+      trainers,
       habitats,
       encounterRosters,
       topologyConflicts,
@@ -867,10 +892,12 @@
       {showAtlasOverlaps}
       {showExits}
       {showObjects}
+      {showEncounterTrainers}
       {encounterMode}
       {encounterMapCount}
       {onToggleExits}
       {onToggleObjects}
+      {onToggleEncounterTrainers}
       onToggleTopologyConflicts={(value) => (showTopologyConflicts = value)}
       onToggleAtlasOverlaps={(value) => (showAtlasOverlaps = value)}
       onZoomOut={() => instance?.view.setZoom((instance.view.getZoom() ?? 0) - 1)}
@@ -893,7 +920,7 @@
       class="m-0 border-t border-cartographer-border px-4 py-3 font-cartographer-mono text-[0.68rem] leading-5 tracking-[0.04em] text-cartographer-muted"
     >
       {encounterMode
-        ? "Blue frames mark maps with source encounter sets. Selected-map tints mark runtime-valid land and water tiles; grouped icons preview each method roster, not exact encounters. L, W, R, and F mean land, water, Rock Smash, and fishing."
+        ? "Blue frames mark maps with source encounter sets. Selected-map tints mark runtime-valid land and water tiles; grouped icons preview each method roster, not exact encounters. Trainer event sprites mark source trainer locations. L, W, R, and F mean land, water, Rock Smash, and fishing."
         : "Pan, scroll, or pinch to inspect. Select a map for source details. Toggle exits and object kinds when you need them."}
     </p>
   </section>

@@ -11,10 +11,12 @@
     showAtlasOverlaps: boolean
     showExits: boolean
     showObjects: boolean
+    showEncounterTrainers?: boolean
     encounterMode?: boolean
     encounterMapCount?: number
     onToggleExits?: (value: boolean) => void
     onToggleObjects?: (value: boolean) => void
+    onToggleEncounterTrainers?: (value: boolean) => void
     onToggleTopologyConflicts?: (value: boolean) => void
     onToggleAtlasOverlaps?: (value: boolean) => void
     onZoomOut?: () => void
@@ -31,10 +33,12 @@
     showAtlasOverlaps,
     showExits,
     showObjects,
+    showEncounterTrainers = true,
     encounterMode = false,
     encounterMapCount = 0,
     onToggleExits,
     onToggleObjects,
+    onToggleEncounterTrainers,
     onToggleTopologyConflicts,
     onToggleAtlasOverlaps,
     onZoomOut,
@@ -50,6 +54,9 @@
   {#if encounterMode}
     <span class="font-cartographer-mono text-xs text-cartographer-signal-soft"
       >{encounterMapCount} encounter maps</span
+    >
+    <Checkbox checked={showEncounterTrainers} onCheckedChange={onToggleEncounterTrainers}
+      >Trainer events</Checkbox
     >
   {:else}
     {#if topologyDiagnosticCount > 0}

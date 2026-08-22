@@ -1,13 +1,17 @@
 <script lang="ts">
-  import type { CatalogMap, CatalogWildEncounterMethod } from "./catalog.js"
+  import type { CatalogMap, CatalogObject, CatalogWildEncounterMethod } from "./catalog.js"
   import { fishingGroupIds, rodLabel, visibleEncounterSlots } from "./encounters.js"
   import EncounterSlotsTable from "./EncounterSlotsTable.svelte"
+  import TrainerEvents from "./TrainerEvents.svelte"
+  import type { ObjectSelection } from "./types.js"
 
   type Props = {
     selectedMap: CatalogMap | null
+    selectedObject: ObjectSelection | null
+    onSelectTrainer?: (trainer: CatalogObject) => void
   }
 
-  let { selectedMap }: Props = $props()
+  let { selectedMap, selectedObject, onSelectTrainer }: Props = $props()
 
   const methodLabels: Record<CatalogWildEncounterMethod["type"], string> = {
     land_mons: "Land",
@@ -43,6 +47,7 @@
       </p>
     </div>
   {:else}
+    {@const trainers = selectedMap.objects.filter((object) => object.kind.id === "trainer")}
     <header class="border-b border-cartographer-border p-5 sm:flex sm:items-end sm:justify-between">
       <div>
         <p
@@ -59,6 +64,8 @@
           : "sets"}
       </p>
     </header>
+
+    <TrainerEvents mapName={selectedMap.name} {trainers} {selectedObject} {onSelectTrainer} />
 
     {#if selectedMap.wildEncounters.sets.length === 0}
       <div class="p-6">

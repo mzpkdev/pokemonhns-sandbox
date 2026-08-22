@@ -39,6 +39,7 @@
   let selectedObject = $state<ObjectSelection | null>(null)
   let showExits = $state(false)
   let showObjects = $state(false)
+  let showEncounterTrainers = $state(true)
   let focusToken = $state(0)
   let activeTab = $state<CartographerTab>("map")
 
@@ -229,6 +230,7 @@
                 : null}
               {showExits}
               {showObjects}
+              {showEncounterTrainers}
               onSelectMap={selectMap}
               onSelectWarp={(selection) => {
                 selectMap(selection.sourceMapName)
@@ -245,6 +247,7 @@
               onCameraChange={handleCameraChange}
               onToggleExits={(value) => (showExits = value)}
               onToggleObjects={(value) => (showObjects = value)}
+              onToggleEncounterTrainers={(value) => (showEncounterTrainers = value)}
             />
           {/key}
         </div>
@@ -270,13 +273,26 @@
                 ? { mapName: selectedMap.name, token: focusToken }
                 : null}
               encounterMode
+              {showEncounterTrainers}
               onSelectMap={selectMap}
+              onSelectObject={(selection) => {
+                selectMap(selection.sourceMapName)
+                selectedObject = selection
+              }}
               onCameraChange={handleCameraChange}
+              onToggleEncounterTrainers={(value) => (showEncounterTrainers = value)}
             />
           {/key}
         </div>
         <div class="min-w-0">
-          <EncounterPanel {selectedMap} />
+          <EncounterPanel
+            {selectedMap}
+            {selectedObject}
+            onSelectTrainer={(trainer) => {
+              if (!selectedMap) return
+              selectedObject = { sourceMapName: selectedMap.name, objectId: trainer.objectId }
+            }}
+          />
         </div>
       {/if}
     </div>
